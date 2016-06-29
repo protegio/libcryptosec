@@ -90,8 +90,6 @@ CPP_SRCS += \
 ./src/certificate/SubjectInformationAccessExtension.cpp \
 ./src/certificate/SubjectKeyIdentifierExtension.cpp \
 ./src/certificate/UserNotice.cpp \
-./src/ec/EllipticCurve.cpp \
-./src/ec/BrainpoolCurveFactory.cpp \
  
 OBJS += $(CPP_SRCS:.cpp=.o)
 
@@ -128,7 +126,6 @@ install: $(EXECUTABLES) libdir
 	@cp -f include/libcryptosec/*.h $(DESTDIR)/usr/include/libcryptosec/
 	@cp -f include/libcryptosec/exception/* $(DESTDIR)/usr/include/libcryptosec/exception
 	@cp -f include/libcryptosec/certificate/* $(DESTDIR)/usr/include/libcryptosec/certificate
-	@cp -f include/libcryptosec/ec/* $(DESTDIR)/usr/include/libcryptosec/ec
 	@echo 'Instalation complete!'
 
 uninstall:
