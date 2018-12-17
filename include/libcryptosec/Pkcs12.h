@@ -7,9 +7,11 @@
 #include "RSAPublicKey.h"
 #include "DSAPublicKey.h"
 #include "ECDSAPublicKey.h"
+#include "EdDSAPublicKey.h"
 #include "RSAPrivateKey.h"
 #include "DSAPrivateKey.h"
 #include "ECDSAPrivateKey.h"
+#include "EdDSAPrivateKey.h"
 
 #include <libcryptosec/certificate/Certificate.h>
 #include <libcryptosec/exception/EncodeException.h>
@@ -20,24 +22,24 @@ class Pkcs12
 public:
 	Pkcs12(PKCS12* p12);
 	virtual ~Pkcs12();
-	
+
 	/**
 	 * @return o conteudo em codificacao DER do pacote Pkcs12
 	 * */
 	ByteArray getDerEncoded() const throw(EncodeException);
-	
+
 	/**
 	 * Retorna uma copia da chave privada encapsulada pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
 	PrivateKey* getPrivKey(string password) throw(Pkcs12Exception);
-	
+
 	/**
 	 * Retorna uma copia do certificado encapsulados pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
 	Certificate* getCertificate(string password) throw(Pkcs12Exception);
-	
+
 	/**
 	 * Retorna uma copia dos certificados adicionais encapsulados pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
@@ -50,7 +52,7 @@ protected:
 	 * @param password passphrase do pacote Pkcs12
 	 * */
 	void parse(string password) throw(Pkcs12Exception);
-	
+
 protected:
 	PrivateKey* privKey;
 	Certificate* cert;

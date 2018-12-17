@@ -8,21 +8,23 @@
 #include "RSAPublicKey.h"
 #include "DSAPublicKey.h"
 #include "ECDSAPublicKey.h"
+#include "EdDSAPublicKey.h"
 #include "RSAPrivateKey.h"
 #include "DSAPrivateKey.h"
 #include "ECDSAPrivateKey.h"
+#include "EdDSAPrivateKey.h"
 
 #include <libcryptosec/exception/EngineException.h>
 #include <libcryptosec/exception/EncodeException.h>
 #include <libcryptosec/exception/AsymmetricKeyException.h>
 
 /**
- * Representa um par de chaves assimétricas. 
+ * Representa um par de chaves assimétricas.
  * Essa classe deve ser usada para a criação de chaves assimétricas
  * bem como a condificação e decodificação do par para os formatos PEM e DER.
- * @ingroup AsymmetricKeys 
+ * @ingroup AsymmetricKeys
  */
- 
+
 class KeyPair
 {
 	public:
@@ -35,7 +37,7 @@ class KeyPair
 		//TODO Este construtor deve é obsoleto. Devem ser usados os construtores das classes especializadas RSAKeyPair, DSAKeyPair e ECDSAKeyPair
 		KeyPair(AsymmetricKey::Algorithm algorithm, int length)
 				throw (AsymmetricKeyException);
-		
+
 		KeyPair(Engine *engine, std::string keyId)
 				throw (EngineException);
 		/**
@@ -57,9 +59,9 @@ class KeyPair
 		 */
 		KeyPair(ByteArray derEncoded)
 				throw (EncodeException);
-		
+
 		KeyPair(const KeyPair &keyPair);
-		
+
 		virtual ~KeyPair();
 		/**
 		 * gets the public key from key pair
@@ -108,11 +110,11 @@ class KeyPair
 		 * @return key size in bits
 		 */
 		int getSizeBits() throw (AsymmetricKeyException);
-		
+
 		EVP_PKEY* getEvpPkey() const;
-		
+
 		ENGINE* getEngine() const;
-		
+
 		std::string getKeyId() const;
 	protected:
 		KeyPair();

@@ -21,8 +21,8 @@
 
 /**
  * Classe que representa uma chave assimétrica.
- * 
- * Esta classe é abstrata e implementa apenas os procedimentos comuns a todos os tipos 
+ *
+ * Esta classe é abstrata e implementa apenas os procedimentos comuns a todos os tipos
  * de chaves assimétricas.
  * @see PrivateKey
  * @see PublicKey
@@ -33,22 +33,23 @@
  * @see KeyPair
  * @ingroup AsymmetricKeys
  */
-class AsymmetricKey 
+class AsymmetricKey
 {
 
 public:
-	
+
 	/**
 	 * @enum Algorithm
 	 **/
 	/**
 	 *  Algoritmos assimétricos suportados.
-	 **/		 
-	enum Algorithm 
+	 **/
+	enum Algorithm
 	{
 		RSA, /*!< A chave é do tipo RSA */
 		DSA, /*!< A chave é do tipo DSA */
 		ECDSA, /*!< A chave é do tipo ECDSA */
+		EdDSA, /*!< A chave é do tipo EdDSA */
 //		DH,
 //		EC,
 	};
@@ -124,6 +125,11 @@ public:
 		BRAINPOOL_P384T1 = 932,
 		BRAINPOOL_P512R1 = 933,
 		BRAINPOOL_P512T1 = 934,
+
+		// Os NIDs são gerados pela engine, então usa valores "inválidos"
+		ED25519 = 10001,
+		ED448 = 10002,
+		ED521 = 10003,
 	};
 
 
@@ -137,21 +143,21 @@ public:
 	 */
 	AsymmetricKey(EVP_PKEY *key)
 			throw (AsymmetricKeyException);
-			
+
 	/**
 	 * Carrega uma chave assimétrica a partir da sua equivalente codificada em DER.
-	 * Esse método é reimplementado pelas subclasses. 
+	 * Esse método é reimplementado pelas subclasses.
 	 * @param encoded a chave assimétrica no formato DER.
 	 */
 	AsymmetricKey(ByteArray &encoded);
-	
+
 	/**
 	 * Carrega uma chave assimétrica a partir da sua equivalente codificada em PEM.
-	 * Esse método é reimplementado pelas subclasses. 
+	 * Esse método é reimplementado pelas subclasses.
 	 * @param encoded a chave assimétrica no formato PEM.
 	 */
 	AsymmetricKey(std::string &encoded);
-	
+
 	/**
 	 * Destrutor padrão. Limpa a estrutura interna EVP_PKEY
 	 */
@@ -159,18 +165,18 @@ public:
 
 	/**
 	 * Retorna uma representação da chave codificada em DER.
-	 * Esse método é abstrato e implementado pelas subclasses. 
+	 * Esse método é abstrato e implementado pelas subclasses.
 	 * @return chave assimétrica no formato DER.
 	 */
 	virtual ByteArray getDerEncoded() = 0;
 
 	/**
 	 * Retorna uma representação da chave codificada em PEM.
-	 * Esse método é abstrato e implementado pelas subclasses. 
+	 * Esse método é abstrato e implementado pelas subclasses.
 	 * @return chave assimétrica no formato PEM.
 	 */
 	virtual std::string getPemEncoded() = 0;
-	
+
 	/**
 	 * Retorna o algoritmo assimétrico que deve ser usado com a chave atual.
 	 * @return tipo do algoritmo simetrico para essa chave.
@@ -179,7 +185,7 @@ public:
 	 */
 	AsymmetricKey::Algorithm getAlgorithm()
 			throw (AsymmetricKeyException);
-			
+
 	/**
 	 * Retorna o tamanho da chave em bytes.
 	 * @return tamanho da chave em bytes.
@@ -187,7 +193,7 @@ public:
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
 	int getSize() throw (AsymmetricKeyException);
-	
+
 	/**
 	 * Retorna o tamanho da chave em bits.
 	 * @return tamanho da chave em bits.
@@ -195,20 +201,20 @@ public:
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
 	int getSizeBits() throw (AsymmetricKeyException);
-	
+
 	/**
 	 * Uso interno. Retorna a estrutura OpenSSL interna.
 	 * @return um ponteiro para a estrutura OpenSSL interna à classe AsymmetricKey.
 	 */
 	EVP_PKEY* getEvpPkey();
-	
+
 protected:
 
 	/**
 	 * Ponteiro para a estrutura interna OpenSSL EVP_PKEY.
 	 */
 	EVP_PKEY *key;
-	
+
 };
 
 #endif /*ASYMMETRICKEY_H_*/

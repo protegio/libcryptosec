@@ -124,7 +124,7 @@ std::vector<std::pair<Engine::CmdType, std::string> > Engine::getAvaliableCmds()
 	std::pair<Engine::CmdType, std::string> cmd;
 	const ENGINE_CMD_DEFN *cmds;
 	int i;
-	
+
 	cmds = ENGINE_get_cmd_defns(this->engine);
 	i = 0;
 	while (cmds[i].cmd_name != NULL)
