@@ -153,7 +153,7 @@ std::string CertificateBuilder::getXmlEncoded(std::string tab)
 //		ret += "\t\t<signature>" + string + "</signature>\n";
 
 		//verifica se o issuer foi definido
-		if(sk_X509_NAME_ENTRY_num(X509_get_issuer_name(this->cert)->entries) > 0)
+		if(X509_NAME_entry_count(X509_get_issuer_name(this->cert)) > 0)
 		{
 			ret += "\t\t<issuer>\n";
 				try
@@ -194,25 +194,29 @@ std::string CertificateBuilder::getXmlEncoded(std::string tab)
 		ret += "\t\t</subject>\n";
 
 		ret += "\t\t<subjectPublicKeyInfo>\n";
-			if (this->cert->cert_info->key)
+			if (X509_get0_pubkey(this->cert))
 			{
-				string = OBJ_nid2ln(OBJ_obj2nid(this->cert->cert_info->key->algor->algorithm));
+				string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
 				ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-				data = ByteArray(this->cert->cert_info->key->public_key->data, this->cert->cert_info->key->public_key->length);
+				const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
+				data = ByteArray(public_key->data, public_key->length);
 				string = Base64::encode(data);
 				ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
 			}
 		ret += "\t\t</subjectPublicKeyInfo>\n";
 
-		if (this->cert->cert_info->issuerUID)
+		const ASN1_BIT_STRING *issuerUID, *subjectUID;
+		X509_get0_uids(this->cert, &issuerUID, &subjectUID);
+
+		if (issuerUID)
 		{
-			data = ByteArray(this->cert->cert_info->issuerUID->data, this->cert->cert_info->issuerUID->length);
+			data = ByteArray(issuerUID->data, issuerUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
 		}
-		if (this->cert->cert_info->subjectUID)
+		if (subjectUID)
 		{
-			data = ByteArray(this->cert->cert_info->subjectUID->data, this->cert->cert_info->subjectUID->length);
+			data = ByteArray(subjectUID->data, subjectUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
 		}
@@ -311,25 +315,30 @@ std::string CertificateBuilder::toXml(std::string tab)
 		ret += "\t\t</subject>\n";
 
 		ret += "\t\t<subjectPublicKeyInfo>\n";
-			if (this->cert->cert_info->key)
+			if (X509_get0_pubkey(this->cert))
 			{
-				string = OBJ_nid2ln(OBJ_obj2nid(this->cert->cert_info->key->algor->algorithm));
+				string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
 				ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-				data = ByteArray(this->cert->cert_info->key->public_key->data, this->cert->cert_info->key->public_key->length);
+
+				const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
+				data = ByteArray(public_key->data, public_key->length);
 				string = Base64::encode(data);
 				ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
 			}
 		ret += "\t\t</subjectPublicKeyInfo>\n";
 
-		if (this->cert->cert_info->issuerUID)
+		const ASN1_BIT_STRING *issuerUID, *subjectUID;
+		X509_get0_uids(this->cert, &issuerUID, &subjectUID);
+
+		if (issuerUID)
 		{
-			data = ByteArray(this->cert->cert_info->issuerUID->data, this->cert->cert_info->issuerUID->length);
+			data = ByteArray(issuerUID->data, issuerUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
 		}
-		if (this->cert->cert_info->subjectUID)
+		if (subjectUID)
 		{
-			data = ByteArray(this->cert->cert_info->subjectUID->data, this->cert->cert_info->subjectUID->length);
+			data = ByteArray(subjectUID->data, subjectUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
 		}
@@ -470,7 +479,7 @@ MessageDigest::Algorithm CertificateBuilder::getMessageDigestAlgorithm()
 		throw (MessageDigestException)
 {
 	MessageDigest::Algorithm ret;
-	ret = MessageDigest::getMessageDigest(OBJ_obj2nid(this->cert->sig_alg->algorithm));
+	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
 	return ret;
 }
 
@@ -506,14 +515,16 @@ ByteArray CertificateBuilder::getPublicKeyInfo()
 {
 	ByteArray ret;
 	unsigned int size;
-	ASN1_BIT_STRING *temp;
-	if (!this->cert->cert_info->key)
+	ASN1_BIT_STRING *pubKeyBits;
+	if (!X509_get_pubkey(this->cert))
 	{
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getPublicKeyInfo");
 	}
-	temp = this->cert->cert_info->key->public_key;
+	pubKeyBits = X509_get0_pubkey_bitstr(this->cert);
 	ret = ByteArray(EVP_MAX_MD_SIZE);
-	EVP_Digest(temp->data, temp->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
+
+	// TODO: sempre sha1?
+	EVP_Digest(pubKeyBits->data, pubKeyBits->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
 	ret = ByteArray(ret.getDataPointer(), size);
 	return ret;
 }
@@ -626,7 +637,8 @@ void CertificateBuilder::alterSubject(RDNSequence &name)
 			{
 				X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
 
-				int entryType = oldEntry->value->type;
+				ASN1_OBJECT* obj = X509_NAME_ENTRY_get_object(oldEntry);
+				int entryType = OBJ_obj2nid(obj);
 
 				if(!X509_NAME_ENTRY_set_object(newEntry, entry->first.getObjectIdentifier()))
 				{
@@ -1145,7 +1157,8 @@ int CertificateBuilder::getCodification(RDNSequence& name){
 		if(position != -1 && entry->first.getNid() != NID_countryName)
 		{
 			X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
-			entryType = oldEntry->value->type;
+			ASN1_OBJECT* obj = X509_NAME_ENTRY_get_object(oldEntry);
+			entryType = OBJ_obj2nid(obj);
 			if(entryType != MBSTRING_FLAG) {
 				return entryType;
 			}

@@ -48,6 +48,7 @@ public:
 	 **/
 	enum Operation
 	{
+		NO_OPERATION, /*!< quando o cifrador não tiver sido inicializado */
 		ENCRYPT, /*!< na cifragem de dados */
 		DECRYPT, /*!< na decifragem de dados */
 	};
@@ -211,9 +212,14 @@ private:
 	SymmetricCipher::OperationMode mode;
 
 	/**
+	 * Tipo de operação do cifrador.
+	 */
+	SymmetricCipher::Operation operation;
+
+	/**
 	 * Estrutura interna OpenSSL.
 	 **/
-	EVP_CIPHER_CTX ctx;
+	EVP_CIPHER_CTX* ctx;
 
 	/**
 	 * Buffer de dados a serem processados. 
@@ -221,9 +227,22 @@ private:
 	ByteArray *buffer;
 	
 	/**
-	 * TODO perguntar para o túlio
+	 * @brief Gera uma chave e um vetor de incialização.
+	 *
+	 * Essa função funciona como uma função de derivação de chave (KDF). Ela deriva a chave e o iv
+	 * a partir do conteúdo de \p key. A chave e o iv gerados serão compatíveis com o cifrador \p
+	 * cipher.
+	 *
+	 * TODO: Essa função precisa ser revisada para utilizar uma KDF padrão e mais confiável (i.e: PBKDF2).
+	 *
+	 * @param key		Os dados que serão utilizado para derivar a chave e iv. Normalmente, uma senha.
+	 * @param cipher	O cifrador no qual será utilizada a chave e iv derivados. Apenas para definir as regras de formato da chave e iv.
+	 * @param md		A função de hash que será utilizada no processo de derivação.
+	 * @param salt		O salt para ser usado na derivação (útil contra ataques de rainbow tables pré-calculadas).
+	 * @param count		O número de iterações da derivação (útil contra ataques de rainbow tables directionadas).
+	 * @return 			Um par contendo a chave e o iv gerados na primeira e segunda posição, respectivamente.
 	 **/
-	std::pair<ByteArray*, ByteArray*> keyToKeyIv(ByteArray &key, const EVP_CIPHER *cipher);
+	std::pair<ByteArray*, ByteArray*> keyToKeyIv(ByteArray &key, const EVP_CIPHER *cipher, const EVP_MD* md = EVP_md5(), const unsigned char* salt=0, int count=1);
 
 };
 

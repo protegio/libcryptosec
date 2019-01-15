@@ -134,6 +134,7 @@ ByteArray PublicKey::getDerEncoded()
 
 ByteArray PublicKey::getKeyIdentifier() throw (EncodeException)
 {
+/*  TODO: como transformar a chave em um array de bits?
 	ByteArray ret;
 	unsigned int size;
 	X509_PUBKEY *pubkey = NULL;
@@ -150,7 +151,7 @@ ByteArray PublicKey::getKeyIdentifier() throw (EncodeException)
 	X509_PUBKEY_free(pubkey);
 	
 	return ret;
-	
+*/
 	//return ByteArray(digest, digestLen);
 
 	/*	ByteArray der = this->getDerEncoded();

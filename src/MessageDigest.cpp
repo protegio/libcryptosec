@@ -3,6 +3,7 @@
 MessageDigest::MessageDigest()
 {
 	this->state = MessageDigest::NO_INIT;
+	this->algorithm = MessageDigest::NO_ALGORITHM;
 }
 
 MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm)
@@ -13,7 +14,7 @@ MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm)
 	this->state = MessageDigest::INIT;
 	this->algorithm = algorithm;
 	md = MessageDigest::getMessageDigest(this->algorithm);
-	rc = EVP_DigestInit(&this->ctx, md); 
+	rc = EVP_DigestInit(this->ctx, md);
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::MessageDigest");
@@ -21,15 +22,14 @@ MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm)
 }
 
 MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine)
-		throw (MessageDigestException)
 {
 	int rc;
 	const EVP_MD *md;
 	this->state = MessageDigest::INIT;
 	this->algorithm = algorithm;
 	md = MessageDigest::getMessageDigest(this->algorithm);
-	EVP_MD_CTX_init(&this->ctx);
-	rc = EVP_DigestInit_ex(&this->ctx, md, engine.getEngine());
+	EVP_MD_CTX_init(this->ctx);
+	rc = EVP_DigestInit_ex(this->ctx, md, engine.getEngine());
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::MessageDigest");
@@ -38,7 +38,7 @@ MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine)
 
 MessageDigest::~MessageDigest()
 {
-	EVP_MD_CTX_cleanup(&this->ctx);
+	EVP_MD_CTX_reset(this->ctx);
 }
 
 void MessageDigest::init(MessageDigest::Algorithm algorithm)
@@ -47,11 +47,11 @@ void MessageDigest::init(MessageDigest::Algorithm algorithm)
 	int rc;
 	const EVP_MD *md;
 	if (this->state != MessageDigest::NO_INIT){
-		EVP_MD_CTX_cleanup(&this->ctx);
+		EVP_MD_CTX_reset(this->ctx);
 	}
 	this->algorithm = algorithm;
 	md = MessageDigest::getMessageDigest(this->algorithm);
-	rc = EVP_DigestInit(&this->ctx, md); 
+	rc = EVP_DigestInit(this->ctx, md);
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::init");
@@ -65,12 +65,12 @@ void MessageDigest::init(MessageDigest::Algorithm algorithm, Engine &engine)
 	int rc;
 	const EVP_MD *md;
 	if (this->state != MessageDigest::NO_INIT){
-		EVP_MD_CTX_cleanup(&this->ctx);
+		EVP_MD_CTX_reset(this->ctx);
 	}
 	this->algorithm = algorithm;
 	md = MessageDigest::getMessageDigest(this->algorithm);
-	EVP_MD_CTX_init(&this->ctx);
-	rc = EVP_DigestInit_ex(&this->ctx, md, engine.getEngine());
+	EVP_MD_CTX_init(this->ctx);
+	rc = EVP_DigestInit_ex(this->ctx, md, engine.getEngine());
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::init");
@@ -85,7 +85,7 @@ void MessageDigest::update(ByteArray &data) throw (MessageDigestException, Inval
 	{
 		throw InvalidStateException("MessageDigest::update");
 	}
-	rc = EVP_DigestUpdate(&this->ctx, data.getDataPointer(), data.size());
+	rc = EVP_DigestUpdate(this->ctx, data.getDataPointer(), data.size());
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_UPDATE, "MessageDigest::update");
@@ -109,8 +109,8 @@ ByteArray MessageDigest::doFinal() throw (MessageDigestException, InvalidStateEx
 		throw InvalidStateException("MessageDigest::doFinal");
 	}
 	digest = (unsigned char *)calloc(EVP_MAX_MD_SIZE + 1, sizeof(unsigned char));
-	rc = EVP_DigestFinal_ex(&this->ctx, digest, &ndigest);
-	EVP_MD_CTX_cleanup(&this->ctx);
+	rc = EVP_DigestFinal_ex(this->ctx, digest, &ndigest);
+	EVP_MD_CTX_reset(this->ctx);
 	this->state = MessageDigest::NO_INIT;
 	if (!rc)
 	{
@@ -159,7 +159,7 @@ const EVP_MD* MessageDigest::getMessageDigest(MessageDigest::Algorithm algorithm
 			md = EVP_ripemd160();
 			break;
 		case MessageDigest::SHA:
-			md = EVP_sha();
+			md = EVP_sha1();
 			break;
 		case MessageDigest::SHA1:
 			md = EVP_sha1();

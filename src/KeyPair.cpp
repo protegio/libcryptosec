@@ -151,7 +151,7 @@ KeyPair::KeyPair(const KeyPair &keyPair)
 	this->key = keyPair.getEvpPkey();
 	if (this->key)
 	{
-		CRYPTO_add(&this->key->references,1,CRYPTO_LOCK_EVP_PKEY);
+		EVP_PKEY_up_ref(this->key);
 	}
 	this->keyId = keyPair.getKeyId();
 	this->engine = keyPair.getEngine();
@@ -352,7 +352,7 @@ AsymmetricKey::Algorithm KeyPair::getAlgorithm() throw (AsymmetricKeyException)
 	{
 		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "KeyPair::getAlgorithm");
 	}
-	switch (EVP_PKEY_type(this->key->type))
+	switch (EVP_PKEY_base_id(this->key))
 	{
 		case EVP_PKEY_RSA: /* TODO: confirmar porque tem estes dois tipos */
 		case EVP_PKEY_RSA2:
@@ -375,7 +375,8 @@ AsymmetricKey::Algorithm KeyPair::getAlgorithm() throw (AsymmetricKeyException)
 //			type = AsymmetricKey::EC;
 //			break;
 		default:
-			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "There is no support for this type: " + std::string(OBJ_nid2sn(this->key->type)), "KeyPair::getAlgorithm");
+			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "There is no support for this type: "
+					+ std::string(OBJ_nid2sn(EVP_PKEY_id(this->key))), "KeyPair::getAlgorithm");
 	}
 	return type;
 }

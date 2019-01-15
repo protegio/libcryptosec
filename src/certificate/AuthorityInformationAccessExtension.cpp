@@ -10,7 +10,9 @@ AuthorityInformationAccessExtension::AuthorityInformationAccessExtension(X509_EX
 	AUTHORITY_INFO_ACCESS *authorityInfoAccess;
 	AccessDescription accessDescription;
 
-	if (OBJ_obj2nid(ext->object) != NID_info_access)
+	ASN1_OBJECT *object = X509_EXTENSION_get_object(ext);
+
+	if (OBJ_obj2nid(object) != NID_info_access)
 	{
 		throw CertificationException(CertificationException::INVALID_TYPE, "AuthorityInformationAccessExtension::AuthorityInformationAccessExtension");
 	}

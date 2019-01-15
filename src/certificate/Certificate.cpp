@@ -98,8 +98,12 @@ std::string Certificate::getXmlEncoded(std::string tab)
 		}
 		catch (...)
 		{
+			//TODO: OK?
 		}
-		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
+
+		int signature_nid = X509_get_signature_nid(this->cert);
+
+		string = OBJ_nid2ln(signature_nid);
 		ret += "\t\t<signature>" + string + "</signature>\n";
 
 		ret += "\t\t<issuer>\n";
@@ -140,22 +144,28 @@ std::string Certificate::getXmlEncoded(std::string tab)
 		ret += "\t\t</subject>\n";
 
 		ret += "\t\t<subjectPublicKeyInfo>\n";
-			string = OBJ_nid2ln(OBJ_obj2nid(this->cert->cert_info->key->algor->algorithm));
+
+			string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
 			ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-			data = ByteArray(this->cert->cert_info->key->public_key->data, this->cert->cert_info->key->public_key->length);
+
+			const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
+			data = ByteArray(public_key->data, public_key->length);
 			string = Base64::encode(data);
 			ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
 		ret += "\t\t</subjectPublicKeyInfo>\n";
 
-		if (this->cert->cert_info->issuerUID)
+		const ASN1_BIT_STRING *issuerUID, *subjectUID;
+		X509_get0_uids(this->cert, &subjectUID, &issuerUID);
+
+		if (issuerUID)
 		{
-			data = ByteArray(this->cert->cert_info->issuerUID->data, this->cert->cert_info->issuerUID->length);
+			data = ByteArray(issuerUID->data, issuerUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
 		}
-		if (this->cert->cert_info->subjectUID)
+		if (subjectUID)
 		{
-			data = ByteArray(this->cert->cert_info->subjectUID->data, this->cert->cert_info->subjectUID->length);
+			data = ByteArray(subjectUID->data, subjectUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
 		}
@@ -172,11 +182,13 @@ std::string Certificate::getXmlEncoded(std::string tab)
 	ret += "\t</tbsCertificate>\n";
 
 	ret += "\t<signatureAlgorithm>\n";
-		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
+		string = OBJ_nid2ln(X509_get_signature_nid(this->cert));
 		ret += "\t\t<algorithm>" + string + "</algorithm>\n";
 	ret += "\t</signatureAlgorithm>\n";
 
-	data = ByteArray(this->cert->signature->data, this->cert->signature->length);
+	const ASN1_BIT_STRING* signature = 0;
+	X509_get0_signature(&signature, 0, this->cert);
+	data = ByteArray(signature->data, signature->length);
 	string = Base64::encode(data);
 	ret += "\t<signatureValue>" + string + "</signatureValue>\n";
 
@@ -213,7 +225,7 @@ std::string Certificate::toXml(std::string tab)
 		catch (...)
 		{
 		}
-		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
+		string = OBJ_nid2ln(X509_get_signature_nid(this->cert));
 		ret += "\t\t<signature>" + string + "</signature>\n";
 
 		ret += "\t\t<issuer>\n";
@@ -254,22 +266,29 @@ std::string Certificate::toXml(std::string tab)
 		ret += "\t\t</subject>\n";
 
 		ret += "\t\t<subjectPublicKeyInfo>\n";
-			string = OBJ_nid2ln(OBJ_obj2nid(this->cert->cert_info->key->algor->algorithm));
+
+			string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
 			ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-			data = ByteArray(this->cert->cert_info->key->public_key->data, this->cert->cert_info->key->public_key->length);
+
+			const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
+			data = ByteArray(public_key->data, public_key->length);
 			string = Base64::encode(data);
 			ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
 		ret += "\t\t</subjectPublicKeyInfo>\n";
 
-		if (this->cert->cert_info->issuerUID)
+		const ASN1_BIT_STRING *issuerUID, *subjectUID;
+		X509_get0_uids(this->cert, &subjectUID, &issuerUID);
+
+		if (issuerUID)
 		{
-			data = ByteArray(this->cert->cert_info->issuerUID->data, this->cert->cert_info->issuerUID->length);
+			data = ByteArray(issuerUID->data, issuerUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
 		}
-		if (this->cert->cert_info->subjectUID)
+
+		if (subjectUID)
 		{
-			data = ByteArray(this->cert->cert_info->subjectUID->data, this->cert->cert_info->subjectUID->length);
+			data = ByteArray(subjectUID->data, subjectUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
 		}
@@ -286,11 +305,13 @@ std::string Certificate::toXml(std::string tab)
 	ret += "\t</tbsCertificate>\n";
 
 	ret += "\t<signatureAlgorithm>\n";
-		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
+		string = OBJ_nid2ln(X509_get_signature_nid(this->cert));
 		ret += "\t\t<algorithm>" + string + "</algorithm>\n";
 	ret += "\t</signatureAlgorithm>\n";
 
-	data = ByteArray(this->cert->signature->data, this->cert->signature->length);
+	const ASN1_BIT_STRING* signature = 0;
+	X509_get0_signature(&signature, 0, this->cert);
+	data = ByteArray(signature->data, signature->length);
 	string = Base64::encode(data);
 	ret += "\t<signatureValue>" + string + "</signatureValue>\n";
 
@@ -412,7 +433,7 @@ MessageDigest::Algorithm Certificate::getMessageDigestAlgorithm()
 		throw (MessageDigestException)
 {
 	MessageDigest::Algorithm ret;
-	ret = MessageDigest::getMessageDigest(OBJ_obj2nid(this->cert->sig_alg->algorithm));
+	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
 	return ret;
 }
 
@@ -446,14 +467,13 @@ ByteArray Certificate::getPublicKeyInfo()
 {
 	ByteArray ret;
 	unsigned int size;
-	ASN1_BIT_STRING *temp;
-	if (!this->cert->cert_info->key)
+	ASN1_BIT_STRING *pubKeyBits = X509_get0_pubkey_bitstr(this->cert);
+	if (!pubKeyBits)
 	{
 		throw CertificationException(CertificationException::SET_NO_VALUE, "Certificate::getPublicKeyInfo");
 	}
-	temp = this->cert->cert_info->key->public_key;
 	ret = ByteArray(EVP_MAX_MD_SIZE);
-	EVP_Digest(temp->data, temp->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
+	EVP_Digest(pubKeyBits->data, pubKeyBits->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
 	ret = ByteArray(ret.getDataPointer(), size);
 	return ret;
 }

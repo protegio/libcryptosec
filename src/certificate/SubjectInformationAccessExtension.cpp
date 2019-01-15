@@ -10,7 +10,8 @@ SubjectInformationAccessExtension::SubjectInformationAccessExtension(X509_EXTENS
 	STACK_OF(ACCESS_DESCRIPTION) *subjectInfoAccess;
 	AccessDescription accessDescription;
 
-	if (OBJ_obj2nid(ext->object) != NID_sinfo_access)
+	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_sinfo_access)
 	{
 		throw CertificationException(CertificationException::INVALID_TYPE, "SubjectInformationAccessExtension::SubjectInformationAccessExtension");
 	}

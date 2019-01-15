@@ -11,7 +11,8 @@ CRLDistributionPointsExtension::CRLDistributionPointsExtension(X509_EXTENSION *e
 	CRL_DIST_POINTS *points;
 	DistributionPoint distPoint;
 	int i, num = 0;
-	if (OBJ_obj2nid(ext->object) != NID_crl_distribution_points)
+	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_crl_distribution_points)
 	{
 		throw CertificationException(CertificationException::INVALID_TYPE, "CRLDistributionPointsExtension::CRLDistributionPointsExtension");
 	}

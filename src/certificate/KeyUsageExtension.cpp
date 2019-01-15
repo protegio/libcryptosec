@@ -32,7 +32,8 @@ KeyUsageExtension::KeyUsageExtension(X509_EXTENSION *ext)
 {
 	ASN1_BIT_STRING *bitString;
 	int i;
-	if (OBJ_obj2nid(ext->object) != NID_key_usage)
+	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_key_usage)
 	{
 		X509_EXTENSION_free(ext);
 		throw CertificationException(CertificationException::INVALID_TYPE, "KeyUsageExtension::KeyUsageExtension");

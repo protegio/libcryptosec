@@ -19,6 +19,7 @@
 
 /**
  * @brief static class to perform asymmetric ciphers, using asymmetric keys (eg. RSA keys)
+ * TODO: não deveria funcionar com outras chaves além de RSA? (e.g.: ECIES)
  */
 class AsymmetricCipher
 {

@@ -10,23 +10,22 @@ RDNSequence::RDNSequence(X509_NAME *rdn)
 {
 	X509_NAME_ENTRY *nameEntry;
 	int i, num;
-	char *data;
 	std::string value;
 	std::pair<ObjectIdentifier, std::string> oneEntry;
 	if (rdn)
 	{
-		num = sk_X509_NAME_ENTRY_num(rdn->entries);
+		num = X509_NAME_entry_count(rdn);
 		for (i=0;i<num;i++)
 		{
-			nameEntry = sk_X509_NAME_ENTRY_value(rdn->entries, i);
-			oneEntry.first = ObjectIdentifier(OBJ_dup(nameEntry->object));
+			nameEntry = X509_NAME_get_entry(rdn, i);
+			oneEntry.first = ObjectIdentifier(OBJ_dup(X509_NAME_ENTRY_get_object(nameEntry)));
 			
-			data = (char *)ASN1_STRING_data(nameEntry->value);
-			value = std::string(data);
+			// TODO: esse cast é seguro? a string termina em \0?
+			const char* pValue = (const char*) X509_NAME_ENTRY_get_data(nameEntry)->data;
+			value = std::string(pValue);
 			oneEntry.second = value;
 			
 			this->newEntries.push_back(oneEntry);
-			
 			
 //			nameEntry = sk_X509_NAME_ENTRY_value(rdn->entries, i);
 //			nid = OBJ_obj2nid(nameEntry->object);
@@ -59,7 +58,7 @@ RDNSequence::RDNSequence(STACK_OF(X509_NAME_ENTRY) *entries)
 {
 	X509_NAME_ENTRY *nameEntry;
 	int i, num;
-	char *data;
+
 	std::string value;
 	std::pair<ObjectIdentifier, std::string> oneEntry;
 //	std::vector<std::string> entry;
@@ -75,12 +74,10 @@ RDNSequence::RDNSequence(STACK_OF(X509_NAME_ENTRY) *entries)
 		{
 			nameEntry = sk_X509_NAME_ENTRY_value(entries, i);
 			
-			oneEntry.first = ObjectIdentifier(OBJ_dup(nameEntry->object));
+			oneEntry.first = ObjectIdentifier(OBJ_dup(X509_NAME_ENTRY_get_object(nameEntry)));
 			
-			data = (char *)ASN1_STRING_data(nameEntry->value);
-			value = data;
-			oneEntry.second = value;
-			
+			const char *data = (const char *) X509_NAME_ENTRY_get_data(nameEntry)->data;
+			oneEntry.second = data;
 			this->newEntries.push_back(oneEntry);
 			
 //			nid = OBJ_obj2nid(nameEntry->object);

@@ -114,11 +114,13 @@ std::string CertificateRevocationList::getXmlEncoded(std::string tab)
 	ret += tab + "\t</tbsCertList>\n";
 
 	ret += tab + "\t<signatureAlgorithm>\n";
-		string = OBJ_nid2ln(OBJ_obj2nid(this->crl->sig_alg->algorithm));
+		string = OBJ_nid2ln(X509_CRL_get_signature_nid(this->crl));
 		ret += tab + "\t\t<algorithm>" + string + "</algorithm>\n";
 	ret += tab + "\t</signatureAlgorithm>\n";
 	
-	data = ByteArray(this->crl->signature->data, this->crl->signature->length); 
+	const ASN1_BIT_STRING* signature = 0;
+	X509_CRL_get0_signature(this->crl, &signature, 0);
+	data = ByteArray(signature->data, signature->length);
 	string = Base64::encode(data);
 	ret += tab + "\t<signatureValue>" + string + "</signatureValue>\n";
 

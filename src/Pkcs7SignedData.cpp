@@ -209,12 +209,12 @@ int Pkcs7SignedData::callback(int ok, X509_STORE_CTX *ctx)
 	
 	if (!ok)
 	{
-		if (ctx->current_cert)
+		if (X509_STORE_CTX_get_current_cert(ctx))
 		{
-			cert = new Certificate(ctx->current_cert);
+			cert = new Certificate(X509_STORE_CTX_get_current_cert(ctx));
 			Pkcs7SignedData::cpvr.setInvalidCertificate(cert);
 /*			X509_NAME_oneline(
-				X509_get_subject_name(ctx->current_cert),buf,
+				X509_get_subject_name(X509_STORE_CTX_get_current_cert(ctx)),buf,
 				sizeof buf);
 			printf("%s\n",buf);
 */
@@ -222,43 +222,45 @@ int Pkcs7SignedData::callback(int ok, X509_STORE_CTX *ctx)
 		}
 
 
-		Pkcs7SignedData::cpvr.setDepth(ctx->error_depth);
-		Pkcs7SignedData::cpvr.setErrorCode(CertPathValidatorResult::long2ErrorCode(ctx->error));
+		int error = X509_STORE_CTX_get_error(ctx);
+
+		Pkcs7SignedData::cpvr.setDepth(X509_STORE_CTX_get_error_depth(ctx));
+		Pkcs7SignedData::cpvr.setErrorCode(CertPathValidatorResult::long2ErrorCode(error));
 		
-/*		printf("error %d at %d depth lookup:%s\n",ctx->error,
-			ctx->error_depth,
-			X509_verify_cert_error_string(ctx->error));
+/*		printf("error %d at %d depth lookup:%s\n",error,
+			X509_STORE_CTX_get_error_depth(ctx),
+			X509_verify_cert_error_string(error));
 */
 		
 		
-		if (ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
+		if (error == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
 
 /*		since we are just checking the certificates, it is
 		 * ok if they are self signed. But we should still warn
 		 * the user.
 */
  		 
-		if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+		if (error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
 		//Continue after extension errors too 
-		if (ctx->error == X509_V_ERR_INVALID_CA) ok=1;
-		if (ctx->error == X509_V_ERR_INVALID_NON_CA) ok=1;
-		if (ctx->error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
-		if (ctx->error == X509_V_ERR_INVALID_PURPOSE) ok=1;
-		if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
-		if (ctx->error == X509_V_ERR_CRL_HAS_EXPIRED) ok=1;
-		if (ctx->error == X509_V_ERR_CRL_NOT_YET_VALID) ok=1;
-		if (ctx->error == X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION) ok=1;
+		if (error == X509_V_ERR_INVALID_CA) ok=1;
+		if (error == X509_V_ERR_INVALID_NON_CA) ok=1;
+		if (error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
+		if (error == X509_V_ERR_INVALID_PURPOSE) ok=1;
+		if (error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+		if (error == X509_V_ERR_CRL_HAS_EXPIRED) ok=1;
+		if (error == X509_V_ERR_CRL_NOT_YET_VALID) ok=1;
+		if (error == X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION) ok=1;
 
 		
 		//TODO incluir informacoes de erro de politicas na classe CertPathValidatorResult
 	/*
-		if (ctx->error == X509_V_ERR_NO_EXPLICIT_POLICY)
+		if (error == X509_V_ERR_NO_EXPLICIT_POLICY)
 			policies_print(NULL, ctx);
 	*/
 		return ok;
 
 		}
-/*	if ((ctx->error == X509_V_OK) && (ok == 2))
+/*	if ((error == X509_V_OK) && (ok == 2))
 		policies_print(NULL, ctx);
 	if (!v_verbose)
 		ERR_clear_error();

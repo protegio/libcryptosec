@@ -10,7 +10,8 @@ CRLNumberExtension::CRLNumberExtension(X509_EXTENSION* ext) throw (Certification
 {
 	ASN1_INTEGER* serialAsn1 = NULL;
 	
-	if (OBJ_obj2nid(ext->object) != NID_crl_number)
+	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_crl_number)
 	{
 		X509_EXTENSION_free(ext);
 		throw CertificationException(CertificationException::INVALID_TYPE, "CRLNumberExtension::CRLNumberExtension");

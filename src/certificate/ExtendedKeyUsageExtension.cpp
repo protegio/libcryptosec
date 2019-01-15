@@ -15,7 +15,8 @@ ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext)
 	char temp[30];
 	//ASN1_OBJECT *asn1Obj, *newAsn1Obj;
 	ASN1_OBJECT *asn1Obj;
-	if (OBJ_obj2nid(ext->object) != NID_ext_key_usage)
+	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_ext_key_usage)
 	{
 		throw CertificationException(CertificationException::INVALID_TYPE, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
 	}

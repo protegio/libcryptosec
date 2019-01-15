@@ -122,8 +122,7 @@ double BigInteger::getValue() const throw(BigIntegerException)
 	double ret;
 	
 	tmp = BN_get_word(this->bigInt);
-	
-	if(tmp == BN_MASK2)
+	if(tmp == ULONG_MAX)
 	{
 		throw BigIntegerException(BigIntegerException::UNSIGNED_LONG_OVERFLOW, "BigInteger::getValue");
 	}

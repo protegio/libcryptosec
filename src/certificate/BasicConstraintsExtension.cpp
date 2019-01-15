@@ -11,7 +11,8 @@ BasicConstraintsExtension::BasicConstraintsExtension(X509_EXTENSION *ext)
 		throw (CertificationException) : Extension(ext)
 {
 	BASIC_CONSTRAINTS_st *basicConstraints;
-	if (OBJ_obj2nid(ext->object) != NID_basic_constraints)
+	ASN1_OBJECT *object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_basic_constraints)
 	{
 		throw CertificationException(CertificationException::INVALID_TYPE, "BasicConstraintsExtension::BasicConstraintsExtension");
 	}

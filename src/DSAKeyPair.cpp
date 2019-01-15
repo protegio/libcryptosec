@@ -1,5 +1,7 @@
 #include <libcryptosec/DSAKeyPair.h>
 
+#include <openssl/crypto.h>
+
 DSAKeyPair::DSAKeyPair(int length)
 		throw (AsymmetricKeyException)
 {
@@ -79,7 +81,7 @@ PrivateKey* DSAKeyPair::getPrivateKey()
 		{
 			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "DSAKeyPair::getPrivateKey");
 		}
-		CRYPTO_add(&this->key->references,1,CRYPTO_LOCK_EVP_PKEY);
+		EVP_PKEY_up_ref(this->key);
 	}
 	return ret;
 }

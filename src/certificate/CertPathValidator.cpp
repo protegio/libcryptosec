@@ -182,14 +182,18 @@ int CertPathValidator::callback(int ok, X509_STORE_CTX *ctx)
 	
 	if (!ok)
 	{
-		if (ctx->current_cert)
+		int error = X509_STORE_CTX_get_error(ctx);
+		int error_depth = X509_STORE_CTX_get_error_depth(ctx);
+		X509* current_cert = X509_STORE_CTX_get_current_cert(ctx);
+
+		if (current_cert)
 		{
-			cert = new Certificate(ctx->current_cert);			
+			cert = new Certificate(current_cert);
 		}
 
 		aResult.setInvalidCertificate(cert);
-		aResult.setDepth(ctx->error_depth);
-		aResult.setErrorCode(CertPathValidatorResult::long2ErrorCode(ctx->error));
+		aResult.setDepth(error_depth);
+		aResult.setErrorCode(CertPathValidatorResult::long2ErrorCode(error));
 
 		/*
 		* O aplicativo apps/verify.c do OpenSSL ignora todos os erros abaixo. 
@@ -197,16 +201,16 @@ int CertPathValidator::callback(int ok, X509_STORE_CTX *ctx)
 		* ok = 0 são considerados erros e interrompem a validação
 		* ok = 1 são considerados como avisos e não interrompem a validação
 		*/
-		if (ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) ok=0; 		 
-		if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
-		if (ctx->error == X509_V_ERR_INVALID_CA) ok=0;
-		if (ctx->error == X509_V_ERR_INVALID_NON_CA) ok=1;
-		if (ctx->error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
-		if (ctx->error == X509_V_ERR_INVALID_PURPOSE) ok=1;
-		if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
-		if (ctx->error == X509_V_ERR_CRL_HAS_EXPIRED) ok=1;
-		if (ctx->error == X509_V_ERR_CRL_NOT_YET_VALID) ok=1;
-		if (ctx->error == X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION) ok=1;
+		if (error == X509_V_ERR_CERT_HAS_EXPIRED) ok=0;
+		if (error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+		if (error == X509_V_ERR_INVALID_CA) ok=0;
+		if (error == X509_V_ERR_INVALID_NON_CA) ok=1;
+		if (error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
+		if (error == X509_V_ERR_INVALID_PURPOSE) ok=1;
+		if (error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+		if (error == X509_V_ERR_CRL_HAS_EXPIRED) ok=1;
+		if (error == X509_V_ERR_CRL_NOT_YET_VALID) ok=1;
+		if (error == X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION) ok=1;
 
 		/* 
 		 * Na ocorrência de erro, os avisos (warnings) antigos são descartados

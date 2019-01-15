@@ -11,7 +11,8 @@ CertificatePoliciesExtension::CertificatePoliciesExtension(X509_EXTENSION *ext)
 	CERTIFICATEPOLICIES *certificatePolicies;
 	PolicyInformation policyInformation;
 	int i, num;
-	if (OBJ_obj2nid(ext->object) != NID_certificate_policies)
+	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
+	if (OBJ_obj2nid(object) != NID_certificate_policies)
 	{
 		throw CertificationException(CertificationException::INVALID_TYPE, "CertificatePoliciesExtension::CertificatePoliciesExtension");
 	}

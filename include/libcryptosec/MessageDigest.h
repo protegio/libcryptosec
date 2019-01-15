@@ -28,6 +28,7 @@ public:
 	 */
 	enum Algorithm
 	{
+		NO_ALGORITHM,
 		MD4,
 		MD5,
 		RIPEMD160,
@@ -186,7 +187,7 @@ protected:
 	/**
 	 * Estrutura OpenSSL que representa o algoritmo de resumo.
 	 */
-	EVP_MD_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 #endif /*MESSAGEDIGEST_H_*/

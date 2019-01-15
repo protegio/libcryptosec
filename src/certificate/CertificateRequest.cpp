@@ -240,7 +240,7 @@ MessageDigest::Algorithm CertificateRequest::getMessageDigestAlgorithm()
 		throw (MessageDigestException)
 {
 	MessageDigest::Algorithm ret;
-	ret = MessageDigest::getMessageDigest(OBJ_obj2nid(this->req->sig_alg->algorithm));
+	ret = MessageDigest::getMessageDigest(X509_REQ_get_signature_nid(this->req));
 	return ret;
 }
 
@@ -274,18 +274,25 @@ PublicKey* CertificateRequest::getPublicKey()
 ByteArray CertificateRequest::getPublicKeyInfo()
 		throw (CertificationException)
 {
-	ByteArray ret;
+	// TODO: openssl não provê uma função para pegar os bits da chave pública
+/*	ByteArray ret;
 	unsigned int size;
-	ASN1_BIT_STRING *temp;
-	if (this->req->req_info->pubkey->public_key == NULL)
+	ASN1_BIT_STRING *pubKeyBits;
+	if (X509_REQ_get0_pubkey(this->req) == NULL)
 	{
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getPublicKeyInfo");
 	}
+	X509_REQ_get0_pubkey(this->req);
+	X509_PUBKEY* pubKey = X509_REQ_get_X509_PUBKEY(this->req);
 	temp = this->req->req_info->pubkey->public_key;
 	ret = ByteArray(EVP_MAX_MD_SIZE);
+
+	// TODO: sempre sha1?
 	EVP_Digest(temp->data, temp->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
 	ret = ByteArray(ret.getDataPointer(), size);
+
 	return ret;
+*/
 }
 
 void CertificateRequest::setSubject(RDNSequence &name)
@@ -662,7 +669,9 @@ bool CertificateRequest::verify()
 
 bool CertificateRequest::isSigned() const throw()
 {
-	return ASN1_STRING_data(this->req->signature) != NULL;
+	const ASN1_BIT_STRING* signature;
+	X509_REQ_get0_signature(this->req, &signature, 0);
+	return signature->data != 0 && signature->length > 0;
 }
 
 
