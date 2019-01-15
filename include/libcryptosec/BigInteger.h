@@ -49,7 +49,7 @@ public:
 	 * @param val ponteiro para estrutura ASN1_INTEGER.
 	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger.
 	 * */
-	BigInteger(ASN1_INTEGER* val) throw(BigIntegerException);
+	BigInteger(const ASN1_INTEGER* val) throw(BigIntegerException);
 	
 	/**
 	 * BigInteger a partir de um objeto ByteArray.

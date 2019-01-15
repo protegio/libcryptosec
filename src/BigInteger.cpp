@@ -29,7 +29,7 @@ BigInteger::BigInteger(long val) throw(BigIntegerException)
 	BigInteger::setValue(val);
 }
 
-BigInteger::BigInteger(ASN1_INTEGER* val) throw(BigIntegerException)
+BigInteger::BigInteger(const ASN1_INTEGER* val) throw(BigIntegerException)
 {
 	if(!(this->bigInt = BN_new()))
 	{

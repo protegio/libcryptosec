@@ -21,7 +21,7 @@ MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm)
 	}
 }
 
-MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine)
+MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine) throw (MessageDigestException)
 {
 	int rc;
 	const EVP_MD *md;

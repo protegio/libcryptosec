@@ -24,7 +24,7 @@ Hmac::~Hmac() {
 	HMAC_CTX_free(this->ctx);
 }
 
-void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) {
+void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) throw (HmacException) {
 	HMAC_CTX_reset( this->ctx );
 
 	this->algorithm = algorithm;
@@ -39,7 +39,7 @@ void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) {
 	this->state = Hmac::INIT;
 }
 
-void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engine) {
+void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engine) throw (HmacException) {
 	HMAC_CTX_reset( this->ctx );
 
 	this->algorithm = algorithm;
