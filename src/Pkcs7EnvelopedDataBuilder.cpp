@@ -3,7 +3,6 @@
 Pkcs7EnvelopedDataBuilder::Pkcs7EnvelopedDataBuilder(Certificate &cert,
 			SymmetricKey::Algorithm symAlgorithm,
 			SymmetricCipher::OperationMode symOperationMode)
-		throw (Pkcs7Exception, SymmetricCipherException)
 {
 	int rc;
 	PKCS7_set_type(this->pkcs7, NID_pkcs7_enveloped);
@@ -36,7 +35,6 @@ Pkcs7EnvelopedDataBuilder::~Pkcs7EnvelopedDataBuilder()
 void Pkcs7EnvelopedDataBuilder::init(Certificate &cert,
 			SymmetricKey::Algorithm symAlgorithm,
 			SymmetricCipher::OperationMode symOperationMode)
-		throw (Pkcs7Exception, SymmetricCipherException)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::NO_INIT)
@@ -77,7 +75,6 @@ void Pkcs7EnvelopedDataBuilder::init(Certificate &cert,
 }
 
 void Pkcs7EnvelopedDataBuilder::addCipher(Certificate &certificate)
-	throw (InvalidStateException, Pkcs7Exception)
 {
 	if (this->state != Pkcs7Builder::INIT)
 	{
@@ -93,7 +90,6 @@ void Pkcs7EnvelopedDataBuilder::addCipher(Certificate &certificate)
 }
 
 Pkcs7EnvelopedData* Pkcs7EnvelopedDataBuilder::doFinal()
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	int rc;
 	Pkcs7EnvelopedData *ret;
@@ -130,14 +126,12 @@ Pkcs7EnvelopedData* Pkcs7EnvelopedDataBuilder::doFinal()
 }
 
 Pkcs7EnvelopedData* Pkcs7EnvelopedDataBuilder::doFinal(std::string &data)
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	this->update(data);
 	return this->doFinal();
 }
 
 Pkcs7EnvelopedData* Pkcs7EnvelopedDataBuilder::doFinal(ByteArray &data)
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	this->update(data);
 	return this->doFinal();

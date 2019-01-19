@@ -1,7 +1,6 @@
 #include <libcryptosec/certificate/CertificateRequestSPKAC.h>
 
-CertificateRequestSPKAC::CertificateRequestSPKAC(std::string &netscapeSPKIBase64)
-	throw (EncodeException) : CertificateRequest()
+CertificateRequestSPKAC::CertificateRequestSPKAC(std::string &netscapeSPKIBase64) : CertificateRequest()
 {
 	this->spkac = new NetscapeSPKI(netscapeSPKIBase64);
 	this->setPublicKey(*this->spkac->getPublicKey());
@@ -12,8 +11,7 @@ CertificateRequestSPKAC::CertificateRequestSPKAC(X509_REQ *req, NETSCAPE_SPKI *n
 	this->setPublicKey(*this->spkac->getPublicKey());
 }
 
-CertificateRequestSPKAC::CertificateRequestSPKAC(std::string &certificateRequestPemEncoded, std::string &netscapeSPKIBase64)
-	throw (EncodeException) : CertificateRequest(certificateRequestPemEncoded)
+CertificateRequestSPKAC::CertificateRequestSPKAC(std::string &certificateRequestPemEncoded, std::string &netscapeSPKIBase64) : CertificateRequest(certificateRequestPemEncoded)
 {
 	this->spkac = new NetscapeSPKI(netscapeSPKIBase64);
 	this->setPublicKey(*this->spkac->getPublicKey());
@@ -24,7 +22,7 @@ CertificateRequestSPKAC::~CertificateRequestSPKAC() {
 		delete this->spkac;
 }
 
-bool CertificateRequestSPKAC::verify() throw (AsymmetricKeyException, NetscapeSPKIException)
+bool CertificateRequestSPKAC::verify()
 {
 	return this->spkac->verify();
 }

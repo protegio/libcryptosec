@@ -50,8 +50,7 @@ public:
 	 * @return lista de certificados encontrados no slot.
 	 * @throw SmartcardModuleException caso tenha ocorrido um erro na carga dos certificados.
 	 */
-	std::vector<SmartcardCertificate *> getCertificates()
-			throw (SmartcardModuleException);
+	std::vector<SmartcardCertificate *> getCertificates();
 	
 	/**
 	 * Usa a chave privada contida no slot para realizar a decifragem de dados.
@@ -65,8 +64,7 @@ public:
 	 * 	@li @c DECRYPTING_DATA quando tiver ocorrido um erro na decifragem;
 	 * 	@li @c BLOCKED_PIN quando o PIN da chave estiver no estado bloqueado.
 	 */
-	ByteArray decrypt(std::string &keyId, std::string &pin, ByteArray &data)
-			throw (SmartcardModuleException);
+	ByteArray decrypt(std::string &keyId, std::string &pin, ByteArray &data);
 
 private:
 

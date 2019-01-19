@@ -4,8 +4,7 @@ AuthorityInformationAccessExtension::AuthorityInformationAccessExtension() : Ext
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_info_access);
 }
 
-AuthorityInformationAccessExtension::AuthorityInformationAccessExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+AuthorityInformationAccessExtension::AuthorityInformationAccessExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	AUTHORITY_INFO_ACCESS *authorityInfoAccess;
 	AccessDescription accessDescription;

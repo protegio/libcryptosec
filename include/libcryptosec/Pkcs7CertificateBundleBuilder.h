@@ -43,14 +43,12 @@ public:
 	/*
 	 * Adiciona um certificado na pilha.
 	 */
-	void addCertificate(Certificate &cert)
-					throw (Pkcs7Exception, InvalidStateException);
+	void addCertificate(Certificate &cert);
 
 	/*
 	 * Gera o pacote PKCS7 final
 	 */
-	Pkcs7CertificateBundle* doFinal()
-					throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7CertificateBundle* doFinal();
 
 private:
 	/*

@@ -6,7 +6,7 @@ DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(unsigned long baseCrlNumb
     this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_delta_crl);
 }
 
-DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(X509_EXTENSION* ext) throw (CertificationException) : Extension(ext)
+DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(X509_EXTENSION* ext) : Extension(ext)
 {
 	ASN1_INTEGER* serialAsn1 = NULL;
 	
@@ -90,7 +90,6 @@ X509_EXTENSION* DeltaCRLIndicatorExtension::getX509Extension()
 	
 	ret = X509_EXTENSION_new();
 
-	int rc;
 	baseCrlNumber = ASN1_INTEGER_new();
 	ASN1_INTEGER_set(baseCrlNumber, this->baseCrlNumber);
 	

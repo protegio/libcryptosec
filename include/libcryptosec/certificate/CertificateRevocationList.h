@@ -33,21 +33,19 @@ class CertificateRevocationList
 {
 public:
 	CertificateRevocationList(X509_CRL *crl);
-	CertificateRevocationList(std::string pemEncoded)
-			throw (EncodeException);
-	CertificateRevocationList(ByteArray &derEncoded)
-			throw (EncodeException);
+	CertificateRevocationList(std::string pemEncoded);
+	CertificateRevocationList(ByteArray &derEncoded);
 	CertificateRevocationList(const CertificateRevocationList& crl);
 	virtual ~CertificateRevocationList();
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
-	std::string getPemEncoded() throw (EncodeException);
-	ByteArray getDerEncoded() throw (EncodeException);
-	long getSerialNumber() throw (CertificationException);
-	BigInteger getSerialNumberBigInt() throw (CertificationException, BigIntegerException);
-	long getBaseCRLNumber() throw (CertificationException);
-	BigInteger getBaseCRLNumberBigInt() throw (CertificationException, BigIntegerException);
-	long getVersion() throw (CertificationException);
+	std::string getPemEncoded();
+	ByteArray getDerEncoded();
+	long getSerialNumber();
+	BigInteger getSerialNumberBigInt();
+	long getBaseCRLNumber();
+	BigInteger getBaseCRLNumberBigInt();
+	long getVersion();
 	RDNSequence getIssuer();
 	DateTime getLastUpdate();
 	DateTime getNextUpdate();

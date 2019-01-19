@@ -3,7 +3,10 @@
 RDNSequence::RDNSequence()
 {
 	this->newEntries.clear();
-//	printf("NUM: %d\n", this->newEntries.size());
+}
+
+RDNSequence::RDNSequence(const RDNSequence& rdn) {
+	this->newEntries = rdn.getEntries();
 }
 
 RDNSequence::RDNSequence(X509_NAME *rdn)
@@ -157,9 +160,7 @@ std::string RDNSequence::getXmlEncoded(std::string tab)
 
 void RDNSequence::addEntry(RDNSequence::EntryType type, std::string value)
 {
-//	this->entries[type].push_back(value);
 	std::pair<ObjectIdentifier, std::string> oneEntry;
-	ObjectIdentifier oid;
 	if (type != RDNSequence::UNKNOWN)
 	{
 		oneEntry.first = ObjectIdentifierFactory::getObjectIdentifier(RDNSequence::type2Id(type));

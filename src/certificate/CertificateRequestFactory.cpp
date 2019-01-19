@@ -1,14 +1,12 @@
 #include <libcryptosec/certificate/CertificateRequestFactory.h>
 
 CertificateRequestSPKAC* CertificateRequestFactory::fromSPKAC(std::string &path)
-	throw (EncodeException, RandomException, NetscapeSPKIException)
 {
 	STACK_OF(CONF_VALUE) *sk=NULL;
 	LHASH_OF(CONF_VALUE) *parms=NULL;
 	X509_REQ *req=NULL;
 	CONF_VALUE *cv=NULL;
 	NETSCAPE_SPKI *spki = NULL;
-	X509_REQ_INFO *ri;
 	char *type,*buf;
 	EVP_PKEY *pktmp=NULL;
 	X509_NAME *n=NULL;
@@ -53,8 +51,6 @@ CertificateRequestSPKAC* CertificateRequestFactory::fromSPKAC(std::string &path)
 	/*
 	 * Build up the subject name set.
 	 */
-	//ri=req->req_info;
-	//n = ri->subject;
 	n = X509_REQ_get_subject_name(req);
 	for (i = 0; ; i++)
 	{

@@ -28,7 +28,7 @@ Pkcs12::~Pkcs12()
 	PKCS12_free(this->pkcs12);
 }
 
-ByteArray Pkcs12::getDerEncoded() const throw(EncodeException)
+ByteArray Pkcs12::getDerEncoded() const
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -57,7 +57,7 @@ ByteArray Pkcs12::getDerEncoded() const throw(EncodeException)
 	return ret;
 }
 
-PrivateKey* Pkcs12::getPrivKey(string password) throw(Pkcs12Exception)
+PrivateKey* Pkcs12::getPrivKey(string password)
 {
 	PrivateKey* ret = NULL;
 	
@@ -90,7 +90,7 @@ PrivateKey* Pkcs12::getPrivKey(string password) throw(Pkcs12Exception)
 	return ret;
 }
 
-Certificate* Pkcs12::getCertificate(string password) throw(Pkcs12Exception)
+Certificate* Pkcs12::getCertificate(string password)
 {
 	if(this->privKey == NULL)
 	{
@@ -100,7 +100,7 @@ Certificate* Pkcs12::getCertificate(string password) throw(Pkcs12Exception)
 	return new Certificate(X509_dup(this->cert->getX509()));
 }
 
-vector<Certificate*> Pkcs12::getAdditionalCertificates(string password) throw(Pkcs12Exception)
+vector<Certificate*> Pkcs12::getAdditionalCertificates(string password)
 {
 	vector<Certificate*> ret;
 	
@@ -117,7 +117,7 @@ vector<Certificate*> Pkcs12::getAdditionalCertificates(string password) throw(Pk
 	return ret;
 }
 
-void Pkcs12::parse(string password) throw(Pkcs12Exception)
+void Pkcs12::parse(string password)
 {
 	EVP_PKEY* pkey = NULL;
 	X509* cert = NULL;

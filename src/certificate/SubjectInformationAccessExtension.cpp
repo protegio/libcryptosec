@@ -4,8 +4,7 @@ SubjectInformationAccessExtension::SubjectInformationAccessExtension() : Extensi
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_sinfo_access);
 }
 
-SubjectInformationAccessExtension::SubjectInformationAccessExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+SubjectInformationAccessExtension::SubjectInformationAccessExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	STACK_OF(ACCESS_DESCRIPTION) *subjectInfoAccess;
 	AccessDescription accessDescription;

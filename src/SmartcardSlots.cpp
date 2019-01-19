@@ -13,13 +13,12 @@ SmartcardSlots::~SmartcardSlots()
 }
 
 SmartcardSlot* SmartcardSlots::getSmartcardSlot(std::string serial, std::string id)
-	throw (SmartcardModuleException)
 {
 	PKCS11_CERT *certs;
-	unsigned int i, j, ncerts;
+	unsigned int i, j, k, ncerts;
 	char *bufferId;
 	std::string idTmp, serialTmp;
-	int rc, k;
+	int rc;
 	unsigned int emptySlots;
 	SmartcardSlot *ret;
 	emptySlots = 0;
@@ -69,13 +68,12 @@ SmartcardSlot* SmartcardSlots::getSmartcardSlot(std::string serial, std::string 
 }
 
 std::vector<SmartcardCertificate *> SmartcardSlots::getCertificates()
-		throw (SmartcardModuleException)
 {
 	PKCS11_CERT *certs;
-	unsigned int i, j, ncerts;
+	unsigned int i, j, k, ncerts;
 	char *bufferId;
 	std::string id, label, serial;
-	int rc, k;
+	int rc;
 	unsigned int emptySlots;
 	std::vector<SmartcardCertificate *> ret;
 	std::vector<SmartcardCertificate *>::iterator iter;

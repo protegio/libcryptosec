@@ -29,25 +29,25 @@ public:
 	};
 
 	virtual ~BrainpoolCurveFactory(){};
-	static const EllipticCurve * getCurve(BrainpoolCurveFactory::CurveName curveName) throw(BigIntegerException);
+	static const EllipticCurve * getCurve(BrainpoolCurveFactory::CurveName curveName);
 
 private:
 
 	BrainpoolCurveFactory();
-	static const EllipticCurve * bp160r1() throw(BigIntegerException);
-	static const EllipticCurve * bp160t1() throw(BigIntegerException);
-	static const EllipticCurve * bp192r1() throw(BigIntegerException);
-	static const EllipticCurve * bp192t1() throw(BigIntegerException);
-	static const EllipticCurve * bp224r1() throw(BigIntegerException);
-	static const EllipticCurve * bp224t1() throw(BigIntegerException);
-	static const EllipticCurve * bp256r1() throw(BigIntegerException);
-	static const EllipticCurve * bp256t1() throw(BigIntegerException);
-	static const EllipticCurve * bp320r1() throw(BigIntegerException);
-	static const EllipticCurve * bp320t1() throw(BigIntegerException);
-	static const EllipticCurve * bp384r1() throw(BigIntegerException);
-	static const EllipticCurve * bp384t1() throw(BigIntegerException);
-	static const EllipticCurve * bp512r1() throw(BigIntegerException);
-	static const EllipticCurve * bp512t1() throw(BigIntegerException);
+	static const EllipticCurve * bp160r1();
+	static const EllipticCurve * bp160t1();
+	static const EllipticCurve * bp192r1();
+	static const EllipticCurve * bp192t1();
+	static const EllipticCurve * bp224r1();
+	static const EllipticCurve * bp224t1();
+	static const EllipticCurve * bp256r1();
+	static const EllipticCurve * bp256t1();
+	static const EllipticCurve * bp320r1();
+	static const EllipticCurve * bp320t1();
+	static const EllipticCurve * bp384r1();
+	static const EllipticCurve * bp384t1();
+	static const EllipticCurve * bp512r1();
+	static const EllipticCurve * bp512t1();
 };
 
 #endif /* BRAINPOOLCURVEFACTORY_H_ */

@@ -1,7 +1,7 @@
 #include <libcryptosec/certificate/CertificateBuilder.h>
 #include <libcryptosec/RSAKeyPair.h>
 #include <fstream>
-#include "gtest.h"
+#include <gtest/gtest.h>
 #include <iostream>
 #include <sstream>
 
@@ -47,10 +47,8 @@ protected:
     			"-----END CERTIFICATE REQUEST-----";
     	CertificateRequest certReq(pem);
     	certBuilder = new CertificateBuilder(certReq);
-
     	certBuilder->alterSubject(rdnAlterSubject);
     	RDNSequence newRdn = certBuilder->getSubject();
-
     	return newRdn;
     }
 
@@ -69,7 +67,6 @@ protected:
 		rdnSubject.addEntry(RDNSequence::ORGANIZATION, organization);
 		rdnSubject.addEntry(RDNSequence::ORGANIZATION_UNIT, oUnit);
 		rdnSubject.addEntry(RDNSequence::COMMON_NAME, common_name);
-
 		return rdnSubject;
     }
 
@@ -108,8 +105,8 @@ protected:
     	X509_NAME* name = X509_get_subject_name(certBuilder->getX509());
     	for (int i = 0; i < X509_NAME_entry_count(name); i++) {
     		X509_NAME_ENTRY* entry = X509_NAME_get_entry(name, i);
-    		if (OBJ_obj2nid(entry->object) != NID_countryName) {
-    			return entry->value->type;
+    		if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {
+    			return X509_NAME_ENTRY_get_data(entry)->type;
     		}
     	}
     	return -1;
@@ -123,8 +120,8 @@ protected:
         X509_NAME* after = X509_get_subject_name(certBuilder->getX509());
         for (int i = 0; i < X509_NAME_entry_count(after); i++) {
             X509_NAME_ENTRY* entry = X509_NAME_get_entry(after, i);
-            if (OBJ_obj2nid(entry->object) != NID_countryName) {
-            	int codification = entry->value->type;
+            if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {
+            	int codification = X509_NAME_ENTRY_get_data(entry)->type;
             	ASSERT_EQ(codification, expectedCodification);
             }
         }
@@ -139,8 +136,8 @@ protected:
     	X509_NAME* after = X509_get_subject_name(cert->getX509());
     	for (int i = 0; i < X509_NAME_entry_count(after); i++) {
     		X509_NAME_ENTRY* entry = X509_NAME_get_entry(after, i);
-    		if (OBJ_obj2nid(entry->object) != NID_countryName) {
-    			int codification = entry->value->type;
+    		if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {
+    			int codification = X509_NAME_ENTRY_get_data(entry)->type;
     			ASSERT_EQ(expectedCodification, codification);
     		}
     	}

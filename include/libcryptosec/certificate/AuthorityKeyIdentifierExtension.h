@@ -16,7 +16,7 @@ class AuthorityKeyIdentifierExtension : public Extension
 {
 public:
 	AuthorityKeyIdentifierExtension();
-	AuthorityKeyIdentifierExtension(X509_EXTENSION *ext) throw (CertificationException);
+	AuthorityKeyIdentifierExtension(X509_EXTENSION *ext);
 	virtual ~AuthorityKeyIdentifierExtension();
 	/**
 	 * @deprecated

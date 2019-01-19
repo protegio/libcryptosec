@@ -14,7 +14,7 @@ class CRLDistributionPointsExtension : public Extension
 {
 public:
 	CRLDistributionPointsExtension();
-	CRLDistributionPointsExtension(X509_EXTENSION *ext) throw (CertificationException);
+	CRLDistributionPointsExtension(X509_EXTENSION *ext);
 	virtual ~CRLDistributionPointsExtension();
 	
 	/**

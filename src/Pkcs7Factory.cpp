@@ -1,7 +1,6 @@
 #include <libcryptosec/Pkcs7Factory.h>
 
 Pkcs7* Pkcs7Factory::fromDerEncoded(ByteArray &derEncoded)
-		throw (Pkcs7Exception, EncodeException)
 {
 	BIO *buffer;
 	PKCS7 *pkcs7;
@@ -39,7 +38,6 @@ Pkcs7* Pkcs7Factory::fromDerEncoded(ByteArray &derEncoded)
 }
 
 Pkcs7* Pkcs7Factory::fromPemEncoded(std::string &pemEncoded)
-		throw (Pkcs7Exception, EncodeException)
 {
 	BIO *buffer;
 	PKCS7 *pkcs7;

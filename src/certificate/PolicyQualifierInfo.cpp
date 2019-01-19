@@ -15,7 +15,7 @@ PolicyQualifierInfo::PolicyQualifierInfo(POLICYQUALINFO *policyQualInfo)
 		{
 			case NID_id_qt_cps:
 				this->type = PolicyQualifierInfo::CPS_URI;
-				data = (char *)ASN1_STRING_data(policyQualInfo->d.cpsuri);
+				data = (char *) (policyQualInfo->d.cpsuri->data);
 				this->cpsUri = data;
 				break;
 			case NID_id_qt_unotice:

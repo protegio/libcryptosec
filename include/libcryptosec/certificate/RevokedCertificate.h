@@ -29,7 +29,7 @@ public:
 	virtual ~RevokedCertificate();
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
-	void setCertificateSerialNumber(long certificateSerialNumber) throw (BigIntegerException);
+	void setCertificateSerialNumber(long certificateSerialNumber);
 	void setCertificateSerialNumber(BigInteger certificateSerialNumber);
 	long getCertificateSerialNumber();
 	BigInteger getCertificateSerialNumberBigInt();

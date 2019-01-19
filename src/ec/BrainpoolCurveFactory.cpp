@@ -5,7 +5,7 @@ BrainpoolCurveFactory::BrainpoolCurveFactory() {
 }
 
 const EllipticCurve* BrainpoolCurveFactory::getCurve(
-		BrainpoolCurveFactory::CurveName curveName) throw (BigIntegerException) {
+		BrainpoolCurveFactory::CurveName curveName) {
 
 	switch (curveName) {
 	case BP160r1:
@@ -59,7 +59,7 @@ const EllipticCurve* BrainpoolCurveFactory::getCurve(
 	}
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp160r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp160r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP160r1");
@@ -80,7 +80,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp160r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp160t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp160t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP160t1");
@@ -101,7 +101,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp160t1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp192r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp192r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP192r1");
@@ -122,7 +122,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp192r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp192t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp192t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP192t1");
@@ -143,7 +143,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp192t1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp224r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp224r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP224r1");
@@ -164,7 +164,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp224r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp224t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp224t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP224t1");
@@ -185,7 +185,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp224t1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp256r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp256r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP256r1");
@@ -206,7 +206,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp256r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp256t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp256t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP256t1");
@@ -233,7 +233,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp256t1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp320r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp320r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP320r1");
@@ -260,7 +260,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp320r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp320t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp320t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP320t1");
@@ -287,7 +287,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp320t1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp384r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp384r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP384r1");
@@ -314,7 +314,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp384r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp384t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp384t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP384t1");
@@ -341,7 +341,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp384t1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp512r1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp512r1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP512r1");
@@ -374,7 +374,7 @@ const EllipticCurve* BrainpoolCurveFactory::bp512r1() throw (BigIntegerException
 	return curve;
 }
 
-const EllipticCurve* BrainpoolCurveFactory::bp512t1() throw (BigIntegerException) {
+const EllipticCurve* BrainpoolCurveFactory::bp512t1() {
 	EllipticCurve * curve = new EllipticCurve();
 
 	curve->setName("brainpoolP512t1");

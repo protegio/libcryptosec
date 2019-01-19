@@ -32,8 +32,8 @@ public:
 		DELTA_CRL_INDICATOR
 	};
 	
-	Extension(X509_EXTENSION *ext) throw (CertificationException);
-	Extension(std::string oid, bool critical, std::string valueBase64) throw (CertificationException);
+	Extension(X509_EXTENSION *ext);
+	Extension(std::string oid, bool critical, std::string valueBase64);
 	virtual ~Extension();
 	
 	/**
@@ -43,7 +43,7 @@ public:
 	 * */
 	virtual std::string getXmlEncoded();
 	virtual std::string getXmlEncoded(std::string tab);
-	std::string toXml(std::string tab = "") throw(CertificationException);
+	std::string toXml(std::string tab = "");
 	virtual std::string extValue2Xml(std::string tab = "");
 	ObjectIdentifier getObjectIdentifier() const;
 	std::string getName();

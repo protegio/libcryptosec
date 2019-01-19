@@ -66,8 +66,7 @@ public:
 	 * @param operation a operação a ser executada.
 	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
 	 **/
-	SymmetricCipher(SymmetricKey &key, SymmetricCipher::Operation operation)
-			throw (SymmetricCipherException);
+	SymmetricCipher(SymmetricKey &key, SymmetricCipher::Operation operation);
 	
 	/**
 	 * Construtor de cópia recebendo uma chave simétrica, o modo de operação
@@ -79,8 +78,7 @@ public:
 	 * @param operation a operação a ser executada.
 	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
 	 **/		
-	SymmetricCipher(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation)
-		 	throw (SymmetricCipherException);
+	SymmetricCipher(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation);
 	
 	/**
 	 * Destrutor padrão.
@@ -94,8 +92,7 @@ public:
 	 * @param operation a operação a ser executada.
 	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
 	 **/
-	void init(SymmetricKey &key, SymmetricCipher::Operation operation)
-			throw (SymmetricCipherException);
+	void init(SymmetricKey &key, SymmetricCipher::Operation operation);
 	
 	/**
 	 * Inicializa o cifrador para uso. Necessário caso o builder tenha sido instanciado
@@ -105,8 +102,7 @@ public:
 	 * @param operation a operação a ser executada.
 	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
 	 **/
-	void init(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation)
-			throw (SymmetricCipherException);
+	void init(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation);
 	
 	/**
 	 * Concatena dados aos previamente adicionados para serem cifrados/decifrados.
@@ -114,7 +110,7 @@ public:
 	 * @throw InvalidStateException caso o builder não tenha sido inicializado.
 	 * @throw SymmetricCipherException caso tenha ocorrido algum erro ao atualizar os dados.
 	 **/
-	void update(std::string &data) throw (InvalidStateException, SymmetricCipherException);
+	void update(std::string &data);
 
 	/**
 	 * Concatena dados aos previamente adicionados para serem cifrados/decifrados.
@@ -122,7 +118,7 @@ public:
 	 * @throw InvalidStateException caso o builder não tenha sido inicializado.
 	 * @throw SymmetricCipherException caso tenha ocorrido algum erro ao atualizar os dados.
 	 **/	
-	void update(ByteArray &data) throw (InvalidStateException, SymmetricCipherException);
+	void update(ByteArray &data);
 	
 	/**
 	 * Finaliza a operação e retorna o resultado da mesma.
@@ -130,7 +126,7 @@ public:
 	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::UPDATE).
 	 * @throw SymmetricCipherException caso ocorra algum erro na finalização do procedimento.
 	 **/	
-	ByteArray doFinal() throw (InvalidStateException, SymmetricCipherException);
+	ByteArray doFinal();
 	
 	/**
 	 * Concatena os dados passados como parâmetro, finaliza a operação e retorna o resultado da mesma.
@@ -139,7 +135,7 @@ public:
 	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::UPDATE).
 	 * @throw SymmetricCipherException caso ocorra algum erro na finalização do procedimento.
 	 **/	
-	ByteArray doFinal(std::string &data) throw (InvalidStateException, SymmetricCipherException);
+	ByteArray doFinal(std::string &data);
 	
 	/**
 	 * Concatena os dados passados como parâmetro, finaliza a operação e retorna o resultado da mesma.
@@ -148,21 +144,21 @@ public:
 	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::UPDATE).
 	 * @throw SymmetricCipherException caso ocorra algum erro na finalização do procedimento.
 	 **/
-	ByteArray doFinal(ByteArray &data) throw (InvalidStateException, SymmetricCipherException);
+	ByteArray doFinal(ByteArray &data);
 	
 	/**
 	 * Retorna o modo de operação do cifrador.
 	 * @return o modo de operação do cifrador.
 	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::INIT).
 	 **/
-	SymmetricCipher::OperationMode getOperationMode() throw (InvalidStateException);
+	SymmetricCipher::OperationMode getOperationMode();
 	
 	/**
 	 * Retorna o tipo de operação do cifrador.
 	 * @return o tipo de operação para que o cifrador foi inicializado.
 	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::INIT).
 	 **/
-	SymmetricCipher::Operation getOperation() throw (InvalidStateException);
+	SymmetricCipher::Operation getOperation();
 	
 	
 	/**
@@ -177,8 +173,7 @@ public:
 	 * @param mode o modo de operação do algoritmo.
 	 * @throw SymmetricCipherException caso ocorra algum erro na criação da estrutura.
 	 **/	
-	static const EVP_CIPHER* getCipher(SymmetricKey::Algorithm algorithm, SymmetricCipher::OperationMode mode)
-			throw (SymmetricCipherException);
+	static const EVP_CIPHER* getCipher(SymmetricKey::Algorithm algorithm, SymmetricCipher::OperationMode mode);
 	
 	/**
 	 * Método utilizado para carregar os algoritmos disponíveis na biblioteca OpenSSL.

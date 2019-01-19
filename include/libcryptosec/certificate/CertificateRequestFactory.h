@@ -9,8 +9,7 @@
 
 class CertificateRequestFactory {
 public:
-	static CertificateRequestSPKAC* fromSPKAC(std::string &path)
-		throw (EncodeException, RandomException, NetscapeSPKIException);
+	static CertificateRequestSPKAC* fromSPKAC(std::string &path);
 };
 
 #endif /* CERTIFICATEREQUESTFACTORY_H_ */

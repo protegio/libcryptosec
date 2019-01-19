@@ -10,7 +10,6 @@ SymmetricCipher::SymmetricCipher()
 }
 
 SymmetricCipher::SymmetricCipher(SymmetricKey &key, SymmetricCipher::Operation operation)
-		throw (SymmetricCipherException)
 {
 	const EVP_CIPHER *cipher;
 	ByteArray keyEncoded, *newKey, *iv;
@@ -43,7 +42,6 @@ SymmetricCipher::SymmetricCipher(SymmetricKey &key, SymmetricCipher::Operation o
 }
 
 SymmetricCipher::SymmetricCipher(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation)
-	 throw (SymmetricCipherException)
 {
 	const EVP_CIPHER *cipher;
 	ByteArray keyEncoded, *newKey, *iv;
@@ -85,7 +83,6 @@ SymmetricCipher::~SymmetricCipher()
 }
 
 void SymmetricCipher::init(SymmetricKey &key, SymmetricCipher::Operation operation)
-		throw (SymmetricCipherException)
 {
 	this->init(key, SymmetricCipher::CBC, operation);
 //	EVP_CIPHER_CTX_cleanup(&this->ctx);
@@ -121,7 +118,6 @@ void SymmetricCipher::init(SymmetricKey &key, SymmetricCipher::Operation operati
 }
 
 void SymmetricCipher::init(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation)
-		throw (SymmetricCipherException)
 {
 	EVP_CIPHER_CTX_cleanup(this->ctx);
 	if (this->buffer)
@@ -160,7 +156,6 @@ void SymmetricCipher::init(SymmetricKey &key, SymmetricCipher::OperationMode mod
 }
 
 void SymmetricCipher::update(std::string &data)
-		throw (InvalidStateException, SymmetricCipherException)
 {
 	ByteArray newData;
 	newData = ByteArray(data);
@@ -168,7 +163,6 @@ void SymmetricCipher::update(std::string &data)
 }
 
 void SymmetricCipher::update(ByteArray &data)
-		throw (InvalidStateException, SymmetricCipherException)
 {
 	int ret, totalEncrypted, encrypted;
 	ByteArray *newBuffer;
@@ -212,9 +206,8 @@ void SymmetricCipher::update(ByteArray &data)
 }
 
 ByteArray SymmetricCipher::doFinal()
-		throw (InvalidStateException, SymmetricCipherException)
 {
-	int rc, totalEncrypted, encrypted;
+	int rc, totalEncrypted = 0, encrypted;
 	ByteArray *newBuffer;
 	ByteArray ret; 
 	if (this->state != this->UPDATE)
@@ -237,7 +230,6 @@ ByteArray SymmetricCipher::doFinal()
 }
 
 ByteArray SymmetricCipher::doFinal(std::string &data)
-		throw (InvalidStateException, SymmetricCipherException)
 {
 	if (this->state != this->INIT && this->state != this->UPDATE)
 	{
@@ -248,7 +240,6 @@ ByteArray SymmetricCipher::doFinal(std::string &data)
 }
 
 ByteArray SymmetricCipher::doFinal(ByteArray &data)
-		throw (InvalidStateException, SymmetricCipherException)
 {
 	if (this->state != this->INIT && this->state != this->UPDATE)
 	{
@@ -258,7 +249,7 @@ ByteArray SymmetricCipher::doFinal(ByteArray &data)
 	return this->doFinal();
 }
 
-SymmetricCipher::OperationMode SymmetricCipher::getOperationMode() throw (InvalidStateException)
+SymmetricCipher::OperationMode SymmetricCipher::getOperationMode()
 {
 	if (this->state == this->NO_INIT)
 	{
@@ -267,7 +258,7 @@ SymmetricCipher::OperationMode SymmetricCipher::getOperationMode() throw (Invali
 	return this->mode;
 }
 
-SymmetricCipher::Operation SymmetricCipher::getOperation() throw (InvalidStateException)
+SymmetricCipher::Operation SymmetricCipher::getOperation()
 {
 	if (this->state == this->NO_INIT)
 	{
@@ -279,12 +270,14 @@ SymmetricCipher::Operation SymmetricCipher::getOperation() throw (InvalidStateEx
 std::pair<ByteArray*, ByteArray*> SymmetricCipher::keyToKeyIv(ByteArray &key,
 		const EVP_CIPHER *cipher, const EVP_MD* md, const unsigned char* salt, int count)
 {
-	int rc;
+	int rc = 0;
 	std::pair<ByteArray*, ByteArray*> ret;
 	ByteArray *newKey = new ByteArray(EVP_CIPHER_key_length(cipher));
     ByteArray *iv = new ByteArray(EVP_CIPHER_iv_length(cipher));
     rc = EVP_BytesToKey(cipher, md, salt, key.getDataPointer(), key.size(), count, newKey->getDataPointer(), iv->getDataPointer());
-	ret.first = newKey;
+	if (rc == 0)
+		throw SymmetricCipherException("SymmetricCipher::keyToKeyIv");
+    ret.first = newKey;
 	ret.second = iv;
 	return ret;
 }
@@ -314,7 +307,6 @@ std::string SymmetricCipher::getOperationModeName(SymmetricCipher::OperationMode
 }
 
 const EVP_CIPHER* SymmetricCipher::getCipher(SymmetricKey::Algorithm algorithm, SymmetricCipher::OperationMode mode)
-		throw (SymmetricCipherException)
 {
 	std::string algName, modeName, cipherName;
 	const EVP_CIPHER *cipher;

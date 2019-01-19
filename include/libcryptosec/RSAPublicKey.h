@@ -21,7 +21,7 @@ public:
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	RSAPublicKey(EVP_PKEY *key) throw (AsymmetricKeyException);
+	RSAPublicKey(EVP_PKEY *key);
 	
 	/**
 	 * Construtor recebendo a representação da chave pública no formato DER.
@@ -29,8 +29,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do DER.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 **/
-	RSAPublicKey(ByteArray &derEncoded)
-			throw (EncodeException, AsymmetricKeyException);
+	RSAPublicKey(ByteArray &derEncoded);
 	
 	/**
 	 * Construtor recebendo a representação da chave pública no formato PEM.
@@ -38,8 +37,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do PEM.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 **/			
-	RSAPublicKey(std::string &pemEncoded)
-			throw (EncodeException, AsymmetricKeyException);
+	RSAPublicKey(std::string &pemEncoded);
 	
 	/**
 	 * Destrutor padrão, limpa a estrutura interna EVP_PKEY

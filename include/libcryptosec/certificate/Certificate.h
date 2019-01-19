@@ -39,12 +39,12 @@ class Certificate
 {
 public:
 	Certificate(X509 *cert);
-	Certificate(std::string pemEncoded) throw (EncodeException);
-	Certificate(ByteArray &derEncoded) throw (EncodeException);
+	Certificate(std::string pemEncoded);
+	Certificate(ByteArray &derEncoded);
 	Certificate(const Certificate& cert);
 	virtual ~Certificate();
-	std::string getPemEncoded() const throw (EncodeException);
-	ByteArray getDerEncoded() const throw (EncodeException);
+	std::string getPemEncoded() const;
+	ByteArray getDerEncoded() const;
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
@@ -53,13 +53,12 @@ public:
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
 	virtual std::string toXml(std::string tab = "");
-	long getSerialNumber() throw (CertificationException);
-	BigInteger getSerialNumberBigInt() throw (CertificationException);
-	MessageDigest::Algorithm getMessageDigestAlgorithm()
-			throw (MessageDigestException);
-	PublicKey* getPublicKey() throw (CertificationException, AsymmetricKeyException);
-	ByteArray getPublicKeyInfo() throw (CertificationException);
-	long getVersion() throw (CertificationException);
+	long getSerialNumber();
+	BigInteger getSerialNumberBigInt();
+	MessageDigest::Algorithm getMessageDigestAlgorithm();
+	PublicKey* getPublicKey();
+	ByteArray getPublicKeyInfo();
+	long getVersion();
 	DateTime getNotBefore();
 	DateTime getNotAfter();
 	RDNSequence getIssuer();
@@ -67,8 +66,7 @@ public:
 	std::vector<Extension *> getExtension(Extension::Name extensionName);
 	std::vector<Extension *> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();
-	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const
-		throw (CertificationException, EncodeException, MessageDigestException);
+	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const;
 	bool verify(PublicKey &publicKey);
 	X509* getX509() const;
 	/**
@@ -77,8 +75,7 @@ public:
 	 * @param algorithm message digest algorithm
 	 * @throws CertificationException error on conversion of x509 to x509 req
 	 */
-	CertificateRequest getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm)
-		throw (CertificationException);
+	CertificateRequest getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm);
 	Certificate& operator =(const Certificate& value);
 	bool operator ==(const Certificate& value);
 	bool operator !=(const Certificate& value);

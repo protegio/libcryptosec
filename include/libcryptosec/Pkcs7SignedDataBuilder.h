@@ -31,7 +31,7 @@ public:
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
 	Pkcs7SignedDataBuilder(MessageDigest::Algorithm mesDigAlgorithm, Certificate &cert,
-				PrivateKey &privKey, bool attached) throw (Pkcs7Exception);
+				PrivateKey &privKey, bool attached);
 				
 	
 	/**
@@ -52,7 +52,7 @@ public:
 	 * @throw Pkcs7Exception caso ocorra algum problema na criação do pacote PKCS7.
 	 **/	
 	void init(MessageDigest::Algorithm mesDigAlgorithm, Certificate &cert,
-				PrivateKey &privKey, bool attached) throw (Pkcs7Exception);
+				PrivateKey &privKey, bool attached);
 				
 	/**
 	 * Permite a co-assinatura do pacote por mais de uma chave privada.  
@@ -63,8 +63,7 @@ public:
 	 * @throw InvalidStateException no caso do builder não ter sido inicializado ainda.
 	 * @throw Pkcs7Exception caso tenha ocorrido um erro ao adicionar o certificado ao pacote PKCS7.
 	 **/	
-	void addSigner(MessageDigest::Algorithm mesDigAlgorithm, Certificate &cert, PrivateKey &privKey)
-			throw (Pkcs7Exception, InvalidStateException);
+	void addSigner(MessageDigest::Algorithm mesDigAlgorithm, Certificate &cert, PrivateKey &privKey);
 			
 	
 	/**
@@ -73,7 +72,7 @@ public:
 	 * @throw InvalidStateException no caso do builder não ter sido inicializado ainda.
 	 * @throw Pkcs7Exception caso tenha ocorrido um erro ao adicionar o certificado ao pacote PKCS7.
 	 */
-	void addCertificate(Certificate &cert) throw (Pkcs7Exception, InvalidStateException);	
+	void addCertificate(Certificate &cert);	
 	
 	/**
 	* Permite adicionar lista de certificados revogados
@@ -81,7 +80,7 @@ public:
 	* @throw InvalidStateException no caso do builder não ter sido inicializado ainda.
 	* @throw Pkcs7Exception caso tenha ocorrido um erro ao adicionar o certificado ao pacote PKCS7.
 	*/
-	void addCrl(CertificateRevocationList &crl) throw (Pkcs7Exception, InvalidStateException);
+	void addCrl(CertificateRevocationList &crl);
 	
 	/**
 	 * Especifica o uso das funções da superclasse Pkcs7Builder::doFinal(), recebendo um inputstream e
@@ -97,8 +96,7 @@ public:
 	 * @throw InvalidStateException caso o builder não esteja no estado apropriado no momento da invocação.
  	 * @throw Pkcs7Exception caso tenha ocorrido um erro na geração do pacote PKCS7.
 	 **/	
-	Pkcs7SignedData* doFinal()
-			throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7SignedData* doFinal();
 	
 	/**
 	 * Implementa uma versão distinta do método Pkcs7Builder::doFinal() para gerar o pacote assinado.
@@ -107,8 +105,7 @@ public:
 	 * @throw InvalidStateException caso o builder não esteja no estado apropriado no momento da invocação.
  	 * @throw Pkcs7Exception caso tenha ocorrido um erro na geração do pacote PKCS7.
 	 **/	
-	Pkcs7SignedData* doFinal(std::string &data)
-			throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7SignedData* doFinal(std::string &data);
 			
 	/**
 	 * Implementa uma versão distinta do método Pkcs7Builder::doFinal() para gerar o pacote assinado.
@@ -118,8 +115,7 @@ public:
  	 * @throw Pkcs7Exception caso tenha ocorrido um erro na geração do pacote PKCS7.
 	 **/		
 			
-	Pkcs7SignedData* doFinal(ByteArray &data)
-			throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7SignedData* doFinal(ByteArray &data);
 };
 
 #endif /*PKCS7SIGNEDDATABUILDER_H_*/

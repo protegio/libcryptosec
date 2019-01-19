@@ -5,7 +5,7 @@ Extension::Extension()
 	this->critical = false;
 }
 
-Extension::Extension(X509_EXTENSION *ext) throw (CertificationException)
+Extension::Extension(X509_EXTENSION *ext)
 {
 	if (ext == NULL)
 	{
@@ -17,7 +17,7 @@ Extension::Extension(X509_EXTENSION *ext) throw (CertificationException)
 	this->value = ByteArray(value->data, value->length);
 }
 
-Extension::Extension(std::string oid, bool critical, std::string valueBase64)  throw (CertificationException)
+Extension::Extension(std::string oid, bool critical, std::string valueBase64)
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(oid);
 	this->critical = critical;
@@ -28,7 +28,7 @@ Extension::~Extension()
 {
 }
 
-std::string Extension::toXml(std::string tab) throw(CertificationException)
+std::string Extension::toXml(std::string tab)
 {
 	std::string ret, critical;
 	ret = tab + "<extension>\n";

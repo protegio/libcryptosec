@@ -33,7 +33,7 @@ public:
 	virtual ~CertificationException() throw () {}
 	virtual std::string getMessage() const
 	{
-		return (CertificationException::errorCode2Message(this->errorCode));
+		return CertificationException::errorCode2Message(this->errorCode);
 	}
     virtual std::string toString() const
     {
@@ -90,15 +90,6 @@ public:
     		case CertificationException::KNOWN_OID:
     			ret = "Known OID";
     			break;
-//    		case CertificationException:::
-//    			ret = "";
-//    			break;
-//    		case CertificationException:::
-//    			ret = "";
-//    			break;
-//    		case CertificationException:::
-//    			ret = "";
-//    			break;
     	}
     	return ret;
     }

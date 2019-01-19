@@ -5,7 +5,6 @@ SmartcardReader* SmartcardReader::instance = NULL;
 std::string SmartcardReader::pkcs11ModulePath = "";
 
 SmartcardReader::SmartcardReader(std::string &pkcs11ModulePath)
-		throw (SmartcardModuleException)
 {
 	int rc;
 	unsigned int nslots = 0;
@@ -35,7 +34,6 @@ SmartcardReader::~SmartcardReader()
 }
 
 void SmartcardReader::initialize(std::string pkcs11ModulePath)
-		throw (InvalidStateException, SmartcardModuleException)
 {
 	if (SmartcardReader::initialized)
 	{
@@ -46,7 +44,7 @@ void SmartcardReader::initialize(std::string pkcs11ModulePath)
 	SmartcardReader::pkcs11ModulePath = pkcs11ModulePath;
 }
 
-void SmartcardReader::destroy() throw (InvalidStateException)
+void SmartcardReader::destroy()
 {
 	if (!SmartcardReader::initialized)
 	{
@@ -57,7 +55,7 @@ void SmartcardReader::destroy() throw (InvalidStateException)
 	SmartcardReader::pkcs11ModulePath = "";
 }
 
-SmartcardReader* SmartcardReader::getInstance() throw (InvalidStateException, SmartcardModuleException)
+SmartcardReader* SmartcardReader::getInstance()
 {
 	if (!SmartcardReader::initialized)
 	{
@@ -77,7 +75,7 @@ SmartcardReader* SmartcardReader::getInstance() throw (InvalidStateException, Sm
 	return SmartcardReader::instance;
 }
 
-SmartcardSlots* SmartcardReader::getSmartcardSlots() throw (SmartcardModuleException)
+SmartcardSlots* SmartcardReader::getSmartcardSlots()
 {
 	int rc;
 	unsigned int nslots;

@@ -1,7 +1,6 @@
 #include <libcryptosec/AsymmetricCipher.h>
 
 ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, ByteArray &data, AsymmetricCipher::Padding padding)
-		throw (AsymmetricCipherException)
 {
 	int rsaSize, paddingValue, rc;
 	ByteArray ret;
@@ -19,7 +18,6 @@ ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, ByteArray &data, Asymmetr
 }
 
 ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, std::string &data, AsymmetricCipher::Padding padding)
-		throw (AsymmetricCipherException)
 {
 	int rsaSize, paddingValue, rc;
 	ByteArray ret;
@@ -37,7 +35,6 @@ ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, std::string &data, Asymme
 }
 
 ByteArray AsymmetricCipher::decrypt(RSAPrivateKey &key, ByteArray &ciphered, AsymmetricCipher::Padding padding)
-	throw (AsymmetricCipherException)
 {
 	int rsaSize, paddingValue, rc;
 	ByteArray *retTemp, ret;

@@ -2,7 +2,6 @@
 
 Pkcs7SignedDataBuilder::Pkcs7SignedDataBuilder(MessageDigest::Algorithm mesDigAlgorithm,
 			Certificate &cert, PrivateKey &privKey, bool attached)
-		throw (Pkcs7Exception)
 {
 	int rc;
 	PKCS7_SIGNER_INFO *si;
@@ -35,7 +34,6 @@ Pkcs7SignedDataBuilder::~Pkcs7SignedDataBuilder()
 
 void Pkcs7SignedDataBuilder::init(MessageDigest::Algorithm mesDigAlgorithm, Certificate &cert,
 			PrivateKey &privKey, bool attached)
-	throw (Pkcs7Exception)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::NO_INIT)
@@ -71,7 +69,6 @@ void Pkcs7SignedDataBuilder::init(MessageDigest::Algorithm mesDigAlgorithm, Cert
 }
 
 void Pkcs7SignedDataBuilder::addSigner(MessageDigest::Algorithm mesDigAlgorithm, Certificate &cert, PrivateKey &privKey)
-		throw (Pkcs7Exception, InvalidStateException)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::INIT)
@@ -93,7 +90,7 @@ void Pkcs7SignedDataBuilder::addSigner(MessageDigest::Algorithm mesDigAlgorithm,
 	}
 }
 
-void Pkcs7SignedDataBuilder::addCertificate(Certificate &cert) throw (Pkcs7Exception, InvalidStateException)
+void Pkcs7SignedDataBuilder::addCertificate(Certificate &cert)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::INIT && this->state != Pkcs7Builder::UPDATE)
@@ -110,7 +107,7 @@ void Pkcs7SignedDataBuilder::addCertificate(Certificate &cert) throw (Pkcs7Excep
 	}
 }
 
-void Pkcs7SignedDataBuilder::addCrl(CertificateRevocationList &crl) throw (Pkcs7Exception, InvalidStateException)
+void Pkcs7SignedDataBuilder::addCrl(CertificateRevocationList &crl)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::INIT && this->state != Pkcs7Builder::UPDATE)
@@ -128,7 +125,6 @@ void Pkcs7SignedDataBuilder::addCrl(CertificateRevocationList &crl) throw (Pkcs7
 }
 
 Pkcs7SignedData* Pkcs7SignedDataBuilder::doFinal()
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	int rc;
 	Pkcs7SignedData *ret;
@@ -164,14 +160,12 @@ Pkcs7SignedData* Pkcs7SignedDataBuilder::doFinal()
 }
 
 Pkcs7SignedData* Pkcs7SignedDataBuilder::doFinal(std::string &data)
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	this->update(data);
 	return this->doFinal();
 }
 
 Pkcs7SignedData* Pkcs7SignedDataBuilder::doFinal(ByteArray &data)
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	this->update(data);
 	return this->doFinal();

@@ -13,7 +13,7 @@ class ExtendedKeyUsageExtension : public Extension
 {
 public:
 	ExtendedKeyUsageExtension();
-	ExtendedKeyUsageExtension(X509_EXTENSION *ext) throw (CertificationException);
+	ExtendedKeyUsageExtension(X509_EXTENSION *ext);
 	virtual ~ExtendedKeyUsageExtension();
 	/**
 	 * @deprecated

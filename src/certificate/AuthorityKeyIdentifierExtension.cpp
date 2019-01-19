@@ -6,8 +6,7 @@ AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() : Extension()
 	this->serialNumber = -1;
 }
 
-AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	AUTHORITY_KEYID *authKeyId;
 	if (this->objectIdentifier.getNid() != NID_authority_key_identifier)

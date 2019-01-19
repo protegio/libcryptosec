@@ -9,13 +9,13 @@
 class Pkcs7CertificateBundle : public Pkcs7
 {
 public:
-	Pkcs7CertificateBundle(PKCS7 *pkcs7) throw (Pkcs7Exception);
+	Pkcs7CertificateBundle(PKCS7 *pkcs7);
 	virtual ~Pkcs7CertificateBundle();
 
 	/*
 	 * Extrai o texto plano contido no pacote PKCS7
 	 */
-	void extract(std::ostream *out) throw (Pkcs7Exception);
+	void extract(std::ostream *out);
 
 	/**
 	 * Retorna a lista de certificados contidas no pacote.

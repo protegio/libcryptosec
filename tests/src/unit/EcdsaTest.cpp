@@ -12,7 +12,7 @@
 #include <fstream>
 #include <stdio.h>
 
-#include "gtest.h"
+#include <gtest/gtest.h>
 
 /**
  * @brief Testes unitários de curvas elípticas NistSecG.

@@ -26,7 +26,7 @@ public:
 	 * @return um ponteiro para a chave simétrica gerada.
 	 * @throw RandomException caso haja um problema na geração da chave.
 	 **/
-	static SymmetricKey* generateKey(SymmetricKey::Algorithm alg) throw (RandomException);
+	static SymmetricKey* generateKey(SymmetricKey::Algorithm alg);
 	
 	/**
 	 * Gera uma chave simétrica do tamanho estipolado pelo parâmetro size.
@@ -35,7 +35,7 @@ public:
 	 * @return um ponteiro para a chave simétrica gerada.
 	 * @throw RandomException caso haja um problema na geração da chave.
 	 **/
-	static SymmetricKey* generateKey(SymmetricKey::Algorithm alg, int size) throw (RandomException);
+	static SymmetricKey* generateKey(SymmetricKey::Algorithm alg, int size);
 
 };
 

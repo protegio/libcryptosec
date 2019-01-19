@@ -66,7 +66,6 @@ std::string RevokedCertificate::getXmlEncoded(std::string tab)
 }
 
 void RevokedCertificate::setCertificateSerialNumber(long certificateSerialNumber)
-	throw(BigIntegerException)
 {
 	this->certificateSerialNumber = BigInteger(certificateSerialNumber);
 }

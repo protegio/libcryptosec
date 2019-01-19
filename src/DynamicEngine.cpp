@@ -1,7 +1,6 @@
 #include <libcryptosec/DynamicEngine.h>
 
-DynamicEngine::DynamicEngine(std::string &enginePath)
-throw (EngineException) : Engine(NULL)
+DynamicEngine::DynamicEngine(std::string &enginePath) : Engine(NULL)
 {
 	this->engine = ENGINE_by_id("dynamic");
 	if (!this->engine)
@@ -24,8 +23,7 @@ throw (EngineException) : Engine(NULL)
 	}
 }
 
-DynamicEngine::DynamicEngine(std::string &enginePath, std::string &engineId)
-throw (EngineException) : Engine(NULL)
+DynamicEngine::DynamicEngine(std::string &enginePath, std::string &engineId) : Engine(NULL)
 {
 	this->engine = ENGINE_by_id("dynamic");
 	if (!this->engine)
@@ -50,8 +48,7 @@ throw (EngineException) : Engine(NULL)
 	}
 }
 
-DynamicEngine::DynamicEngine(std::string &enginePath, std::string &engineId, std::vector<std::pair<std::string, std::string> > &extraCommands)
-throw (EngineException) : Engine(NULL)
+DynamicEngine::DynamicEngine(std::string &enginePath, std::string &engineId, std::vector<std::pair<std::string, std::string> > &extraCommands) : Engine(NULL)
 {
 	ENGINE_load_dynamic();
 	this->engine = ENGINE_by_id("dynamic");
@@ -87,7 +84,7 @@ DynamicEngine::~DynamicEngine()
 {
 }
 
-void DynamicEngine::addToEnginesList() throw (EngineException)
+void DynamicEngine::addToEnginesList()
 {
 	if (!(ENGINE_add(this->engine)))
 	{
@@ -95,7 +92,7 @@ void DynamicEngine::addToEnginesList() throw (EngineException)
 	}
 }
 
-void DynamicEngine::removeFromEnginesList() throw (EngineException)
+void DynamicEngine::removeFromEnginesList()
 {
 	if (!(ENGINE_remove(this->engine)))
 	{

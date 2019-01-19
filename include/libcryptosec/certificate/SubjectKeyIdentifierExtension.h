@@ -13,7 +13,7 @@ class SubjectKeyIdentifierExtension : public Extension
 {
 public:
 	SubjectKeyIdentifierExtension();
-	SubjectKeyIdentifierExtension(X509_EXTENSION *ext) throw (CertificationException);
+	SubjectKeyIdentifierExtension(X509_EXTENSION *ext);
 	virtual ~SubjectKeyIdentifierExtension();
 	/**
 	 * @deprecated

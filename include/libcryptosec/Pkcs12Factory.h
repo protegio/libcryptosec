@@ -23,8 +23,7 @@ public:
 	 * @throw Pkcs7Exception se ocorrer algum probelma na geração do pacote PKCS7.
 	 * @throw EncodeException se ocorrer algum problema na decodificação do pacote DER.
 	 **/
-	static Pkcs12* fromDerEncoded(ByteArray &derEncoded)
-			throw (EncodeException);
+	static Pkcs12* fromDerEncoded(ByteArray &derEncoded);
 };
 
 #endif /*PKCS12FACTORY_H_*/

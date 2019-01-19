@@ -5,8 +5,7 @@ CRLDistributionPointsExtension::CRLDistributionPointsExtension() : Extension()
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_crl_distribution_points);
 }
 
-CRLDistributionPointsExtension::CRLDistributionPointsExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+CRLDistributionPointsExtension::CRLDistributionPointsExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	CRL_DIST_POINTS *points;
 	DistributionPoint distPoint;

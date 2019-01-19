@@ -28,22 +28,19 @@ class RSAKeyPair : public KeyPair
 		 * @param length key lenght
 		 * @throws AsymmetricKeyException if the key cannot be created
 		 */
-		RSAKeyPair(int length)
-				throw (AsymmetricKeyException);
+		RSAKeyPair(int length);
 		
 		virtual ~RSAKeyPair();
 		/**
 		 * gets the public key from key pair
 		 * @return a public key from key pair
 		 */
-		virtual PublicKey* getPublicKey()
-				throw (AsymmetricKeyException, EncodeException);
+		virtual PublicKey* getPublicKey();
 		/**
 		 * gets the private from key pair
 		 * @return a private key from key pair
 		 */
-		virtual PrivateKey* getPrivateKey()
-			throw (AsymmetricKeyException);
+		virtual PrivateKey* getPrivateKey();
 		/**
 		 * encode the key pair in PEM format encrypted
 		 * @param passphrase key for encrypt the key pair
@@ -51,8 +48,7 @@ class RSAKeyPair : public KeyPair
 		 * @return key pair encrypted encoded in PEM format
 		 */
 
-		virtual AsymmetricKey::Algorithm getAlgorithm()
-				throw (AsymmetricKeyException);
+		virtual AsymmetricKey::Algorithm getAlgorithm();
 		/**
 		 * gets the key size
 		 * @return key size

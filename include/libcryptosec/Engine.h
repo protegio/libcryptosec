@@ -78,7 +78,7 @@ public:
 	 * @return Identificador do objeto Engine.
 	 * @throw EngineException caso não haja uma estrutura ENGINE associada ou iniciada de maneira correta.
 	 */
-	std::string getId() throw (EngineException);
+	std::string getId();
 	
 	/**
 	 * Verifica se a engine pode ser inicializa com sucesso.
@@ -97,7 +97,7 @@ public:
 	 * @param Comando.
 	 * @throw EngineException no caso de falha ao adicionar comando na Engine. 
 	 */
-	void setCommand(std::string key) throw (EngineException);
+	void setCommand(std::string key);
 	
 	/**
 	 * Executa comando na Engine.
@@ -105,7 +105,7 @@ public:
 	 * @param Valor do comando.
 	 * @throw EngineException no caso de falha ao adicionar comando na Engine.
 	 */	
-	void setCommand(std::string key, std::string value) throw (EngineException);
+	void setCommand(std::string key, std::string value);
 	
 	/**
 	 * Executa comando na Engine.
@@ -113,7 +113,7 @@ public:
 	 * @param Valor do comando.
 	 * @throw EngineException no caso de falha ao executar comando na Engine.
 	 */
-	void setCommand(std::string key, long value) throw (EngineException);
+	void setCommand(std::string key, long value);
 	
 	/**
 	 * Retorna os comandos disponíveis pela engine.
@@ -127,7 +127,7 @@ public:
 	 * @throw EngineException se ocorrer algum erro durante a adição da engine.
 	 * @see DynamicEngine.
 	 */
-	virtual void addToEnginesList() throw (EngineException);
+	virtual void addToEnginesList();
 
 	/**
 	 * Remove engine da lista de engines do OpenSSL. Essa engine não será carregada por getEngineById().
@@ -135,7 +135,7 @@ public:
 	 * @throw EngineException se ocorrer algum erro durante a remoção da engine.
 	 * @see DynamicEngine.
 	 */
-	virtual void removeFromEnginesList() throw (EngineException);
+	virtual void removeFromEnginesList();
 	
 	/**
 	 * Retorna atributo ENGINE do objeto Engine.

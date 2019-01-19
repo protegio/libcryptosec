@@ -6,7 +6,6 @@ Certificate::Certificate(X509 *cert)
 }
 
 Certificate::Certificate(std::string pemEncoded)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -29,7 +28,6 @@ Certificate::Certificate(std::string pemEncoded)
 }
 
 Certificate::Certificate(ByteArray &derEncoded)
-	throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -321,7 +319,6 @@ std::string Certificate::toXml(std::string tab)
 }
 
 std::string Certificate::getPemEncoded() const
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -353,7 +350,6 @@ std::string Certificate::getPemEncoded() const
 }
 
 ByteArray Certificate::getDerEncoded() const
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -381,7 +377,7 @@ ByteArray Certificate::getDerEncoded() const
 	return ret;
 }
 
-long int Certificate::getSerialNumber() throw (CertificationException)
+long int Certificate::getSerialNumber()
 {
 	ASN1_INTEGER *asn1Int;
 	long ret;
@@ -407,7 +403,7 @@ long int Certificate::getSerialNumber() throw (CertificationException)
 	return ret;
 }
 
-BigInteger Certificate::getSerialNumberBigInt() throw (CertificationException)
+BigInteger Certificate::getSerialNumberBigInt()
 {
 	ASN1_INTEGER *asn1Int;
 	BigInteger ret;
@@ -430,14 +426,13 @@ BigInteger Certificate::getSerialNumberBigInt() throw (CertificationException)
 }
 
 MessageDigest::Algorithm Certificate::getMessageDigestAlgorithm()
-		throw (MessageDigestException)
 {
 	MessageDigest::Algorithm ret;
 	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
 	return ret;
 }
 
-PublicKey* Certificate::getPublicKey() throw (CertificationException, AsymmetricKeyException)
+PublicKey* Certificate::getPublicKey()
 {
 	EVP_PKEY *key;
 	PublicKey *ret;
@@ -463,7 +458,6 @@ PublicKey* Certificate::getPublicKey() throw (CertificationException, Asymmetric
 }
 
 ByteArray Certificate::getPublicKeyInfo()
-		throw (CertificationException)
 {
 	ByteArray ret;
 	unsigned int size;
@@ -478,7 +472,7 @@ ByteArray Certificate::getPublicKeyInfo()
 	return ret;
 }
 
-long Certificate::getVersion() throw (CertificationException)
+long Certificate::getVersion()
 {
 	long ret;
 	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
@@ -654,6 +648,7 @@ std::vector<Extension *> Certificate::getUnknownExtensions()
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
+				break;
 			default:
 				break;
 		}
@@ -662,7 +657,6 @@ std::vector<Extension *> Certificate::getUnknownExtensions()
 }
 
 ByteArray Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
-		throw (CertificationException, EncodeException, MessageDigestException)
 {
 	ByteArray ret, derEncoded;
 	MessageDigest messageDigest;
@@ -685,7 +679,6 @@ X509* Certificate::getX509() const
 }
 
 CertificateRequest Certificate::getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm)
-	throw (CertificationException)
 {
 	X509_REQ* req = NULL;
 	req = X509_to_X509_REQ(this->cert, privateKey.getEvpPkey(), MessageDigest::getMessageDigest(algorithm));

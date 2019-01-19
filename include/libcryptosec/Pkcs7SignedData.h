@@ -31,7 +31,7 @@ public:
 	 * @param pkcs7 um ponteiro para a estrutura OpenSSL PKCS7
 	 * @throw Pkcs7Exception caso o ponteiro não contenha o endereço de uma estrutura PKCS7 válida. 
 	 **/
-	Pkcs7SignedData(PKCS7 *pkcs7) throw (Pkcs7Exception);
+	Pkcs7SignedData(PKCS7 *pkcs7);
 	
 	/**
 	 * Destrutor padrão, limpa a estrutura PKCS7 aninhada. 
@@ -91,7 +91,7 @@ public:
 	 * @return false se o pacote tiver sido corrompido, true caso contrário.
 	 * @throw Pkcs7Exception caso a estrutura PKCS7 seja inválida.
 	 **/
-	bool verifyAndExtract(std::ostream *out) throw (Pkcs7Exception);
+	bool verifyAndExtract(std::ostream *out);
 	
 protected:
 	static CertPathValidatorResult cpvr; 

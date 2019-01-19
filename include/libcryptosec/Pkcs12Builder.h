@@ -16,7 +16,7 @@ public:
 	void setAdditionalCerts(vector<Certificate*> certs) throw();
 	void addAdditionalCert(Certificate* cert) throw();
 	void clearAdditionalCerts() throw();
-	Pkcs12* doFinal(string password = string("")) const throw(Pkcs12Exception);
+	Pkcs12* doFinal(string password = string("")) const;
 	
 protected:
 	string friendlyName;

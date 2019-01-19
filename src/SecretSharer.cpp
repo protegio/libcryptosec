@@ -59,7 +59,7 @@ void SecretSharer::ExtBinEuclid(unsigned int * u, unsigned int * v, unsigned int
 	*u1  <<= k; *u2 <<= k; *u3 <<= k;
 }
 
-unsigned int SecretSharer::invert(unsigned int n, unsigned int modulus) throw (SecretSharerException){
+unsigned int SecretSharer::invert(unsigned int n, unsigned int modulus){
 	unsigned int u, v, u1, u2, u3;
 
 	if (!(0 < n && n < modulus)){
@@ -220,7 +220,7 @@ unsigned int * SecretSharer::order_parts(unsigned int *seq, unsigned int parts, 
 /******************* Code related to splitting *********************/
 
 //void SecretSharer::rand_bytes(unsigned char *data, int num)
-//		throw (RandomException){
+//{
 //	FILE *fp;
 //	unsigned char buffer[num];
 //	int rc = 0;
@@ -237,8 +237,7 @@ unsigned int * SecretSharer::order_parts(unsigned int *seq, unsigned int parts, 
 //	memcpy(data, buffer, num);
 //}
 
-void SecretSharer::rand_bytes(unsigned char *data, int num)
-		throw (RandomException){
+void SecretSharer::rand_bytes(unsigned char *data, int num){
 	ByteArray rand;
 	rand = Random::bytes(num);
 	memcpy(data, rand.getDataPointer(), num);
@@ -255,8 +254,7 @@ void SecretSharer::rand_bytes(unsigned char *data, int num)
  *
  * precondition: n > 0
  */
-unsigned int SecretSharer::eval (unsigned int * poly, unsigned int n, unsigned int x, unsigned int mod)
-		throw (SecretSharerException){
+unsigned int SecretSharer::eval (unsigned int * poly, unsigned int n, unsigned int x, unsigned int mod){
 	unsigned int result;		/* Accumulated polynomial */
 	unsigned int j;			/* index */
 	if (!( n > 0)){			/* precondition */
@@ -286,8 +284,7 @@ struct splitContext{
  * padded because the file had an odd # bytes.
  */
 
-unsigned int SecretSharer::get_limited_16 (std::istream *data, unsigned int limit, struct splitContext * ctx)
-		throw (RandomException){
+unsigned int SecretSharer::get_limited_16 (std::istream *data, unsigned int limit, struct splitContext * ctx){
 	unsigned char buffer[3];
 	unsigned int d;
 	int size;
@@ -326,8 +323,7 @@ unsigned int SecretSharer::get_limited_16 (std::istream *data, unsigned int limi
  * that any k of them can reconstruct it.
  */
 
-void SecretSharer::split_out (unsigned int d, std::vector<std::ostream *>* secrets, int parts, int threshold)
-		throw (RandomException, SecretSharerException){
+void SecretSharer::split_out (unsigned int d, std::vector<std::ostream *>* secrets, int parts, int threshold){
 	int i, di;
 	unsigned int * poly;
 	unsigned char buffer;
@@ -367,8 +363,7 @@ void SecretSharer::split_out (unsigned int d, std::vector<std::ostream *>* secre
  *
  */
 
-void SecretSharer::split_poly (std::istream *data, int parts, int threshold, std::vector<std::ostream *>* secrets)
-		throw (RandomException, SecretSharerException){
+void SecretSharer::split_poly (std::istream *data, int parts, int threshold, std::vector<std::ostream *>* secrets){
 	int d, i, j;
 	struct splitContext sctx;
 	unsigned char buffer [1];
@@ -411,8 +406,7 @@ void SecretSharer::split_poly (std::istream *data, int parts, int threshold, std
  *
  */
 
-void SecretSharer::split_xor (std::istream *data, int parts, std::vector<std::ostream *>* secrets)
-		throw (RandomException){
+void SecretSharer::split_xor (std::istream *data, int parts, std::vector<std::ostream *>* secrets){
 	unsigned int i;
 	int j;
 	unsigned char ch;
@@ -436,10 +430,9 @@ void SecretSharer::split_xor (std::istream *data, int parts, std::vector<std::os
 	free(buffer);
 }
 
-void SecretSharer::split(std::istream *data, int parts, int threshold, std::vector<std::ostream *>* secrets)
-		throw (SecretSharerException, RandomException){
+void SecretSharer::split(std::istream *data, int parts, int threshold, std::vector<std::ostream *>* secrets){
 	int i;
-	int size, maxSize, finalSize;
+	int size, maxSize;
 	if (parts < 1){
 		throw SecretSharerException(SecretSharerException::INVALID_PARTS_VALUE, "SecretSharer::split");
 	}else if (threshold < 1){
@@ -452,7 +445,6 @@ void SecretSharer::split(std::istream *data, int parts, int threshold, std::vect
 	if (threshold == 1){
 		maxSize = 1024;
 		size = maxSize;
-		finalSize = 0;
 		char buf[maxSize+1];
 		while (size != 0){
 			size = data->readsome(buf, maxSize);
@@ -504,8 +496,7 @@ void SecretSharer::split(std::istream *data, int parts, int threshold, std::vect
  * n = size of x, y, and alpha arrays
  * mod = modulus for reducing results
  */
-unsigned int SecretSharer::interp (unsigned int i, unsigned int x [], unsigned int y [], unsigned int n, unsigned int mod)
-		throw (SecretSharerException){
+unsigned int SecretSharer::interp (unsigned int i, unsigned int x [], unsigned int y [], unsigned int n, unsigned int mod){
 	unsigned int * alpha;
 	int j, k;
 	unsigned int prod, temp;
@@ -606,15 +597,11 @@ unsigned int SecretSharer::get_assemble_16(std::vector<std::istream *>* secrets,
  * Returns mod on EOF, exits on error.
  */
 
-unsigned int SecretSharer::get_assemble (std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, unsigned int x [], struct assembleContext * ctx)
-		throw (SecretSharerException){
+unsigned int SecretSharer::get_assemble (std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, unsigned int x [], struct assembleContext * ctx){
 	unsigned int result;
-	int index;
 	unsigned int i;
-//  int number_of_parts = parts->number_of_buffers;
 	unsigned int mod = PRIME;
-	index = 0;
-	for (i=0;i<threshold;i++){
+	for (i = 0; i < threshold; i++){
 		ctx->y [i] = SecretSharer::get_assemble_16(secrets, seq[i], ctx, mod);
 		if (mod + 1 == ctx->y [i]){ /* Only error and EOFs checking. */
 			SecretSharerException(SecretSharerException::INTERNAL_ERROR, "SecretSharer::get_assemble");
@@ -640,8 +627,7 @@ unsigned int SecretSharer::get_assemble (std::vector<std::istream *>* secrets, u
  * original file.  This is the main routine for the assembly case.
  */
 
-void SecretSharer::assemble_poly(std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, std::ostream *secret)
-		throw (SecretSharerException){
+void SecretSharer::assemble_poly(std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, std::ostream *secret){
 	unsigned int magic = IMAGIC;
 	unsigned int *x, d;
 	unsigned int i, size;
@@ -753,10 +739,8 @@ void SecretSharer::assemble_xor(std::vector<std::istream *>* secrets, unsigned i
  * Given the data parts, assemble them to generate the
  * original secret.  This is the main routine for the assembly case.
  */
-void SecretSharer::join(std::vector<std::istream *>* secrets, unsigned int parts, unsigned int threshold, std::ostream *secret)
-		throw (SecretSharerException){
-//	int i, j;
-	int maxSize, size, finalSize;
+void SecretSharer::join(std::vector<std::istream *>* secrets, unsigned int parts, unsigned int threshold, std::ostream *secret){
+	int maxSize, size;
 	unsigned int *seq_orig, *seq;
 	
 	if (parts < 1){
@@ -771,7 +755,6 @@ void SecretSharer::join(std::vector<std::istream *>* secrets, unsigned int parts
 	if (threshold == 1){
 		maxSize = 1024;
 		size = maxSize;
-		finalSize = 0;
 		char buf[maxSize+1];
 		size = (secrets->at(0))->readsome(buf, maxSize);
 		while (size != 0){

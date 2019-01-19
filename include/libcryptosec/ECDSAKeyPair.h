@@ -32,25 +32,21 @@ public:
 	 * Cria par por parâmetros informados em DER
 	 * TODO
 	 */
-	ECDSAKeyPair(ByteArray &derEncoded)
-			throw (AsymmetricKeyException);
+	ECDSAKeyPair(ByteArray &derEncoded);
 
 	/**
 	 * Cria par por parâmetros informados em PEM
 	 * TODO
 	 */
-	ECDSAKeyPair(std::string &encoded)
-			throw (AsymmetricKeyException);
+	ECDSAKeyPair(std::string &encoded);
 
 	/**
 	 * Cria par por parãmetros informados por um objeto Curve
 	 * TODO
 	 */
-	ECDSAKeyPair(const EllipticCurve & curve)
-			throw (AsymmetricKeyException);
+	ECDSAKeyPair(const EllipticCurve & curve);
 
-	ECDSAKeyPair(AsymmetricKey::Curve curve, bool named=true)
-			throw (AsymmetricKeyException);
+	ECDSAKeyPair(AsymmetricKey::Curve curve, bool named=true);
 
 	virtual ~ECDSAKeyPair();
 
@@ -58,20 +54,17 @@ public:
 	 * gets the public key from key pair
 	 * @return a public key from key pair
 	 */
-	virtual PublicKey* getPublicKey()
-			throw (AsymmetricKeyException, EncodeException);
+	virtual PublicKey* getPublicKey();
 	/**
 	 * gets the private from key pair
 	 * @return a private key from key pair
 	 */
-	virtual PrivateKey* getPrivateKey()
-		throw (AsymmetricKeyException);
+	virtual PrivateKey* getPrivateKey();
 
-	virtual AsymmetricKey::Algorithm getAlgorithm()
-			throw (AsymmetricKeyException);
+	virtual AsymmetricKey::Algorithm getAlgorithm();
 
 protected:
-	void generateKey(EC_GROUP * group) throw (AsymmetricKeyException);
+	void generateKey(EC_GROUP * group);
 	EC_GROUP *createGroup(const EllipticCurve& curve);
 	EC_GROUP *createGroup(ByteArray &derEncoded);
 };

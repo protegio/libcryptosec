@@ -31,14 +31,14 @@ public:
 	 * Cria um objeto NetscapeSPKI a partir de uma estrutura NETSCAPE_SPKI do OpenSSL.
 	 * @param netscapeSPKI estrutura NETSCAPE_SPKI.
 	 */
-	NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI) throw (NetscapeSPKIException);
+	NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI);
 	
 	/**
 	 * Construtor.
 	 * Cria um objeto NetscapeSPKI a partir outro do mesmo tipo mas codificado em base64.
 	 * @param netscapeSPKI estrutura NETSCAPE_SPKI.
 	 */	
-	NetscapeSPKI(std::string netscapeSPKIBase64) throw (EncodeException);
+	NetscapeSPKI(std::string netscapeSPKIBase64);
 	
 	/**
 	 * Destrutor.
@@ -50,7 +50,7 @@ public:
 	 * @return objeto NetscapeSPKI em formato base64.
 	 * @throw EncodeException caso ocorra algum erro interno durante a codificação do objeto em base64.
 	 */
-	std::string getBase64Encoded() throw (EncodeException);
+	std::string getBase64Encoded();
 	
 	/**
 	 * Retorna a chave pública do objeto NetscapeSPKI.
@@ -58,8 +58,7 @@ public:
      * @throw NetscapeSPKIException caso a chave pública não esteja disponível no objeto NetscapeSPKI.
 	 * @throw AsymmetricKeyException caso não seja possível instanciar um objeto PublicKey a partir da chave pública obtida de NetscapeSPKI. 
 	 */
-	PublicKey* getPublicKey()
-			throw (AsymmetricKeyException, NetscapeSPKIException);
+	PublicKey* getPublicKey();
 	
 	/**
 	 * Retorna desafio do objeto NetscapeSPKI.
@@ -73,7 +72,7 @@ public:
 	 * @throw NetscapeSPKIException caso a chave pública não esteja disponível no objeto NetscapeSPKI.
 	 * @throw AsymmetricKeyException caso não seja possível instanciar um objeto PublicKey a partir da chave pública obtida de NetscapeSPKI.
 	 */
-	bool verify() throw (AsymmetricKeyException, NetscapeSPKIException);
+	bool verify();
 	
 	/**
 	 * Verifica a assinatura do NetscapeSPKI.

@@ -3,24 +3,27 @@
 #include <openssl/crypto.h>
 
 DSAKeyPair::DSAKeyPair(int length)
-		throw (AsymmetricKeyException)
 {
 	DSA *dsa;
 	this->key = NULL;
 	this->engine = NULL;
-	dsa = NULL;
-	dsa = DSA_generate_parameters(length, NULL, 0, NULL, NULL, NULL, NULL);
-	if (!dsa)
+	dsa = DSA_new();
+
+	if (DSA_generate_parameters_ex(dsa, length, NULL, 0, NULL, NULL, NULL) == 0)
 	{
+		DSA_free(dsa);
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "DSAKeyPair::DSAKeyPair");
 	}
-	DSA_generate_key(dsa);
-	if (!dsa)
+
+	if (DSA_generate_key(dsa) == 0)
 	{
+		DSA_free(dsa);
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "DSAKeyPair::DSAKeyPair");
 	}
+
 	this->key = EVP_PKEY_new();
 	EVP_PKEY_assign_DSA(this->key, dsa);
+
 	if (!this->key)
 	{
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "DSAKeyPair::DSAKeyPair");
@@ -42,7 +45,6 @@ DSAKeyPair::~DSAKeyPair()
 }
 
 PublicKey* DSAKeyPair::getPublicKey()
-		throw (AsymmetricKeyException, EncodeException)
 {
 	PublicKey *ret;
 	std::string keyTemp;
@@ -52,7 +54,6 @@ PublicKey* DSAKeyPair::getPublicKey()
 }
 
 PrivateKey* DSAKeyPair::getPrivateKey()
-		throw (AsymmetricKeyException)
 {
 	PrivateKey *ret;
 	EVP_PKEY *pkey;
@@ -87,7 +88,6 @@ PrivateKey* DSAKeyPair::getPrivateKey()
 }
 
 AsymmetricKey::Algorithm DSAKeyPair::getAlgorithm()
-		throw (AsymmetricKeyException)
 {
 	return AsymmetricKey::DSA;
 }

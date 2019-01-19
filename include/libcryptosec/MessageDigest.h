@@ -1,6 +1,7 @@
 #ifndef MESSAGEDIGEST_H_
 #define MESSAGEDIGEST_H_
 
+#include <libcryptosec/Macros.h>
 #include <openssl/evp.h>
 #include <string>
 #include "ByteArray.h"
@@ -26,8 +27,7 @@ public:
 	 * @enum MessageDigest::Algorithm.
 	 * Possíveis algoritmos de resumo.
 	 */
-	enum Algorithm
-	{
+	DECLARE_ENUM( Algorithm, 10,
 		NO_ALGORITHM,
 		MD4,
 		MD5,
@@ -37,9 +37,9 @@ public:
 		SHA224,
 		SHA256,
 		SHA384,
-		SHA512,
-	};
-	
+		SHA512
+	);
+
 	/**
 	 * Construtor padrão.
 	 * Controi objeto MessageDigest não inicializado.
@@ -52,7 +52,7 @@ public:
 	 * @param algorithm algoritmo de resumo.
 	 * @throw MessageDigestException caso ocorra erro ao inicializar a estrutura de resumos do OpenSSL. 
 	 */
-	MessageDigest(MessageDigest::Algorithm algorithm) throw (MessageDigestException);
+	MessageDigest(MessageDigest::Algorithm algorithm);
 	
 	/**
 	 * Construtor
@@ -61,7 +61,7 @@ public:
 	 * @param engine objeto Engine.
 	 * @throw MessageDigestException caso ocorra erro ao inicializar a estrutura de resumos do OpenSSL. 
 	 */
-	MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine) throw (MessageDigestException);
+	MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine);
 	
 	/**
 	 * Destrutor.
@@ -73,7 +73,7 @@ public:
 	 * @param algorithm algoritmo de resumo.
 	 * @throw MessageDigestException caso ocorra erro ao inicializar a estrutura de resumos do OpenSSL. 
 	 */
-	void init(MessageDigest::Algorithm algorithm) throw (MessageDigestException);
+	void init(MessageDigest::Algorithm algorithm);
 	
 	/**
 	 * Inicializa estruturas de resumos do OpenSSL utilizando uma engine.
@@ -81,7 +81,7 @@ public:
 	 * @param engine objeto Engine.
 	 * @throw MessageDigestException caso ocorra erro ao inicializar a estrutura de resumos do OpenSSL. 
 	 */
-	void init(MessageDigest::Algorithm algorithm, Engine &engine) throw (MessageDigestException);
+	void init(MessageDigest::Algorithm algorithm, Engine &engine);
 
 	/**
 	 * Define o conteúdo de entrada função de resumo.
@@ -89,7 +89,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao atualizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
 	 */
-	void update(ByteArray &data) throw (MessageDigestException, InvalidStateException);
+	void update(const ByteArray &data);
 
 	/**
 	 * Define o conteúdo de entrada função de resumo.
@@ -97,7 +97,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao atualizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
 	 */
-	void update(std::string &data) throw (MessageDigestException, InvalidStateException);
+	void update(const std::string &data);
 	
 	/**
 	 * Realiza resumo criptográfico.
@@ -105,7 +105,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */
-	ByteArray doFinal() throw (MessageDigestException, InvalidStateException);
+	ByteArray doFinal();
 	
 	/**
 	 * Realiza atualização do contexto e faz resumo criptográfico.
@@ -115,7 +115,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */	
-	ByteArray doFinal(ByteArray &data) throw (MessageDigestException, InvalidStateException);
+	ByteArray doFinal(const ByteArray &data);
 
 
 	/**
@@ -126,19 +126,20 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */	
-	ByteArray doFinal(std::string &data) throw (MessageDigestException, InvalidStateException);
+	ByteArray doFinal(const std::string &data);
 	
 	/**
 	 * Retorna algoritmo de resumo selecionado.
 	 * @return algoritmo de resumo selecionado.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
 	 */
-	MessageDigest::Algorithm getAlgorithm() throw (InvalidStateException);
+	MessageDigest::Algorithm getAlgorithm();
 	
 	
 	/**
 	 * Retorna a estrutura do OpenSSL que representa o algoritmo de resumo desejado.
 	 * @return objeto EVP_MD referente ao algoritmo passado.
+	 * @throw MessageDigestException if MessageDigest::NO_ALGORITHM is passed.
 	 */
 	static const EVP_MD* getMessageDigest(MessageDigest::Algorithm algorithm);
 	
@@ -147,14 +148,14 @@ public:
 	 * @return objeto MessageDigest::Algorithm relativo ao identificador passado.
 	 * @throw MessageDigestException caso o identificador passado seja inválido.
 	 */
-	static MessageDigest::Algorithm getMessageDigest(int algorithmNid)
-			throw (MessageDigestException);
+	static MessageDigest::Algorithm getMessageDigest(int algorithmNid);
 	
 	
 	/**
 	 * Carrega todos os algoritmos de resumo.
 	 */
 	static void loadMessageDigestAlgorithms();
+
 protected:
 
 	/**
@@ -167,12 +168,11 @@ protected:
 	 * @see MessageDigest::update(ByteArray &data).
 	 * @see MessageDigest::doFinal().
 	 */
-	enum State
-	{
+	DECLARE_ENUM( State, 3,
 		NO_INIT,
 		INIT,
-		UPDATE,
-	};
+		UPDATE
+	);
 	
 	/**
 	 * Algoritmo selecionado

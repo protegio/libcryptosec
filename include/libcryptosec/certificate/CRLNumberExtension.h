@@ -14,7 +14,7 @@ class CRLNumberExtension : public Extension
 {
 public:
 	CRLNumberExtension(unsigned long serial);
-	CRLNumberExtension(X509_EXTENSION* ext) throw (CertificationException);
+	CRLNumberExtension(X509_EXTENSION* ext);
 	virtual ~CRLNumberExtension();
 	/**
 	 * @deprecated

@@ -47,7 +47,7 @@ public:
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
-	void update(std::string &data) throw (InvalidStateException, Pkcs7Exception);
+	void update(std::string &data);
 	
 	/**
 	 * Concatena novos dados ao pacote PKCS7.
@@ -59,7 +59,7 @@ public:
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
-	void update(ByteArray &data) throw (InvalidStateException, Pkcs7Exception);
+	void update(ByteArray &data);
 	
 	/**
 	 * Gera um pacote PKCS7 a partir de de um stream de entrada e põe o resultado
@@ -74,8 +74,7 @@ public:
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
-	void doFinal(std::istream *in, std::ostream *out)
-			throw (InvalidStateException, Pkcs7Exception, EncodeException);
+	void doFinal(std::istream *in, std::ostream *out);
 
 protected:
 

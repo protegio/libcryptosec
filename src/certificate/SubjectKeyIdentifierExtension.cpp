@@ -5,8 +5,7 @@ SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension() : Extension()
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_subject_key_identifier);
 }
 
-SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	ASN1_OCTET_STRING *octetString;
 	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);

@@ -1,10 +1,15 @@
 #include <stdio.h>
-#include "gtest.h"
+#include <gtest/gtest.h>
+#include <libcryptosec/init.h>
+#include <libcryptosec/MessageDigest.h>
+#include <openssl/evp.h>
+#include <iostream>
 
 GTEST_API_ int main(int argc, char **argv) {
-	printf("Running main() from Main.cpp\n");
+	libcryptosec::init();
 	testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+	int ret = RUN_ALL_TESTS();
+	libcryptosec::finish();
+	return ret;
 }
-
 

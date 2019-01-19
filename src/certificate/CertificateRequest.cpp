@@ -11,7 +11,6 @@ CertificateRequest::CertificateRequest(X509_REQ *req)
 }
 
 CertificateRequest::CertificateRequest(std::string &pemEncoded)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -34,7 +33,6 @@ CertificateRequest::CertificateRequest(std::string &pemEncoded)
 }
 
 CertificateRequest::CertificateRequest(ByteArray &derEncoded)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -166,7 +164,6 @@ std::string CertificateRequest::toXml(std::string tab)
 }
 
 std::string CertificateRequest::getPemEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -198,7 +195,6 @@ std::string CertificateRequest::getPemEncoded()
 }
 
 ByteArray CertificateRequest::getDerEncoded() const
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -237,7 +233,6 @@ long CertificateRequest::getVersion()
 }
 
 MessageDigest::Algorithm CertificateRequest::getMessageDigestAlgorithm()
-		throw (MessageDigestException)
 {
 	MessageDigest::Algorithm ret;
 	ret = MessageDigest::getMessageDigest(X509_REQ_get_signature_nid(this->req));
@@ -250,7 +245,6 @@ void CertificateRequest::setPublicKey(PublicKey &publicKey)
 }
 
 PublicKey* CertificateRequest::getPublicKey()
-		throw (CertificationException, AsymmetricKeyException)
 {
 	EVP_PKEY *key;
 	PublicKey *ret;
@@ -272,8 +266,8 @@ PublicKey* CertificateRequest::getPublicKey()
 }
 
 ByteArray CertificateRequest::getPublicKeyInfo()
-		throw (CertificationException)
 {
+	throw std::exception();
 	// TODO: openssl não provê uma função para pegar os bits da chave pública
 /*	ByteArray ret;
 	unsigned int size;
@@ -356,7 +350,6 @@ void CertificateRequest::addExtensions(std::vector<Extension *> &extensions)
 }
 
 void CertificateRequest::replaceExtension(Extension &extension)
-		throw (CertificationException)
 {
 	int position;
 	X509_EXTENSION *ext = extension.getX509Extension();
@@ -402,7 +395,7 @@ void CertificateRequest::replaceExtension(Extension &extension)
 	sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free); //apaga copia local da pilha
 }
 
-std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name extensionName) throw (CertificationException)
+std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name extensionName)
 {
 	int i, position;
 	X509_EXTENSION *ext;
@@ -488,7 +481,7 @@ std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name ext
 }
 
 
-std::vector<Extension *> CertificateRequest::removeExtension(ObjectIdentifier extOID) throw (CertificationException)
+std::vector<Extension *> CertificateRequest::removeExtension(ObjectIdentifier extOID)
 {
 	ASN1_OBJECT* obj = extOID.getObjectIdentifier(); //nao desalocar!
 	int nid = OBJ_obj2nid(obj);
@@ -625,6 +618,7 @@ std::vector<Extension *> CertificateRequest::getUnknownExtensions()
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
+				break;
 			default:
 				break;
 		}
@@ -633,7 +627,6 @@ std::vector<Extension *> CertificateRequest::getUnknownExtensions()
 }
 
 ByteArray CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm) const
-		throw (CertificationException, EncodeException, MessageDigestException)
 {
 	ByteArray ret, derEncoded;
 	MessageDigest messageDigest;
@@ -644,7 +637,6 @@ ByteArray CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm)
 }
 
 void CertificateRequest::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
-		throw (CertificationException)
 {
 	int rc;
 	PublicKey *pub;

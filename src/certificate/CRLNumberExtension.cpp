@@ -6,7 +6,7 @@ CRLNumberExtension::CRLNumberExtension(unsigned long serial=0) : Extension()
     this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_crl_number);
 }
 
-CRLNumberExtension::CRLNumberExtension(X509_EXTENSION* ext) throw (CertificationException) : Extension(ext)
+CRLNumberExtension::CRLNumberExtension(X509_EXTENSION* ext) : Extension(ext)
 {
 	ASN1_INTEGER* serialAsn1 = NULL;
 	

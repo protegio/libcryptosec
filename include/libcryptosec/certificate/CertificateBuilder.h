@@ -35,15 +35,13 @@ class CertificateBuilder
 {
 public:
 	CertificateBuilder();
-	CertificateBuilder(std::string pemEncoded)
-			throw (EncodeException);
-	CertificateBuilder(ByteArray &derEncoded)
-			throw (EncodeException);
+	CertificateBuilder(std::string pemEncoded);
+	CertificateBuilder(ByteArray &derEncoded);
 	CertificateBuilder(CertificateRequest &request);
 	CertificateBuilder(const CertificateBuilder& cert);
 	virtual ~CertificateBuilder();
-	std::string getPemEncoded() throw (EncodeException);
-	ByteArray getDerEncoded() throw (EncodeException);
+	std::string getPemEncoded();
+	ByteArray getDerEncoded();
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
@@ -56,15 +54,15 @@ public:
 	/**
 	 * Definir serial à partir de BigInteger, para seriais maiores do que um "long".
 	 */
-	void setSerialNumber(BigInteger serial) throw (BigIntegerException);
-	long getSerialNumber() throw (CertificationException);
-	BigInteger getSerialNumberBigInt() throw (CertificationException, BigIntegerException);
-	MessageDigest::Algorithm getMessageDigestAlgorithm() throw (MessageDigestException);
+	void setSerialNumber(BigInteger serial);
+	long getSerialNumber();
+	BigInteger getSerialNumberBigInt();
+	MessageDigest::Algorithm getMessageDigestAlgorithm();
 	void setPublicKey(PublicKey &publicKey);
-	PublicKey* getPublicKey() throw (CertificationException, AsymmetricKeyException);
-	ByteArray getPublicKeyInfo() throw (CertificationException);
+	PublicKey* getPublicKey();
+	ByteArray getPublicKeyInfo();
 	void setVersion(long version);
-	long getVersion() throw (CertificationException);
+	long getVersion();
 	void setNotBefore(DateTime &dateTime);
 	DateTime getNotBefore();
 	void setNotAfter(DateTime &dateTime);
@@ -84,7 +82,7 @@ public:
 	 *
 	 * @param issuer issuer
 	 */
-	void setIssuer(X509* issuer) throw (CertificationException);
+	void setIssuer(X509* issuer);
 
 	RDNSequence getIssuer();
 
@@ -94,7 +92,7 @@ public:
 	 *
 	 * @param name subject
 	 */
-	void alterSubject(RDNSequence &name) throw (CertificationException);
+	void alterSubject(RDNSequence &name);
 
 	/**
 	 * Define o campo "subject" a partir de um RDNSequence, utilizando a
@@ -110,20 +108,17 @@ public:
 	 *
 	 * @param name subject
 	 */
-	void setSubject(X509_REQ* req) throw (CertificationException);
+	void setSubject(X509_REQ* req);
 	RDNSequence getSubject();
-	void addExtension(Extension &extension) throw (CertificationException);
-	void addExtensions(std::vector<Extension *> &extensions)
-			throw (CertificationException);
-	void replaceExtension(Extension &extension)
-			throw (CertificationException);
-	std::vector<Extension *> removeExtension(Extension::Name extensionName) throw (CertificationException);
-	std::vector<Extension *> removeExtension(ObjectIdentifier extOID) throw (CertificationException);
+	void addExtension(Extension &extension);
+	void addExtensions(std::vector<Extension *> &extensions);
+	void replaceExtension(Extension &extension);
+	std::vector<Extension *> removeExtension(Extension::Name extensionName);
+	std::vector<Extension *> removeExtension(ObjectIdentifier extOID);
 	std::vector<Extension*> getExtension(Extension::Name extensionName);
 	std::vector<Extension*> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();
-	Certificate* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
-			throw (CertificationException, AsymmetricKeyException);
+	Certificate* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
 	X509* getX509() const;
 	CertificateBuilder& operator =(const CertificateBuilder& value);
 	bool isIncludeEcdsaParameters() const;

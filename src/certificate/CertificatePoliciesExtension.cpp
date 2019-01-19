@@ -5,8 +5,7 @@ CertificatePoliciesExtension::CertificatePoliciesExtension() : Extension()
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_certificate_policies);
 }
 
-CertificatePoliciesExtension::CertificatePoliciesExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+CertificatePoliciesExtension::CertificatePoliciesExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	CERTIFICATEPOLICIES *certificatePolicies;
 	PolicyInformation policyInformation;

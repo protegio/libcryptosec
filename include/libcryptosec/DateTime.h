@@ -48,7 +48,7 @@ public:
 	 * Construtor padrão.
 	 * Cria um objeto DateTime com data 0 (00:00:00 UTC, 1 de Janeiro de 1970).
 	 */
-	DateTime() throw(BigIntegerException);
+	DateTime();
 	
 	/**
 	 * Construtor.
@@ -56,21 +56,21 @@ public:
 	 * @param dateTime data específica em segundos.
 	 * obs: linux: time_t = __SLONGWORD_TYPE = long int = long.
 	 */
-	DateTime(time_t dateTime) throw(BigIntegerException);
+	DateTime(time_t dateTime);
 	
 	/**
 	 * Construtor.
 	 * Cria um objeto DateTime com uma data específica.
 	 * @param dateTime data específica em segundos.
 	 */
-	DateTime(BigInteger const& dateTime) throw(BigIntegerException);
+	DateTime(BigInteger const& dateTime);
 	
 	/**
 	 * Contrutor.
 	 * Cria um objeto DateTime com uma data específica.
 	 * @param asn1Time data específica. 
 	 */	
-	DateTime(ASN1_TIME *asn1Time) throw(BigIntegerException);
+	DateTime(ASN1_TIME *asn1Time);
 
 	/**
 	 * Contrutor.
@@ -78,7 +78,7 @@ public:
 	 * @param utc string no formato UTCTime(YYMMDDHHMMSSZ) ou GeneralizedTime (YYYYMMDDHHMMSSZ).
 	 * Notar que ambos estão no fuso Zulu (GMT+0). 
 	 */	
-	DateTime(std::string utc) throw(BigIntegerException);
+	DateTime(std::string utc);
 	
 	/**
 	 * Destrutor.
@@ -89,25 +89,25 @@ public:
 	 * Obtem representação da data em formato Xml
 	 * @return data em formato Xml
 	 */	
-	std::string getXmlEncoded(std::string tab = "") const throw(BigIntegerException);
+	std::string getXmlEncoded(std::string tab = "") const;
 
 	/**
 	 * Define a data do objeto DateTime.
 	 * @param dateTime data específica em segundos.
 	 */
-	void setDateTime(time_t dateTime) throw(BigIntegerException);
+	void setDateTime(time_t dateTime);
 
 	/**
 	 * Define a data do objeto DateTime.
 	 * @param dateTime data específica em segundos.
 	 */
-	void setDateTime(BigInteger const& dateTime) throw(BigIntegerException);
+	void setDateTime(BigInteger const& dateTime);
 	
 	/**
 	 * Obtem data em segundos.
 	 * @return data em segundos. 
 	 */
-	time_t getDateTime() const throw(BigIntegerException);
+	time_t getDateTime() const;
 	
 	/**
 	 * Obtem data em segundos.
@@ -119,38 +119,38 @@ public:
 	 * Obtem data em formato ASN1.
 	 * @return objeto ASN1_TIME no formato UTCTime se ano inferior a 2050, GeneralizedTime caso contrario.
 	 */
-	ASN1_TIME* getAsn1Time() const throw(BigIntegerException);
+	ASN1_TIME* getAsn1Time() const;
 	
 	/**
 	* Obtem data em formato ASN1.
 	* @return objeto ASN1_TIME no formato GeneralizedTime (YYYYMMDDHHMMSSZ).
 	*/
-	ASN1_TIME* getGeneralizedTime() const throw(BigIntegerException);
+	ASN1_TIME* getGeneralizedTime() const;
 	
 	/**
 	* Obtem data em formato ASN1.
 	* @return objeto ASN1_TIME no formato UTCTime (YYMMDDHHMMSSZ).
 	*/
-	ASN1_TIME* getUTCTime() const throw(BigIntegerException);
+	ASN1_TIME* getUTCTime() const;
 			
 	/**
 	 * Obtem data em formato ISO8601.
 	 * @return string no formato YYYY-MM-DDTHH:MM:SS (no GMT).
 	 */
-	std::string getISODate() const throw(BigIntegerException);
+	std::string getISODate() const;
 	
 	/**
 	 * Operador de atribuição.
 	 * @param value referência para objeto DateTime.
 	 */
-	DateTime& operator =(const DateTime& value) throw(BigIntegerException);
+	DateTime& operator =(const DateTime& value);
 	
 	/**
 	 * Transforma do formato em segundos (epoch) para ano, mês, dia, hora, minuto e segundo.
 	 * @param epoch referência para segundos.
 	 * @return estrutura com ano, mês, dia, hora, minuto e segundo.
 	 * */
-	static DateTime::DateVal getDate(BigInteger const& epoch) throw(BigIntegerException)
+	static DateTime::DateVal getDate(BigInteger const& epoch)
 	{
 		const long SECS_DAY = 86400L;
 		DateTime::DateVal ret;							
@@ -321,38 +321,38 @@ public:
 	 * Adiciona segundos.
 	 * @param quantidade de segundos.
 	 * */	
-	void addSeconds(long b) throw(BigIntegerException);
+	void addSeconds(long b);
 	
 	/**
 	 * Adiciona minutos.
 	 * @param quantidade de minutos.
 	 * */
-	void addMinutes(long b) throw(BigIntegerException);
+	void addMinutes(long b);
 	
 	/**
 	 * Adiciona horas.
 	 * @param quantidade de horas.
 	 * */	
-	void addHours(long b) throw(BigIntegerException);
+	void addHours(long b);
 	
 	/**
 	 * Adiciona dias.
 	 * @param quantidade de dias.
 	 * */	
-	void addDays(long b) throw(BigIntegerException);
+	void addDays(long b);
 
 	/**
 	 * Adiciona anos.
 	 * @param quantidade de anos.
 	 * */	
-	void addYears(long b) throw(BigIntegerException);
+	void addYears(long b);
 	
 	/**
 	 * Transforma de formato UTCTime(YYMMDDHHMMSSZ) ou GeneralizedTime (YYYYMMDDHHMMSSZ) para epoch(segundos).
 	 * @param aString string no formato 'YYMMDDHHMMSSZ' ou 'YYYYMMDDHHMMSSZ'.
 	 * return segundos.
 	 * */
-	static BigInteger date2epoch(string aString) throw(BigIntegerException)
+	static BigInteger date2epoch(string aString)
 	{
 		int year;
 		int month; //[0-11]
@@ -421,7 +421,7 @@ public:
 	 * Transforma do formato ano, mês [0-11], dia [1-31], hora [0-23], minuto [0-59] e segundo [0-59] (Zulu/GMT+0) para epoch.
 	 * @return segundos.
 	 * */	
-	static BigInteger date2epoch(int year, int month, int day, int hour, int min, int sec) throw(BigIntegerException)
+	static BigInteger date2epoch(int year, int month, int day, int hour, int min, int sec)
 	{
 		BigInteger ret(0L);
 		
@@ -556,13 +556,13 @@ public:
 	}	
 	
 	bool operator==(const DateTime& other) const throw();
-	bool operator==(time_t other) const throw(BigIntegerException);
+	bool operator==(time_t other) const;
 
 	bool operator<(const DateTime& other) const throw();
-	bool operator<(time_t other) const throw(BigIntegerException);
+	bool operator<(time_t other) const;
 
 	bool operator>(const DateTime& other) const throw();
-	bool operator>(time_t other) const throw(BigIntegerException);
+	bool operator>(time_t other) const;
 
 		
 protected:

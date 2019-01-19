@@ -5,8 +5,7 @@ ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() : Extension()
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_ext_key_usage);
 }
 
-ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	STACK_OF(ASN1_OBJECT) *extKeyUsages;
 	ObjectIdentifier objectIdentifier;

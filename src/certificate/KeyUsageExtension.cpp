@@ -27,8 +27,7 @@ KeyUsageExtension::KeyUsageExtension() : Extension()
 //	this->ext = d2i_X509_EXTENSION(NULL, &temp, value.size());
 //}
 
-KeyUsageExtension::KeyUsageExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+KeyUsageExtension::KeyUsageExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	ASN1_BIT_STRING *bitString;
 	int i;

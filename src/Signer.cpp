@@ -1,7 +1,6 @@
 #include <libcryptosec/Signer.h>
 
 ByteArray Signer::sign(PrivateKey &key, ByteArray &hash, MessageDigest::Algorithm algorithm)
-		throw (SignerException)
 {
 	ByteArray ret;
 	int rc, hashAlgorithmId;
@@ -39,7 +38,6 @@ ByteArray Signer::sign(PrivateKey &key, ByteArray &hash, MessageDigest::Algorith
 }
 
 bool Signer::verify(PublicKey &key, ByteArray &signature, ByteArray &hash, MessageDigest::Algorithm algorithm)
-		throw (SignerException)
 {
 	int rc, hashAlgorithmId;
 	AsymmetricKey::Algorithm alg;

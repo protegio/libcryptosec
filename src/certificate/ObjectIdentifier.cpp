@@ -43,7 +43,6 @@ std::string ObjectIdentifier::getXmlEncoded(std::string tab)
 }
 
 std::string ObjectIdentifier::getOid()
-		throw (CertificationException)
 {
 	char data[30];
 	if (!OBJ_get0_data(this->asn1Object))

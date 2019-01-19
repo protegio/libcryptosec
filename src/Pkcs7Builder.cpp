@@ -20,7 +20,7 @@ Pkcs7Builder::~Pkcs7Builder()
 	}
 }
 
-void Pkcs7Builder::update(std::string &data) throw (InvalidStateException, Pkcs7Exception)
+void Pkcs7Builder::update(std::string &data)
 {
 	ByteArray temp;
 	temp = ByteArray(data);
@@ -28,7 +28,6 @@ void Pkcs7Builder::update(std::string &data) throw (InvalidStateException, Pkcs7
 }
 
 void Pkcs7Builder::update(ByteArray &data)
-		throw (InvalidStateException, Pkcs7Exception)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::INIT && this->state != Pkcs7Builder::UPDATE)
@@ -60,7 +59,6 @@ void Pkcs7Builder::update(ByteArray &data)
 }
 
 void Pkcs7Builder::doFinal(std::istream *in, std::ostream *out)
-		throw (InvalidStateException, Pkcs7Exception, EncodeException)
 {
 	int maxSize, size, rc;
 	ByteArray buf, contents;

@@ -1,22 +1,22 @@
 #include <libcryptosec/DateTime.h>
 
 //pegar hora local
-DateTime::DateTime() throw(BigIntegerException)
+DateTime::DateTime()
 {
 	this->setDateTime(0);	
 }
 
-DateTime::DateTime(time_t dateTime) throw(BigIntegerException)
+DateTime::DateTime(time_t dateTime)
 {
 	this->setDateTime(dateTime);
 }
 
-DateTime::DateTime(BigInteger const& dateTime) throw(BigIntegerException)
+DateTime::DateTime(BigInteger const& dateTime)
 {
 	this->setDateTime(dateTime);
 }
 
-DateTime::DateTime(ASN1_TIME *asn1Time) throw(BigIntegerException)
+DateTime::DateTime(ASN1_TIME *asn1Time)
 {
 /*	tm dateTimeTm;
 	std::string dateTimeWr;
@@ -112,7 +112,7 @@ DateTime::DateTime(ASN1_TIME *asn1Time) throw(BigIntegerException)
 	this->setDateTime(this->date2epoch(str));
 }
 
-DateTime::DateTime(std::string s) throw(BigIntegerException)
+DateTime::DateTime(std::string s)
 {
 	this->setDateTime(DateTime::date2epoch(s));
 }
@@ -121,17 +121,17 @@ DateTime::~DateTime()
 {
 }
 
-void DateTime::setDateTime(time_t dateTime) throw(BigIntegerException)
+void DateTime::setDateTime(time_t dateTime)
 {
 	this->seconds = dateTime;
 }
 
-void DateTime::setDateTime(BigInteger const& b) throw(BigIntegerException)
+void DateTime::setDateTime(BigInteger const& b)
 {
 	this->seconds = b;
 }
 
-time_t DateTime::getDateTime() const throw(BigIntegerException)
+time_t DateTime::getDateTime() const
 {
 /*	struct tm stm;
 	std::istringstream stream; 
@@ -169,7 +169,7 @@ time_t DateTime::getDateTime() const throw(BigIntegerException)
 	return static_cast<time_t>(this->seconds.getValue());
 }
 
-std::string DateTime::getXmlEncoded(std::string tab) const throw(BigIntegerException)
+std::string DateTime::getXmlEncoded(std::string tab) const
 {	
 	ASN1_TIME* gt;
 	string str;
@@ -182,7 +182,7 @@ std::string DateTime::getXmlEncoded(std::string tab) const throw(BigIntegerExcep
 	return str;	
 }
 
-ASN1_TIME* DateTime::getAsn1Time() const throw(BigIntegerException)
+ASN1_TIME* DateTime::getAsn1Time() const
 {
 	BigInteger limit("2524608000");// segundos para 01/01/2050 00:00:00 Zulu
 	ASN1_TIME* ret = NULL;
@@ -199,7 +199,7 @@ ASN1_TIME* DateTime::getAsn1Time() const throw(BigIntegerException)
 	return ret;
 }
 
-ASN1_TIME* DateTime::getGeneralizedTime() const throw(BigIntegerException)
+ASN1_TIME* DateTime::getGeneralizedTime() const
 {
 	ASN1_TIME *ret;
 	DateVal date;
@@ -237,7 +237,7 @@ ASN1_TIME* DateTime::getGeneralizedTime() const throw(BigIntegerException)
 	return ret;
 }
 
-ASN1_TIME* DateTime::getUTCTime() const throw(BigIntegerException)
+ASN1_TIME* DateTime::getUTCTime() const
 {
 	ASN1_TIME *ret;
 	DateVal date;
@@ -285,7 +285,7 @@ ASN1_TIME* DateTime::getUTCTime() const throw(BigIntegerException)
 	return ret;
 }
 
-std::string DateTime::getISODate() const throw(BigIntegerException)
+std::string DateTime::getISODate() const
 {
 	DateVal date;
 	stringstream stream;
@@ -331,7 +331,7 @@ std::string DateTime::getISODate() const throw(BigIntegerException)
 	return stream.str();
 }
 
-DateTime& DateTime::operator =(const DateTime& aDate) throw(BigIntegerException)
+DateTime& DateTime::operator =(const DateTime& aDate)
 {
 	this->setDateTime(aDate.getSeconds());
 	return(*this);	
@@ -342,19 +342,19 @@ BigInteger const& DateTime::getSeconds() const throw()
 	return this->seconds;
 }
 
-void DateTime::addSeconds(long b) throw(BigIntegerException)
+void DateTime::addSeconds(long b)
 {
 	this->seconds.add(b);
 }
 
-void DateTime::addMinutes(long b) throw(BigIntegerException)
+void DateTime::addMinutes(long b)
 {
 	BigInteger tmp(b);
 	tmp.mul(60);
 	this->seconds.add(tmp);
 }
 
-void DateTime::addHours(long b) throw(BigIntegerException)
+void DateTime::addHours(long b)
 {
 	BigInteger tmp(b);
 	tmp.mul(60);
@@ -362,7 +362,7 @@ void DateTime::addHours(long b) throw(BigIntegerException)
 	this->seconds.add(tmp);
 }
 
-void DateTime::addDays(long b) throw(BigIntegerException)
+void DateTime::addDays(long b)
 {
 	BigInteger tmp(b);
 	tmp.mul(60);
@@ -371,7 +371,7 @@ void DateTime::addDays(long b) throw(BigIntegerException)
 	this->seconds.add(tmp);
 }
 
-void DateTime::addYears(long b) throw(BigIntegerException)
+void DateTime::addYears(long b)
 {
 	BigInteger tmp(b);
 	tmp.mul(60);
@@ -486,7 +486,7 @@ bool DateTime::operator==(const DateTime& other) const throw()
 	return (this->getSeconds() == other.getSeconds());
 }
 
-bool DateTime::operator==(time_t other) const throw(BigIntegerException)
+bool DateTime::operator==(time_t other) const
 {
 	return (this->getSeconds() == other);
 }
@@ -496,7 +496,7 @@ bool DateTime::operator<(const DateTime& other) const throw()
 	return (this->getSeconds() < other.getSeconds());
 }
 
-bool DateTime::operator<(time_t other) const throw(BigIntegerException)
+bool DateTime::operator<(time_t other) const
 {
 	return (this->getSeconds() < other);
 }
@@ -506,7 +506,7 @@ bool DateTime::operator>(const DateTime& other) const throw()
 	return (this->getSeconds() > other.getSeconds());
 }
 
-bool DateTime::operator>(time_t other) const throw(BigIntegerException)
+bool DateTime::operator>(time_t other) const
 {
 	return (this->getSeconds() > other);
 }

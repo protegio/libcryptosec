@@ -16,7 +16,7 @@ class CertificatePoliciesExtension : public Extension
 {
 public:
 	CertificatePoliciesExtension();
-	CertificatePoliciesExtension(X509_EXTENSION *ext) throw (CertificationException);
+	CertificatePoliciesExtension(X509_EXTENSION *ext);
 	virtual ~CertificatePoliciesExtension();
 	
 	/**

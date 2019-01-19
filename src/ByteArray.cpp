@@ -116,7 +116,7 @@ bool operator !=(const ByteArray& left, const ByteArray& right)
     return (res ? true : false);
 }
 
-unsigned char& ByteArray::operator [](int pos) throw (out_of_range)
+unsigned char& ByteArray::operator [](int pos)
 {
     if(pos < 0 || pos >= (int)this->length)
     {
@@ -125,7 +125,7 @@ unsigned char& ByteArray::operator [](int pos) throw (out_of_range)
     return this->m_data[pos];
 }
 
-char ByteArray::at(int pos) const throw (out_of_range) {
+char ByteArray::at(int pos) const {
     if(pos < 0 || pos >= (int)this->length)     {
         throw out_of_range("");
     }
@@ -150,6 +150,10 @@ void ByteArray::setDataPointer(unsigned char* d, unsigned int length)
     
     this->length = length;
     this->m_data = d;
+}
+
+const unsigned char* ByteArray::getConstDataPointer() const {
+	return this->m_data;
 }
 
 unsigned char* ByteArray::getDataPointer()

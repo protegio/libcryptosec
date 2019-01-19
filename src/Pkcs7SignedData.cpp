@@ -2,7 +2,7 @@
 
 CertPathValidatorResult Pkcs7SignedData::cpvr;
 
-Pkcs7SignedData::Pkcs7SignedData(PKCS7 *pkcs7) throw (Pkcs7Exception) : Pkcs7(pkcs7)
+Pkcs7SignedData::Pkcs7SignedData(PKCS7 *pkcs7) : Pkcs7(pkcs7)
 {
 	if (OBJ_obj2nid(this->pkcs7->type) != NID_pkcs7_signed)
 	{
@@ -172,7 +172,7 @@ bool Pkcs7SignedData::verify(bool checkSignerCert, vector<Certificate> trustedCe
 	return ret;
 }
 
-bool Pkcs7SignedData::verifyAndExtract(std::ostream *out) throw (Pkcs7Exception)
+bool Pkcs7SignedData::verifyAndExtract(std::ostream *out)
 {
 	BIO *p7bio;
 	bool ret;
@@ -182,10 +182,9 @@ bool Pkcs7SignedData::verifyAndExtract(std::ostream *out) throw (Pkcs7Exception)
 	{
 		throw Pkcs7Exception(Pkcs7Exception::INTERNAL_ERROR, "Pkcs7SignedData::verifyAndExtract");
 	}
-	int size, maxSize, finalSize;
+	int size, maxSize;
 	maxSize = 1024;
 	size = maxSize;
-	finalSize = 0;
 	char buf[maxSize+1];
 	while (size == maxSize)
 	{

@@ -6,7 +6,6 @@ CertificateRevocationList::CertificateRevocationList(X509_CRL *crl)
 }
 
 CertificateRevocationList::CertificateRevocationList(std::string pemEncoded)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -29,7 +28,6 @@ CertificateRevocationList::CertificateRevocationList(std::string pemEncoded)
 }
 
 CertificateRevocationList::CertificateRevocationList(ByteArray &derEncoded)
-	throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -129,7 +127,6 @@ std::string CertificateRevocationList::getXmlEncoded(std::string tab)
 }
 
 std::string CertificateRevocationList::getPemEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -162,7 +159,6 @@ std::string CertificateRevocationList::getPemEncoded()
 }
 
 ByteArray CertificateRevocationList::getDerEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -191,7 +187,6 @@ ByteArray CertificateRevocationList::getDerEncoded()
 }
 
 long CertificateRevocationList::getSerialNumber()
-		throw (CertificationException)
 {
 	ASN1_INTEGER *asn1Int;
 	long ret;
@@ -217,7 +212,6 @@ long CertificateRevocationList::getSerialNumber()
 }
 
 BigInteger CertificateRevocationList::getSerialNumberBigInt()
-	throw (CertificationException, BigIntegerException)
 {
 	ASN1_INTEGER *asn1Int;
 	if (this->crl == NULL)
@@ -237,7 +231,6 @@ BigInteger CertificateRevocationList::getSerialNumberBigInt()
 }
 
 long CertificateRevocationList::getBaseCRLNumber()
-		throw (CertificationException)
 {
 	ASN1_INTEGER *asn1Int;
 	long ret;
@@ -263,7 +256,6 @@ long CertificateRevocationList::getBaseCRLNumber()
 }
 
 BigInteger CertificateRevocationList::getBaseCRLNumberBigInt()
-	throw (CertificationException, BigIntegerException)
 {
 	ASN1_INTEGER *asn1Int;
 	if (this->crl == NULL)
@@ -284,7 +276,6 @@ BigInteger CertificateRevocationList::getBaseCRLNumberBigInt()
 
 
 long CertificateRevocationList::getVersion()
-		throw (CertificationException)
 {
 	long ret;
 	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
@@ -307,12 +298,12 @@ RDNSequence CertificateRevocationList::getIssuer()
 
 DateTime CertificateRevocationList::getLastUpdate()
 {
-	return DateTime(X509_CRL_get_lastUpdate(this->crl));
+	return DateTime(X509_CRL_get0_lastUpdate(this->crl));
 }
 
 DateTime CertificateRevocationList::getNextUpdate()
 {
-	return DateTime(X509_CRL_get_nextUpdate(this->crl));
+	return DateTime(X509_CRL_get0_nextUpdate(this->crl));
 }
 
 std::vector<RevokedCertificate> CertificateRevocationList::getRevokedCertificate()
@@ -487,6 +478,7 @@ std::vector<Extension *> CertificateRevocationList::getUnknownExtensions()
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
+				break;
 			default:
 				break;
 		}

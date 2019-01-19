@@ -23,8 +23,7 @@ public:
 	 * @param enginePath caminho para a Engine.
 	 * @throw EngineException caso a Engine esteja indisponível ou ocorra erro ao carregá-la.
 	 */
-	DynamicEngine(std::string &enginePath)
-			throw (EngineException);
+	DynamicEngine(std::string &enginePath);
 
 	/**
 	 * Construtor.
@@ -32,8 +31,7 @@ public:
 	 * @param engineId identificador da Engine.
 	 * @throw EngineException caso a Engine esteja indisponível ou ocorra erro ao carregá-la.
 	 */
-	DynamicEngine(std::string &enginePath, std::string &engineId)
-			throw (EngineException);
+	DynamicEngine(std::string &enginePath, std::string &engineId);
 
 	/**
 	 * Construtor.
@@ -42,8 +40,7 @@ public:
 	 * @param extraCommands vetor de pares de comando e seu respectivo valor.
 	 * @throw EngineException caso a Engine esteja indisponível ou ocorra erro ao carregá-la.
 	 */
-	DynamicEngine(std::string &enginePath, std::string &engineId, std::vector<std::pair<std::string, std::string> > &extraCommands)
-			throw (EngineException);
+	DynamicEngine(std::string &enginePath, std::string &engineId, std::vector<std::pair<std::string, std::string> > &extraCommands);
 
 	/**
 	 * Destrutor.
@@ -53,12 +50,12 @@ public:
 	/**
 	 * @see Engine::addToEnginesList().
 	 */
-	void addToEnginesList() throw (EngineException);
+	void addToEnginesList();
 
 	/**
 	 * @see Engine::removeFromEnginesList().
 	 */
-	void removeFromEnginesList() throw (EngineException);
+	void removeFromEnginesList();
 };
 
 #endif /*DYNAMICENGINE_H_*/

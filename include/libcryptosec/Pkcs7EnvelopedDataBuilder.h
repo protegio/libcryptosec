@@ -35,8 +35,7 @@ public:
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 **/	 
 	Pkcs7EnvelopedDataBuilder(Certificate &cert, SymmetricKey::Algorithm symAlgorithm,
-				SymmetricCipher::OperationMode symOperationMode)
-			throw (Pkcs7Exception, SymmetricCipherException);
+				SymmetricCipher::OperationMode symOperationMode);
 			
 	/**
 	 * Destrutor padrão.
@@ -56,8 +55,7 @@ public:
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 **/	
 	void init(Certificate &cert, SymmetricKey::Algorithm symAlgorithm,
-				SymmetricCipher::OperationMode symOperationMode)
-			throw (Pkcs7Exception, SymmetricCipherException);
+				SymmetricCipher::OperationMode symOperationMode);
 	
 	/**
 	 * Permite a adição de novos certificados cujas chaves privadas correspondentes estarão aptas a 
@@ -66,7 +64,7 @@ public:
 	 * @throw InvalidStateException no caso do builder não ter sido inicializado ainda.
 	 * @throw Pkcs7Exception caso tenha ocorrido um erro ao adicionar o certificado ao pacote PKCS7.
 	 **/		
-	void addCipher(Certificate &certificate) throw (InvalidStateException, Pkcs7Exception);
+	void addCipher(Certificate &certificate);
 	
 	/**
 	 * Especifica o uso das funções da superclasse Pkcs7Builder::doFinal(), recebendo um inputstream e
@@ -81,8 +79,7 @@ public:
 	 * @throw InvalidStateException caso o builder não esteja no estado apropriado no momento da invocação.
  	 * @throw Pkcs7Exception caso tenha ocorrido um erro na geração do pacote PKCS7.
 	 **/
-	Pkcs7EnvelopedData* doFinal()
-			throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7EnvelopedData* doFinal();
 	
 	/**
 	 * Implementa uma versão distinta do método Pkcs7Builder::doFinal() para gerar o pacote envelopado.
@@ -91,8 +88,7 @@ public:
 	 * @throw InvalidStateException caso o builder não esteja no estado apropriado no momento da invocação.
  	 * @throw Pkcs7Exception caso tenha ocorrido um erro ao adicionar o certificado ao pacote PKCS7.
 	 **/		
-	Pkcs7EnvelopedData* doFinal(std::string &data)
-			throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7EnvelopedData* doFinal(std::string &data);
 			
 	/**
 	 * Implementa uma versão distinta do método Pkcs7Builder::doFinal() para gerar o pacote envelopado.
@@ -101,8 +97,7 @@ public:
 	 * @throw InvalidStateException caso o builder não esteja no estado apropriado no momento da invocação.
  	 * @throw Pkcs7Exception caso tenha ocorrido um erro ao adicionar o certificado ao pacote PKCS7.
 	 **/
-	Pkcs7EnvelopedData* doFinal(ByteArray &data)
-			throw (InvalidStateException, Pkcs7Exception);
+	Pkcs7EnvelopedData* doFinal(ByteArray &data);
 			
 };
 

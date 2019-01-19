@@ -1,6 +1,6 @@
 #include <libcryptosec/Random.h>
 
-ByteArray Random::bytes(int nbytes) throw (RandomException)
+ByteArray Random::bytes(int nbytes)
 {
 	int rc;
 	ByteArray ret;
@@ -17,12 +17,12 @@ ByteArray Random::bytes(int nbytes) throw (RandomException)
 	return ret;
 }
 
-ByteArray Random::pseudoBytes(int nbytes) throw (RandomException)
+ByteArray Random::pseudoBytes(int nbytes)
 {
 	int rc;
 	ByteArray ret;
 	ret = ByteArray(nbytes);
-	rc = RAND_pseudo_bytes(ret.getDataPointer(), nbytes);
+	rc = RAND_bytes(ret.getDataPointer(), nbytes);
 	if (rc == -1)
 	{
 		throw RandomException(RandomException::NO_IMPLEMENTED_FUNCTION, "Random::pseudoBytes");
@@ -39,7 +39,7 @@ void Random::seedData(ByteArray &data)
 	RAND_seed(data.getDataPointer(), data.size());
 }
 
-void Random::seedFile(std::string &filename, int nbytes) throw (RandomException)
+void Random::seedFile(std::string &filename, int nbytes)
 {
 	int rc;
 	rc = RAND_load_file(filename.c_str(), nbytes);

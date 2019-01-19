@@ -135,8 +135,7 @@ public:
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 */
-	AsymmetricKey(EVP_PKEY *key)
-			throw (AsymmetricKeyException);
+	AsymmetricKey(EVP_PKEY *key);
 			
 	/**
 	 * Carrega uma chave assimétrica a partir da sua equivalente codificada em DER.
@@ -177,8 +176,7 @@ public:
 	 * @throw AsymmetricKeyException caso o tipo de chave não tenha sido reconhecido.
 	 * @see AsymmetricKey::Algorithm
 	 */
-	AsymmetricKey::Algorithm getAlgorithm()
-			throw (AsymmetricKeyException);
+	AsymmetricKey::Algorithm getAlgorithm();
 			
 	/**
 	 * Retorna o tamanho da chave em bytes.
@@ -186,7 +184,7 @@ public:
 	 * @throw AsymmetricKeyException se o tipo de chave não for suportado ou caso um
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
-	int getSize() throw (AsymmetricKeyException);
+	int getSize();
 	
 	/**
 	 * Retorna o tamanho da chave em bits.
@@ -194,7 +192,7 @@ public:
 	 * @throw AsymmetricKeyException se o tipo de chave não for suportado ou caso um
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
-	int getSizeBits() throw (AsymmetricKeyException);
+	int getSizeBits();
 	
 	/**
 	 * Uso interno. Retorna a estrutura OpenSSL interna.

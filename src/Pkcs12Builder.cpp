@@ -33,7 +33,7 @@ void Pkcs12Builder::clearAdditionalCerts() throw()
 	this->certs.clear();
 }
 
-Pkcs12* Pkcs12Builder::doFinal(string password) const throw(Pkcs12Exception)
+Pkcs12* Pkcs12Builder::doFinal(string password) const
 {
 	PKCS12* tmp = NULL;
 	STACK_OF(X509)* ca = NULL;

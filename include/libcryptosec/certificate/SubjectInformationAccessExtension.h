@@ -18,7 +18,7 @@ public:
 		TIME_STAMPING = NID_ad_timeStamping,
 	};
 	SubjectInformationAccessExtension();
-	SubjectInformationAccessExtension(X509_EXTENSION *ext) throw (CertificationException);
+	SubjectInformationAccessExtension(X509_EXTENSION *ext);
 	virtual ~SubjectInformationAccessExtension();
 	X509_EXTENSION* getX509Extension();
 	void addAccessDescription(AccessDescription& accessDescription);

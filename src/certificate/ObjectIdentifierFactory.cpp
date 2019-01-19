@@ -1,7 +1,6 @@
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 
 ObjectIdentifier ObjectIdentifierFactory::getObjectIdentifier(std::string oid)
-		throw (CertificationException)
 {
 	ASN1_OBJECT *asn1Obj;
 	asn1Obj = OBJ_txt2obj(oid.c_str(), 1);
@@ -13,7 +12,6 @@ ObjectIdentifier ObjectIdentifierFactory::getObjectIdentifier(std::string oid)
 }
 
 ObjectIdentifier ObjectIdentifierFactory::getObjectIdentifier(int nid)
-		throw (CertificationException)
 {
 	ASN1_OBJECT *asn1Obj;
 	asn1Obj = OBJ_nid2obj(nid);
@@ -25,7 +23,6 @@ ObjectIdentifier ObjectIdentifierFactory::getObjectIdentifier(int nid)
 }
 
 ObjectIdentifier ObjectIdentifierFactory::createObjectIdentifier(std::string oid, std::string name)
-		throw (CertificationException)
 {
 	ASN1_OBJECT *asn1Obj;
 	int nid;

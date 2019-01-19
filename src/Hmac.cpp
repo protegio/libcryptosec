@@ -2,21 +2,35 @@
 
 Hmac::Hmac() {
 	this->state = Hmac::NO_INIT;
+	this->algorithm = MessageDigest::NO_ALGORITHM;
+	this->ctx = HMAC_CTX_new();
 }
 
-Hmac::Hmac(std::string key, MessageDigest::Algorithm algorithm) throw (HmacException) {
+Hmac::Hmac(std::string key, MessageDigest::Algorithm algorithm) {
+	this->state = Hmac::NO_INIT;
+	this->algorithm = MessageDigest::NO_ALGORITHM;
+	this->ctx = HMAC_CTX_new();
 	this->init( key, algorithm );
 }
 
-Hmac::Hmac(ByteArray key, MessageDigest::Algorithm algorithm) throw (HmacException) {
+Hmac::Hmac(ByteArray key, MessageDigest::Algorithm algorithm) {
+	this->state = Hmac::NO_INIT;
+	this->algorithm = MessageDigest::NO_ALGORITHM;
+	this->ctx = HMAC_CTX_new();
 	this->init( key, algorithm );
 }
 
-Hmac::Hmac(std::string key, MessageDigest::Algorithm algorithm, Engine &engine) throw (HmacException) {
+Hmac::Hmac(std::string key, MessageDigest::Algorithm algorithm, Engine &engine) {
+	this->state = Hmac::NO_INIT;
+	this->algorithm = MessageDigest::NO_ALGORITHM;
+	this->ctx = HMAC_CTX_new();
 	this->init( key, algorithm, engine );
 }
 
-Hmac::Hmac(ByteArray key, MessageDigest::Algorithm algorithm, Engine &engine) throw (HmacException) {
+Hmac::Hmac(ByteArray key, MessageDigest::Algorithm algorithm, Engine &engine) {
+	this->state = Hmac::NO_INIT;
+	this->algorithm = MessageDigest::NO_ALGORITHM;
+	this->ctx = HMAC_CTX_new();
 	this->init( key, algorithm, engine );
 }
 
@@ -24,7 +38,7 @@ Hmac::~Hmac() {
 	HMAC_CTX_free(this->ctx);
 }
 
-void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) throw (HmacException) {
+void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) {
 	HMAC_CTX_reset( this->ctx );
 
 	this->algorithm = algorithm;
@@ -39,7 +53,7 @@ void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) throw (HmacE
 	this->state = Hmac::INIT;
 }
 
-void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engine) throw (HmacException) {
+void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engine) {
 	HMAC_CTX_reset( this->ctx );
 
 	this->algorithm = algorithm;
@@ -54,17 +68,17 @@ void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engi
 	this->state = Hmac::INIT;
 }
 
-void Hmac::init(std::string key, MessageDigest::Algorithm algorithm) throw (HmacException) {
+void Hmac::init(std::string key, MessageDigest::Algorithm algorithm) {
 	ByteArray k( key );
 	this->init( k, algorithm );
 }
 
-void Hmac::init(std::string key, MessageDigest::Algorithm algorithm, Engine &engine) throw (HmacException) {
+void Hmac::init(std::string key, MessageDigest::Algorithm algorithm, Engine &engine) {
 	ByteArray k( key );
 	this->init( k, algorithm, engine );
 }
 
-void Hmac::update(ByteArray &data) throw (HmacException, InvalidStateException) {
+void Hmac::update(ByteArray &data) {
 	if (this->state == Hmac::NO_INIT)
 	{
 		throw InvalidStateException("Hmac::update");
@@ -77,35 +91,35 @@ void Hmac::update(ByteArray &data) throw (HmacException, InvalidStateException) 
 	this->state = Hmac::UPDATE;
 }
 
-void Hmac::update(std::string data) throw (HmacException, InvalidStateException) {
+void Hmac::update(std::string data) {
 	ByteArray content( data );
 	this->update( content );
 }
 
-void Hmac::update(std::vector<std::string> &data) throw (HmacException, InvalidStateException) {
+void Hmac::update(std::vector<std::string> &data) {
 	for(int unsigned i = 0; i < data.size(); i++){
 		this->update(data[i]);
 	}
 }
 
-void Hmac::update(std::vector<ByteArray> &data) throw (HmacException, InvalidStateException) {
+void Hmac::update(std::vector<ByteArray> &data) {
 
 	for(int unsigned i = 0; i < data.size(); i++){
 		this->update(data[i]);
 	}
 }
 
-ByteArray Hmac::doFinal(ByteArray &data) throw (HmacException, InvalidStateException) {
+ByteArray Hmac::doFinal(ByteArray &data) {
 	this->update( data );
 	return this->doFinal();
 }
 
-ByteArray Hmac::doFinal(std::string data) throw (HmacException, InvalidStateException) {
+ByteArray Hmac::doFinal(std::string data) {
 	this->update( data );
 	return this->doFinal();
 }
 
-ByteArray Hmac::doFinal() throw (HmacException, InvalidStateException) {
+ByteArray Hmac::doFinal() {
 	if (this->state == Hmac::NO_INIT || this->state == Hmac::INIT)
 	{
 		throw InvalidStateException("Hmac::doFinal");

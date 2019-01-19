@@ -28,7 +28,7 @@ public:
 	 * @param pkcs7 um ponteiro para a estrutura OpenSSL PKCS7
 	 * @throw Pkcs7Exception caso o ponteiro não contenha o endereço de uma estrutura PKCS7 válida. 
 	 **/
-	Pkcs7EnvelopedData(PKCS7 *pkcs7) throw (Pkcs7Exception);
+	Pkcs7EnvelopedData(PKCS7 *pkcs7);
 	
 	/**
 	 * Destrutor padrão, limpa a estrutura PKCS7 aninhada. 
@@ -49,8 +49,7 @@ public:
 	 * @param out o stream de saída onde será colocado o resultado da decifragem. O stream deve ser
 	 * alocado previamente.
 	 **/
-	void decrypt(Certificate &certificate, PrivateKey &privateKey, std::ostream *out)
-			throw (Pkcs7Exception);
+	void decrypt(Certificate &certificate, PrivateKey &privateKey, std::ostream *out);
 };
 
 #endif /*PKCS7ENVELOPEDDATA_H_*/

@@ -36,14 +36,13 @@ public:
 	 * @throw SmartcardModuleException caso o módulo PKCS11 seja inválido ou a 
 	 * leitora não esteja disponível.
 	 */
-	static void initialize(std::string pkcs11ModulePath)
-			throw (InvalidStateException, SmartcardModuleException);
+	static void initialize(std::string pkcs11ModulePath);
 	
 	/**
 	 * Destrói a instância da leitora inicializada.
 	 * @throw InvalidStateException se nenhuma instância da leitora tiver sido inicializada.
 	 */
-	static void destroy() throw (InvalidStateException);
+	static void destroy();
 	
 	/**
 	 * Retorna a instância inicializada da leitora.
@@ -51,14 +50,14 @@ public:
 	 * @throw InvalidStateException se nenhuma instância da leitora tiver sido inicializada.
 	 * @throw SmartcardModuleException caso a leitora não esteja disponível.
 	 */
-	static SmartcardReader* getInstance() throw (InvalidStateException, SmartcardModuleException);
+	static SmartcardReader* getInstance();
 	
 	/**
 	 * Retorna os slots (instâncias lógicas das leitoras) encontradas.
 	 * @return os slots encontrados pelo módulo PKCS11.
 	 * @throw SmartcardModuleException caso a leitora não esteja disponível.
 	 */
-	SmartcardSlots* getSmartcardSlots() throw (SmartcardModuleException);
+	SmartcardSlots* getSmartcardSlots();
 	
 private:
 
@@ -88,8 +87,7 @@ private:
 	 * @throw SmartcardModuleException caso o módulo PKCS11 seja inválido ou a 
 	 * leitora não esteja disponível.
 	 */
-	SmartcardReader(std::string &pkcs11ModulePath)
-			throw (SmartcardModuleException);
+	SmartcardReader(std::string &pkcs11ModulePath);
 	
 	/**
 	 * Destrutor privado invocado pelo método SmartcardReader::destroy().

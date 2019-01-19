@@ -83,7 +83,7 @@ public:
      * 
      * @param pos Posição desejada.
      */
-    char at(int pos) const throw (out_of_range);
+    char at(int pos) const;
     
     /**
      * Fazer uma cópia profunda ao invés de copiar a referência
@@ -113,7 +113,7 @@ public:
      * 
      * @param pos Posição desejada.
      */
-    unsigned char& operator [](int pos) throw (out_of_range);
+    unsigned char& operator [](int pos);
 
     /**
      * Fazer ou-exclusivo entre dois ByteArray's.
@@ -155,7 +155,12 @@ public:
     void setDataPointer(unsigned char* data, unsigned int length);
 
     /**
-     * Returns the memory location of byte array content.
+     * Returns a const pointer to the byte array content.
+     */
+    const unsigned char* getConstDataPointer() const;
+
+    /**
+     * Returns a pointer to the byte array content.
      */
     unsigned char* getDataPointer();
 

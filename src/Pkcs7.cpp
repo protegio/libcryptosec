@@ -13,7 +13,7 @@ Pkcs7::~Pkcs7()
 	}
 }
 
-std::string Pkcs7::getPemEncoded() throw (EncodeException)
+std::string Pkcs7::getPemEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -44,7 +44,7 @@ std::string Pkcs7::getPemEncoded() throw (EncodeException)
 	return ret;
 }
 
-ByteArray Pkcs7::getDerEncoded() throw (EncodeException)
+ByteArray Pkcs7::getDerEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;

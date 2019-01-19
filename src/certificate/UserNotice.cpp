@@ -15,7 +15,7 @@ UserNotice::UserNotice(USERNOTICE *userNotice)
 	{
 		if (userNotice->exptext)
 		{
-			data = (char *)ASN1_STRING_data(userNotice->exptext);
+			data = (char *) (userNotice->exptext->data);
 			this->explicitText = data;
 		}
 		else
@@ -24,7 +24,7 @@ UserNotice::UserNotice(USERNOTICE *userNotice)
 		}
 		if (userNotice->noticeref)
 		{
-			data = (char *)ASN1_STRING_data(userNotice->noticeref->organization);
+			data = (char *) (userNotice->noticeref->organization->data);
 			this->organization = data;
 			
 			num = sk_ASN1_INTEGER_num(userNotice->noticeref->noticenos);

@@ -1,40 +1,44 @@
 #include <libcryptosec/KeyPair.h>
+#include <openssl/rsa.h>
+#include <openssl/dsa.h>
 
 KeyPair::KeyPair()
 {
+	this->engine = 0;
+	this->key = 0;
 }
 
 //TODO Este construtor deve é obsoleto. Devem ser usados os construtores das classes especializadas RSAKeyPair, DSAKeyPair e ECDSAKeyPair
 KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length)
-		throw (AsymmetricKeyException)
 {
-	RSA *rsa;
-	DSA *dsa;
-	EC_KEY *eckey;
+	RSA *rsa = NULL;
+	BIGNUM *rsa_f4 = NULL;
+	DSA *dsa = NULL;
+	//EC_KEY *eckey = NULL;
 	this->key = NULL;
 	this->engine = NULL;
-	rsa = NULL;
-	dsa = NULL;
-	eckey = NULL;
 	switch (algorithm)
 	{
 		case AsymmetricKey::RSA:
-			rsa = RSA_generate_key(length, RSA_F4, NULL, NULL);
-			if (!rsa)
+			rsa = RSA_new();
+			rsa_f4 = BN_new();
+			BN_is_word(rsa_f4, RSA_F4);
+			if (RSA_generate_key_ex(rsa, length, rsa_f4, NULL) == 0)
 			{
+				BN_free(rsa_f4);
 				break;
 			}
+			BN_free(rsa_f4);
 			this->key = EVP_PKEY_new();
 			EVP_PKEY_assign_RSA(this->key, rsa);
 			break;
 		case AsymmetricKey::DSA:
-			dsa = DSA_generate_parameters(length, NULL, 0, NULL, NULL, NULL, NULL);
-			if (!dsa)
+			dsa = DSA_new();
+			if (DSA_generate_parameters_ex(dsa, length, NULL, 0, NULL, NULL, NULL) == 0)
 			{
 				break;
 			}
-			DSA_generate_key(dsa);
-			if (!dsa)
+			if (DSA_generate_key(dsa) == 0)
 			{
 				break;
 			}
@@ -51,7 +55,6 @@ KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length)
 }
 
 KeyPair::KeyPair(Engine *engine, std::string keyId)
-		throw (EngineException)
 {
 	ENGINE *eng;
 	eng = engine->getEngine();
@@ -73,7 +76,6 @@ KeyPair::KeyPair(Engine *engine, std::string keyId)
 }
 
 KeyPair::KeyPair(std::string pemEncoded, ByteArray passphrase)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -98,7 +100,6 @@ KeyPair::KeyPair(std::string pemEncoded, ByteArray passphrase)
 }
 
 KeyPair::KeyPair(std::string pemEncoded)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -122,7 +123,6 @@ KeyPair::KeyPair(std::string pemEncoded)
 }
 
 KeyPair::KeyPair(ByteArray derEncoded)
-		throw (EncodeException)
 {
 	/* DER format support only RSA, DSA and EC. DH isn't supported */
 	BIO *buffer;
@@ -176,7 +176,6 @@ KeyPair::~KeyPair()
 }
 
 PublicKey* KeyPair::getPublicKey()
-		throw (AsymmetricKeyException, EncodeException)
 {
 	PublicKey *ret;
 	std::string keyTemp;
@@ -197,7 +196,6 @@ PublicKey* KeyPair::getPublicKey()
 }
 
 PrivateKey* KeyPair::getPrivateKey()
-		throw (AsymmetricKeyException)
 {
 	PrivateKey *ret;
 	EVP_PKEY *pkey;
@@ -243,7 +241,6 @@ PrivateKey* KeyPair::getPrivateKey()
 }
 
 std::string KeyPair::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::OperationMode mode)
-		throw (SymmetricCipherException, EncodeException)
 {
 	BIO *buffer;
 	const EVP_CIPHER *cipher;
@@ -286,7 +283,7 @@ std::string KeyPair::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::Op
 	return ret;
 }
 
-std::string KeyPair::getPemEncoded() throw (EncodeException)
+std::string KeyPair::getPemEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -317,7 +314,7 @@ std::string KeyPair::getPemEncoded() throw (EncodeException)
 	return ret;
 }
 
-ByteArray KeyPair::getDerEncoded() throw (EncodeException)
+ByteArray KeyPair::getDerEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -345,7 +342,7 @@ ByteArray KeyPair::getDerEncoded() throw (EncodeException)
 	return ret;
 }
 
-AsymmetricKey::Algorithm KeyPair::getAlgorithm() throw (AsymmetricKeyException)
+AsymmetricKey::Algorithm KeyPair::getAlgorithm()
 {
 	AsymmetricKey::Algorithm type;
 	if (this->key == NULL)
@@ -381,7 +378,7 @@ AsymmetricKey::Algorithm KeyPair::getAlgorithm() throw (AsymmetricKeyException)
 	return type;
 }
 
-int KeyPair::getSize() throw (AsymmetricKeyException)
+int KeyPair::getSize()
 {
 	int ret;
 	if (this->key == NULL)
@@ -398,7 +395,7 @@ int KeyPair::getSize() throw (AsymmetricKeyException)
 	return ret;
 }
 
-int KeyPair::getSizeBits() throw (AsymmetricKeyException)
+int KeyPair::getSizeBits()
 {
 	int ret;
 	if (this->key == NULL)
@@ -430,7 +427,7 @@ int KeyPair::passphraseCallBack(char *buf, int size, int rwflag, void *u)
     return length;
 }
 
-std::string KeyPair::getPublicKeyPemEncoded() throw (EncodeException)
+std::string KeyPair::getPublicKeyPemEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;

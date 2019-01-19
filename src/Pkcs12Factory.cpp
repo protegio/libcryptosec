@@ -1,6 +1,6 @@
 #include <libcryptosec/Pkcs12Factory.h>
 
-Pkcs12* Pkcs12Factory::fromDerEncoded(ByteArray &derEncoded) throw (EncodeException)
+Pkcs12* Pkcs12Factory::fromDerEncoded(ByteArray &derEncoded)
 {
 	BIO *buffer;
 	PKCS12 *pkcs12;

@@ -1,8 +1,8 @@
 #include <libcryptosec/AsymmetricKey.h>
 
 AsymmetricKey::AsymmetricKey(EVP_PKEY *key)
-		throw (AsymmetricKeyException)
 {
+	this->key = key;
 }
 
 AsymmetricKey::~AsymmetricKey()
@@ -11,7 +11,6 @@ AsymmetricKey::~AsymmetricKey()
 }
 
 AsymmetricKey::Algorithm AsymmetricKey::getAlgorithm()
-		throw (AsymmetricKeyException)
 {
 	AsymmetricKey::Algorithm type;
 	switch (EVP_PKEY_base_id(this->key))
@@ -43,7 +42,7 @@ AsymmetricKey::Algorithm AsymmetricKey::getAlgorithm()
 	return type;
 }
 
-int AsymmetricKey::getSize() throw (AsymmetricKeyException)
+int AsymmetricKey::getSize()
 {
 	int ret;
 	if (this->key == NULL)
@@ -60,7 +59,7 @@ int AsymmetricKey::getSize() throw (AsymmetricKeyException)
 	return ret;
 }
 
-int AsymmetricKey::getSizeBits() throw (AsymmetricKeyException)
+int AsymmetricKey::getSizeBits()
 {
 	int ret;
 	if (this->key == NULL)

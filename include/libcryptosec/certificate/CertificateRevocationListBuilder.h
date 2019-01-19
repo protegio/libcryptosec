@@ -35,42 +35,37 @@ class CertificateRevocationListBuilder
 {
 public:
 	CertificateRevocationListBuilder();
-	CertificateRevocationListBuilder(std::string pemEncoded)
-			throw (EncodeException);
-	CertificateRevocationListBuilder(ByteArray &derEncoded)
-			throw (EncodeException);
+	CertificateRevocationListBuilder(std::string pemEncoded);
+	CertificateRevocationListBuilder(ByteArray &derEncoded);
 	CertificateRevocationListBuilder(const CertificateRevocationListBuilder& crl);
 	virtual ~CertificateRevocationListBuilder();
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
-	void setSerialNumber(long serial) throw (CertificationException);
+	void setSerialNumber(long serial);
 	/**
 	 * Definir serial à partir de BigInteger, para seriais maiores do que um "long".
 	 */
-	void setSerialNumber(BigInteger serial) throw (CertificationException, BigIntegerException);
-	long getSerialNumber() throw (CertificationException);
-	BigInteger getSerialNumberBigInt() throw (CertificationException, BigIntegerException);
+	void setSerialNumber(BigInteger serial);
+	long getSerialNumber();
+	BigInteger getSerialNumberBigInt();
 	void setVersion(long version);
-	long getVersion() throw (CertificationException);
-	void setIssuer(RDNSequence &issuer) throw (CertificationException);
-	void setIssuer(X509* issuer) throw (CertificationException);
+	long getVersion();
+	void setIssuer(RDNSequence &issuer);
+	void setIssuer(X509* issuer);
 	RDNSequence getIssuer();
 	void setLastUpdate(DateTime &dateTime);
 	DateTime getLastUpdate();
 	void setNextUpdate(DateTime &dateTime);
 	DateTime getNextUpdate();
-	void addRevokedCertificate(RevokedCertificate &revoked)
-			throw (CertificationException);
-	void addRevokedCertificates(std::vector<RevokedCertificate> &revoked)
-			throw (CertificationException);
+	void addRevokedCertificate(RevokedCertificate &revoked);
+	void addRevokedCertificates(std::vector<RevokedCertificate> &revoked);
 	std::vector<RevokedCertificate> getRevokedCertificate();
-	CertificateRevocationList* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
-			throw (CertificationException);
+	CertificateRevocationList* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
 	X509_CRL* getX509Crl() const;
 	CertificateRevocationListBuilder& operator =(const CertificateRevocationListBuilder& value);
-	void addExtension(Extension& extension) throw (CertificationException);
-	void addExtensions(std::vector<Extension *> &extensions) throw (CertificationException);
-	void replaceExtension(Extension &extension) throw (CertificationException);
+	void addExtension(Extension& extension);
+	void addExtensions(std::vector<Extension *> &extensions);
+	void replaceExtension(Extension &extension);
 	std::vector<Extension*> getExtension(Extension::Name extensionName);
 	std::vector<Extension*> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();

@@ -34,8 +34,7 @@ public:
 	 * Constroi um objeto NetscapeSPKIBuilder a partir de um objeto NetscapeSPKI.
 	 * @param NetscapeSPKIBuilder objeto NetscapeSPKI em formato base64.
 	 */
-	NetscapeSPKIBuilder(std::string netscapeSPKIBase64)
-			throw (EncodeException);
+	NetscapeSPKIBuilder(std::string netscapeSPKIBase64);
 			
 	/**
 	 * Destrutor.
@@ -47,7 +46,7 @@ public:
 	 * @return objeto NetscapeSPKI em formato base64.
 	 * @throw EncodeException caso ocorra algum erro interno durante a codificação do objeto em base64.
 	 */
-	std::string getBase64Encoded() throw (EncodeException);
+	std::string getBase64Encoded();
 	
 	/**
 	 * Define chave pública para o objeto NetscapeSPKI.
@@ -62,8 +61,7 @@ public:
      * @throw NetscapeSPKIException caso a chave pública não esteja disponível no objeto NetscapeSPKI.
 	 * @throw AsymmetricKeyException caso não seja possível instanciar um objeto PublicKey a partir da chave pública obtida de NetscapeSPKI. 
 	 */
-	PublicKey* getPublicKey()
-			throw (AsymmetricKeyException, NetscapeSPKIException);
+	PublicKey* getPublicKey();
 	
 	/**
 	 * Define o desafio do objeto NetscapeSPKI
@@ -83,8 +81,7 @@ public:
 	 * @param messageDigest algoritmo de resumo.
 	 * @throw NetscapeSPKIException caso ocorra erro interno do OpenSSL ao assinar o objeto NetscapePKI
 	 */
-	NetscapeSPKI* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigest)
-			throw (NetscapeSPKIException);
+	NetscapeSPKI* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigest);
 protected:
 	/**
 	 * Estrutura do OpenSSL para representar um objeto NetscapeSPKI.

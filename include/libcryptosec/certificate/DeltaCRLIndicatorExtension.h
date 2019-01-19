@@ -12,7 +12,7 @@ class DeltaCRLIndicatorExtension : public Extension
 {
 public:
 	DeltaCRLIndicatorExtension(unsigned long baseCrlNumber);
-	DeltaCRLIndicatorExtension(X509_EXTENSION *ext) throw (CertificationException);
+	DeltaCRLIndicatorExtension(X509_EXTENSION *ext);
 	virtual ~DeltaCRLIndicatorExtension();
 	/**
 	 * @deprecated

@@ -14,7 +14,7 @@ class IssuerAlternativeNameExtension : public Extension
 {
 public:
 	IssuerAlternativeNameExtension();
-	IssuerAlternativeNameExtension(X509_EXTENSION *ext) throw (CertificationException);
+	IssuerAlternativeNameExtension(X509_EXTENSION *ext);
 	virtual ~IssuerAlternativeNameExtension();
 	/**
 	 * @deprecated

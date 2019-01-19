@@ -32,8 +32,7 @@ public:
 	 * @throw Pkcs7Exception se ocorrer algum probelma na geração do pacote PKCS7.
 	 * @throw EncodeException se ocorrer algum problema na decodificação do pacote DER.
 	 **/
-	static Pkcs7* fromDerEncoded(ByteArray &derEncoded)
-			throw (Pkcs7Exception, EncodeException);
+	static Pkcs7* fromDerEncoded(ByteArray &derEncoded);
 	
 	/**
 	 * Método estático que carrega um pacote PKCS7 a partir de seu equivalente codificado em PEM.
@@ -42,8 +41,7 @@ public:
 	 * @throw Pkcs7Exception se ocorrer algum probelma na geração do pacote PKCS7.
 	 * @throw EncodeException se ocorrer algum problema na decodificação do pacote PEM.
 	 **/		
-	static Pkcs7* fromPemEncoded(std::string &pemEncoded)
-			throw (Pkcs7Exception, EncodeException);
+	static Pkcs7* fromPemEncoded(std::string &pemEncoded);
 			
 };
 

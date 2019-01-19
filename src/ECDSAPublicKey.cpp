@@ -1,7 +1,6 @@
 #include <libcryptosec/ECDSAPublicKey.h>
 
-ECDSAPublicKey::ECDSAPublicKey(EVP_PKEY *key)
-		throw (AsymmetricKeyException) : PublicKey(key)
+ECDSAPublicKey::ECDSAPublicKey(EVP_PKEY *key) : PublicKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::ECDSA)
@@ -10,8 +9,7 @@ ECDSAPublicKey::ECDSAPublicKey(EVP_PKEY *key)
 	}
 }
 
-ECDSAPublicKey::ECDSAPublicKey(ByteArray &derEncoded)
-		throw (EncodeException, AsymmetricKeyException) : PublicKey(derEncoded)
+ECDSAPublicKey::ECDSAPublicKey(ByteArray &derEncoded) : PublicKey(derEncoded)
 {
 	AsymmetricKey::Algorithm algorithm;
 	algorithm = this->getAlgorithm();
@@ -21,8 +19,7 @@ ECDSAPublicKey::ECDSAPublicKey(ByteArray &derEncoded)
 	}
 }
 
-ECDSAPublicKey::ECDSAPublicKey(std::string &pemEncoded)
-		throw (EncodeException, AsymmetricKeyException) : PublicKey(pemEncoded)
+ECDSAPublicKey::ECDSAPublicKey(std::string &pemEncoded) : PublicKey(pemEncoded)
 {
 	AsymmetricKey::Algorithm algorithm;
 	algorithm = this->getAlgorithm();

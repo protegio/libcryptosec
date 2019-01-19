@@ -49,8 +49,7 @@ public:
 	 * parâmetros tenham sido inválidos ou ainda caso tenha ocorrido um erro na carga dos possíveis
 	 * certificados presentes no slot.
 	 */
-	SmartcardSlot* getSmartcardSlot(std::string serial, std::string id)
-			throw (SmartcardModuleException);
+	SmartcardSlot* getSmartcardSlot(std::string serial, std::string id);
 
 	/**
 	 * Retorna um vetor contendo os certificados presentes em cada um dos slots.
@@ -58,8 +57,7 @@ public:
 	 * @throw SmartcardModuleException caso o smart card não esteja disponível ou caso tenha
 	 * ocorrido um erro na carga dos certificados relacionados aos slots.
 	 */
-	std::vector<SmartcardCertificate *> getCertificates()
-			throw (SmartcardModuleException);
+	std::vector<SmartcardCertificate *> getCertificates();
 
 	/**
 	 * Retorna a quantidade de Slots

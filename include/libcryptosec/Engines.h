@@ -27,7 +27,7 @@ public:
 	 * @return vetor de nomes de engines.
 	 * @throw EngineException caso não haja engines disponíveis.
 	 */
-	static std::vector<std::string> getEnginesList() throw (EngineException);
+	static std::vector<std::string> getEnginesList();
 	
 	/**
 	 * Define uma engine padrão para determinado algoritmo.
@@ -36,7 +36,7 @@ public:
 	 * @EngineException caso a engine passada seja inválida ou ocorra erro interno do OpenSSL.
 	 * @see Engine
 	 */
-	static void setEngineDefault(Engine &engine, Engine::Algorithm algorithm) throw (EngineException);
+	static void setEngineDefault(Engine &engine, Engine::Algorithm algorithm);
 	
 	/**
 	 * Retorna a engine padrão para determinado algoritmo.
@@ -44,7 +44,7 @@ public:
 	 * @return objeto Engine encontrado.
 	 * @throw EngineException caso não seja encontrada a engine padrão para o algoritmo desejado.
 	 */
-	static Engine* getEngineDefault(Engine::Algorithm algorithm) throw (EngineException);
+	static Engine* getEngineDefault(Engine::Algorithm algorithm);
 	
 	
 	/**
@@ -53,7 +53,7 @@ public:
 	 * @return objeto Engine relacionado ao nome.
 	 * @throw EngineException caso não seja encontrada engine relacionada ao nome passado.
 	 */
-	static Engine* getEngineById(std::string id) throw (EngineException);
+	static Engine* getEngineById(std::string id);
 	
 	/**
 	 * Carrega todas as engines estáticas do OpenSSL.

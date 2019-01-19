@@ -1,6 +1,6 @@
 #include "libcryptosec/ECDSAKeyPair.h"
 
-ECDSAKeyPair::ECDSAKeyPair(ByteArray& derEncoded) throw (AsymmetricKeyException) {
+ECDSAKeyPair::ECDSAKeyPair(ByteArray& derEncoded) {
 	this->key = NULL;
 	this->engine = NULL;
 	EC_GROUP * group = createGroup(derEncoded);
@@ -8,7 +8,7 @@ ECDSAKeyPair::ECDSAKeyPair(ByteArray& derEncoded) throw (AsymmetricKeyException)
 	EC_GROUP_free(group);
 }
 
-ECDSAKeyPair::ECDSAKeyPair(std::string& encoded) throw (AsymmetricKeyException) {
+ECDSAKeyPair::ECDSAKeyPair(std::string& encoded) {
 	this->key = NULL;
 	this->engine = NULL;
 	ByteArray derEncoded = Base64::decode(encoded);
@@ -17,7 +17,7 @@ ECDSAKeyPair::ECDSAKeyPair(std::string& encoded) throw (AsymmetricKeyException) 
 	EC_GROUP_free(group);
 }
 
-ECDSAKeyPair::ECDSAKeyPair(const EllipticCurve & curve) throw (AsymmetricKeyException) {
+ECDSAKeyPair::ECDSAKeyPair(const EllipticCurve & curve) {
 	this->key = NULL;
 	this->engine = NULL;
 	EC_GROUP * group = createGroup(curve);
@@ -25,8 +25,7 @@ ECDSAKeyPair::ECDSAKeyPair(const EllipticCurve & curve) throw (AsymmetricKeyExce
 	EC_GROUP_free(group);
 }
 
-ECDSAKeyPair::ECDSAKeyPair(AsymmetricKey::Curve curve, bool named)
-		throw (AsymmetricKeyException) {
+ECDSAKeyPair::ECDSAKeyPair(AsymmetricKey::Curve curve, bool named) {
 	EC_KEY *eckey;
 	this->key = NULL;
 	this->engine = NULL;
@@ -66,7 +65,7 @@ ECDSAKeyPair::~ECDSAKeyPair() {
 	}
 }
 
-void ECDSAKeyPair::generateKey(EC_GROUP * group) throw (AsymmetricKeyException) {
+void ECDSAKeyPair::generateKey(EC_GROUP * group) {
 
 	EC_KEY* eckey = EC_KEY_new();
 
@@ -187,8 +186,7 @@ EC_GROUP * ECDSAKeyPair::createGroup(ByteArray &derEncoded) {
 	return group;
 }
 
-PublicKey* ECDSAKeyPair::getPublicKey() throw (AsymmetricKeyException,
-		EncodeException) {
+PublicKey* ECDSAKeyPair::getPublicKey() {
 	PublicKey *ret;
 	std::string keyTemp;
 	keyTemp = this->getPublicKeyPemEncoded();
@@ -196,7 +194,7 @@ PublicKey* ECDSAKeyPair::getPublicKey() throw (AsymmetricKeyException,
 	return ret;
 }
 
-PrivateKey* ECDSAKeyPair::getPrivateKey() throw (AsymmetricKeyException) {
+PrivateKey* ECDSAKeyPair::getPrivateKey() {
 	PrivateKey *ret;
 	EVP_PKEY *pkey;
 	ret = NULL;
@@ -225,7 +223,6 @@ PrivateKey* ECDSAKeyPair::getPrivateKey() throw (AsymmetricKeyException) {
 	return ret;
 }
 
-AsymmetricKey::Algorithm ECDSAKeyPair::getAlgorithm()
-		throw (AsymmetricKeyException) {
+AsymmetricKey::Algorithm ECDSAKeyPair::getAlgorithm() {
 	return AsymmetricKey::ECDSA;
 }

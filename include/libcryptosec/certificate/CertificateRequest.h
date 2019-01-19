@@ -31,10 +31,8 @@ class CertificateRequest
 public:
 	CertificateRequest();
 	CertificateRequest(X509_REQ *req);
-	CertificateRequest(std::string &pemEncoded)
-			throw (EncodeException);
-	CertificateRequest(ByteArray &derEncoded)
-			throw (EncodeException);
+	CertificateRequest(std::string &pemEncoded);
+	CertificateRequest(ByteArray &derEncoded);
 	CertificateRequest(const CertificateRequest& req);
 	virtual ~CertificateRequest();
 	/**
@@ -45,33 +43,26 @@ public:
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
 	virtual std::string toXml(std::string tab = "");
-	std::string getPemEncoded()
-			throw (EncodeException);
-	ByteArray getDerEncoded() const
-			throw (EncodeException);
-	MessageDigest::Algorithm getMessageDigestAlgorithm()
-			throw (MessageDigestException);
+	std::string getPemEncoded();
+	ByteArray getDerEncoded() const;
+	MessageDigest::Algorithm getMessageDigestAlgorithm();
 	void setVersion(long version);
 	long getVersion();
 	void setPublicKey(PublicKey &publicKey);
-	PublicKey* getPublicKey()
-			throw (CertificationException, AsymmetricKeyException);
-	ByteArray getPublicKeyInfo()
-		throw (CertificationException);
+	PublicKey* getPublicKey();
+	ByteArray getPublicKeyInfo();
 	void setSubject(RDNSequence &name);
 	RDNSequence getSubject();
 	void addExtension(Extension &extension);
 	void addExtensions(std::vector<Extension *> &extensions);
-	void replaceExtension(Extension &extension) throw (CertificationException);
-	std::vector<Extension *> removeExtension(Extension::Name extensionName) throw (CertificationException);
-	std::vector<Extension *> removeExtension(ObjectIdentifier extOID) throw (CertificationException);
+	void replaceExtension(Extension &extension);
+	std::vector<Extension *> removeExtension(Extension::Name extensionName);
+	std::vector<Extension *> removeExtension(ObjectIdentifier extOID);
 	std::vector<Extension *> getExtension(Extension::Name extensionName);
 	std::vector<Extension *> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();
-	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const
-		throw (CertificationException, EncodeException, MessageDigestException);
-	void sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
-			throw (CertificationException);
+	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const;
+	void sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
 	virtual bool verify();
 	virtual bool isSigned() const throw();
 	X509_REQ* getX509Req() const;

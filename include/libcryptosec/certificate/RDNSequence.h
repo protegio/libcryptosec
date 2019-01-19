@@ -39,6 +39,8 @@ public:
 	};
 	
 	RDNSequence();
+	RDNSequence(const RDNSequence& rdn);
+
 	RDNSequence(X509_NAME *rdn);
 	RDNSequence(STACK_OF(X509_NAME_ENTRY) *entries);
 	virtual ~RDNSequence();

@@ -7,8 +7,7 @@ BasicConstraintsExtension::BasicConstraintsExtension() : Extension()
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_basic_constraints);
 }
 
-BasicConstraintsExtension::BasicConstraintsExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+BasicConstraintsExtension::BasicConstraintsExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	BASIC_CONSTRAINTS_st *basicConstraints;
 	ASN1_OBJECT *object = X509_EXTENSION_get_object(ext);

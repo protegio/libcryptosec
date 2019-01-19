@@ -1,7 +1,6 @@
 #include <libcryptosec/RSAPrivateKey.h>
 
-RSAPrivateKey::RSAPrivateKey(EVP_PKEY *key)
-		throw (AsymmetricKeyException) : PrivateKey(key)
+RSAPrivateKey::RSAPrivateKey(EVP_PKEY *key) : PrivateKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA)
@@ -10,8 +9,7 @@ RSAPrivateKey::RSAPrivateKey(EVP_PKEY *key)
 	}
 }
 
-RSAPrivateKey::RSAPrivateKey(ByteArray &derEncoded)
-			throw (EncodeException, AsymmetricKeyException) : PrivateKey(derEncoded)
+RSAPrivateKey::RSAPrivateKey(ByteArray &derEncoded) : PrivateKey(derEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA)
@@ -19,8 +17,7 @@ RSAPrivateKey::RSAPrivateKey(ByteArray &derEncoded)
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "RSAPrivateKey::RSAPrivateKey");
 	}
 }
-RSAPrivateKey::RSAPrivateKey(std::string &pemEncoded)
-		throw (EncodeException, AsymmetricKeyException) : PrivateKey(pemEncoded)
+RSAPrivateKey::RSAPrivateKey(std::string &pemEncoded) : PrivateKey(pemEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA)
@@ -29,8 +26,7 @@ RSAPrivateKey::RSAPrivateKey(std::string &pemEncoded)
 	}
 }
 
-RSAPrivateKey::RSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase)
-		throw (EncodeException, AsymmetricKeyException) : PrivateKey(pemEncoded, passphrase)
+RSAPrivateKey::RSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase) : PrivateKey(pemEncoded, passphrase)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA)

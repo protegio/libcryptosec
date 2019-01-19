@@ -13,11 +13,11 @@ public:
     virtual std::string toString() const = 0;
     virtual const char *what() const throw ()
     {
-    	return ((this->getMessage()).c_str());
+    	return this->getMessage().c_str();
     }
     virtual const std::string getDetails() const throw ()
     {
-    	return this->details;
+    	return this->toString();
     }
 protected:
     std::string where;

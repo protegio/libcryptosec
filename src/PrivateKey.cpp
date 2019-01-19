@@ -1,6 +1,6 @@
 #include <libcryptosec/PrivateKey.h>
 
-PrivateKey::PrivateKey(EVP_PKEY *key) throw (AsymmetricKeyException) : AsymmetricKey(key)
+PrivateKey::PrivateKey(EVP_PKEY *key) : AsymmetricKey(key)
 {
 	if (key == NULL)
 	{
@@ -19,8 +19,7 @@ PrivateKey::PrivateKey(EVP_PKEY *key) throw (AsymmetricKeyException) : Asymmetri
 	//TODO: testar se é mesmo uma chave privada
 }
 
-PrivateKey::PrivateKey(ByteArray &derEncoded)
-		throw (EncodeException) : AsymmetricKey(NULL)
+PrivateKey::PrivateKey(ByteArray &derEncoded) : AsymmetricKey(NULL)
 {
 	/* DER format support only RSA, DSA and EC. DH isn't supported */
 	BIO *buffer;
@@ -43,8 +42,7 @@ PrivateKey::PrivateKey(ByteArray &derEncoded)
 	BIO_free(buffer);
 }
 
-PrivateKey::PrivateKey(std::string &pemEncoded)
-		throw (EncodeException) : AsymmetricKey(NULL)
+PrivateKey::PrivateKey(std::string &pemEncoded) : AsymmetricKey(NULL)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -66,8 +64,7 @@ PrivateKey::PrivateKey(std::string &pemEncoded)
 	BIO_free(buffer);
 }
 
-PrivateKey::PrivateKey(std::string &pemEncoded, ByteArray &passphrase)
-		throw (EncodeException) : AsymmetricKey(NULL)
+PrivateKey::PrivateKey(std::string &pemEncoded, ByteArray &passphrase) : AsymmetricKey(NULL)
 { 
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -95,7 +92,6 @@ PrivateKey::~PrivateKey()
 }
 
 std::string PrivateKey::getPemEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -127,7 +123,6 @@ std::string PrivateKey::getPemEncoded()
 }
 
 std::string PrivateKey::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::OperationMode mode)
-	throw (SymmetricCipherException, EncodeException)
 {
 	BIO *buffer;
 	const EVP_CIPHER *cipher;
@@ -171,7 +166,6 @@ std::string PrivateKey::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher:
 }
 
 ByteArray PrivateKey::getDerEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;

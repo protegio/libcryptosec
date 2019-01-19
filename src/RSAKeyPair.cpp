@@ -1,15 +1,17 @@
 #include <libcryptosec/RSAKeyPair.h>
 
 RSAKeyPair::RSAKeyPair(int length)
-		throw (AsymmetricKeyException)
 {
 	RSA *rsa;
+	BIGNUM *rsa_f4;
 	this->key = NULL;
 	this->engine = NULL;
-	rsa = NULL;
-	rsa = RSA_generate_key(length, RSA_F4, NULL, NULL);
-	if (!rsa)
+	rsa = RSA_new();
+	rsa_f4 = BN_new();
+	BN_is_word(rsa_f4, RSA_F4);
+	if (RSA_generate_key_ex(rsa, length, rsa_f4, NULL) == 0)
 	{
+		RSA_free(rsa);
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "RSAKeyPair::RSAKeyPair");
 	}
 	this->key = EVP_PKEY_new();
@@ -35,7 +37,6 @@ RSAKeyPair::~RSAKeyPair()
 }
 
 PublicKey* RSAKeyPair::getPublicKey()
-		throw (AsymmetricKeyException, EncodeException)
 {
 	PublicKey *ret;
 	std::string keyTemp;
@@ -45,7 +46,6 @@ PublicKey* RSAKeyPair::getPublicKey()
 }
 
 PrivateKey* RSAKeyPair::getPrivateKey()
-		throw (AsymmetricKeyException)
 {
 	PrivateKey *ret;
 	EVP_PKEY *pkey;
@@ -80,7 +80,6 @@ PrivateKey* RSAKeyPair::getPrivateKey()
 }
 
 AsymmetricKey::Algorithm RSAKeyPair::getAlgorithm()
-		throw (AsymmetricKeyException)
 {
 	return AsymmetricKey::RSA;
 }

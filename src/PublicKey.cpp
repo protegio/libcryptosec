@@ -1,6 +1,6 @@
 #include <libcryptosec/PublicKey.h>
 
-PublicKey::PublicKey(EVP_PKEY *key) throw (AsymmetricKeyException) : AsymmetricKey(key)
+PublicKey::PublicKey(EVP_PKEY *key) : AsymmetricKey(key)
 {
 	if (key == NULL)
 	{
@@ -19,8 +19,7 @@ PublicKey::PublicKey(EVP_PKEY *key) throw (AsymmetricKeyException) : AsymmetricK
 	//TODO: testar se é mesmo uma chave publica
 }
 
-PublicKey::PublicKey(ByteArray &derEncoded)
-		throw (EncodeException) : AsymmetricKey(NULL)
+PublicKey::PublicKey(ByteArray &derEncoded) : AsymmetricKey(NULL)
 {
 	/* DER format support only RSA, DSA and EC. DH isn't supported */
 	BIO *buffer;
@@ -43,8 +42,7 @@ PublicKey::PublicKey(ByteArray &derEncoded)
 	BIO_free(buffer);
 }
 
-PublicKey::PublicKey(std::string &pemEncoded)
-		throw (EncodeException) : AsymmetricKey(NULL)
+PublicKey::PublicKey(std::string &pemEncoded) : AsymmetricKey(NULL)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -72,7 +70,6 @@ PublicKey::~PublicKey()
 }
 
 std::string PublicKey::getPemEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -104,7 +101,6 @@ std::string PublicKey::getPemEncoded()
 }
 
 ByteArray PublicKey::getDerEncoded()
-		throw (EncodeException)
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -132,8 +128,9 @@ ByteArray PublicKey::getDerEncoded()
 	return ret;
 }
 
-ByteArray PublicKey::getKeyIdentifier() throw (EncodeException)
+ByteArray PublicKey::getKeyIdentifier()
 {
+	throw std::exception();
 /*  TODO: como transformar a chave em um array de bits?
 	ByteArray ret;
 	unsigned int size;

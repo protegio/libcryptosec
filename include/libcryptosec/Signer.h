@@ -35,8 +35,7 @@ public:
 	 * @see ByteArray
 	 * @see MessageDigest::Algorithm
 	 */
-	static ByteArray sign(PrivateKey &key, ByteArray &hash, MessageDigest::Algorithm algorithm)
-			throw (SignerException);
+	static ByteArray sign(PrivateKey &key, ByteArray &hash, MessageDigest::Algorithm algorithm);
 	
 	/**
 	 * Verifica assinatura assimétrica.
@@ -50,8 +49,7 @@ public:
 	 * @see ByteArray
 	 * @see MessageDigest::Algorithm
 	 */
-	static bool verify(PublicKey &key, ByteArray &signature, ByteArray &hash, MessageDigest::Algorithm algorithm)
-			throw (SignerException);
+	static bool verify(PublicKey &key, ByteArray &signature, ByteArray &hash, MessageDigest::Algorithm algorithm);
 };
 
 #endif /*SIGNER_H_*/

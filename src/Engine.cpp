@@ -20,7 +20,7 @@ Engine::~Engine()
 	this->engine = NULL;
 }
 
-std::string Engine::getId() throw (EngineException)
+std::string Engine::getId()
 {
 	const char *id;
 	if (!(this->engine))
@@ -94,7 +94,7 @@ std::vector<Engine::Algorithm> Engine::getCapabilities()
 	return ret;
 }
 
-void Engine::setCommand(std::string key) throw (EngineException)
+void Engine::setCommand(std::string key)
 {
 	if (!(ENGINE_ctrl_cmd_string(this->engine, key.c_str(), NULL, 0)))
 	{
@@ -102,7 +102,7 @@ void Engine::setCommand(std::string key) throw (EngineException)
 	}
 }
 
-void Engine::setCommand(std::string key, std::string value) throw (EngineException)
+void Engine::setCommand(std::string key, std::string value)
 {
 	if (!(ENGINE_ctrl_cmd_string(this->engine, key.c_str(), value.c_str(), 0)))
 	{
@@ -110,7 +110,7 @@ void Engine::setCommand(std::string key, std::string value) throw (EngineExcepti
 	}
 }
 
-void Engine::setCommand(std::string key, long value) throw (EngineException)
+void Engine::setCommand(std::string key, long value)
 {
 	if (!(ENGINE_ctrl_cmd(this->engine, key.c_str(), value, NULL, NULL, 0)))
 	{
@@ -151,11 +151,11 @@ std::vector<std::pair<Engine::CmdType, std::string> > Engine::getAvaliableCmds()
 	return ret;
 }
 
-void Engine::addToEnginesList() throw (EngineException)
+void Engine::addToEnginesList()
 {
 }
 
-void Engine::removeFromEnginesList() throw (EngineException)
+void Engine::removeFromEnginesList()
 {
 }
 

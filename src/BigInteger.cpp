@@ -1,6 +1,6 @@
 #include <libcryptosec/BigInteger.h>
 
-BigInteger::BigInteger() throw(BigIntegerException)
+BigInteger::BigInteger()
 {
 	if(!(this->bigInt = BN_new()))
 	{
@@ -10,7 +10,7 @@ BigInteger::BigInteger() throw(BigIntegerException)
 	BigInteger::setValue(0);
 }
 
-BigInteger::BigInteger(BIGNUM const* bn) throw(BigIntegerException)
+BigInteger::BigInteger(BIGNUM const* bn)
 {
 	if(!(this->bigInt = BN_dup(bn)))
 	{
@@ -19,7 +19,7 @@ BigInteger::BigInteger(BIGNUM const* bn) throw(BigIntegerException)
 	
 }
 
-BigInteger::BigInteger(long val) throw(BigIntegerException)
+BigInteger::BigInteger(long val)
 {
 	if(!(this->bigInt = BN_new()))
 	{
@@ -29,7 +29,7 @@ BigInteger::BigInteger(long val) throw(BigIntegerException)
 	BigInteger::setValue(val);
 }
 
-BigInteger::BigInteger(const ASN1_INTEGER* val) throw(BigIntegerException)
+BigInteger::BigInteger(const ASN1_INTEGER* val)
 {
 	if(!(this->bigInt = BN_new()))
 	{
@@ -42,7 +42,7 @@ BigInteger::BigInteger(const ASN1_INTEGER* val) throw(BigIntegerException)
 	}
 }
 
-BigInteger::BigInteger(ByteArray& b) throw(BigIntegerException)
+BigInteger::BigInteger(ByteArray& b)
 {
 	if(!(this->bigInt = BN_new()))
 	{
@@ -55,7 +55,7 @@ BigInteger::BigInteger(ByteArray& b) throw(BigIntegerException)
 	}
 }
 
-BigInteger::BigInteger(BigInteger const& b) throw(BigIntegerException)
+BigInteger::BigInteger(BigInteger const& b)
 {
 	if(!(this->bigInt = BN_new()))
 	{
@@ -65,7 +65,7 @@ BigInteger::BigInteger(BigInteger const& b) throw(BigIntegerException)
 	*this = b;
 }
 
-BigInteger::BigInteger(std::string dec) throw(BigIntegerException)
+BigInteger::BigInteger(std::string dec)
 {
 	if(!(this->bigInt = BN_new()))
 	{
@@ -80,7 +80,7 @@ BigInteger::~BigInteger()
 	BN_clear_free(this->bigInt);
 }
 
-void BigInteger::setValue(const long val) throw(BigIntegerException)
+void BigInteger::setValue(const long val)
 {
 	unsigned long copy;
 	
@@ -116,7 +116,7 @@ void BigInteger::setNegative(const bool neg) throw()
 	}
 }
 
-double BigInteger::getValue() const throw(BigIntegerException)
+double BigInteger::getValue() const
 {
 	unsigned long tmp;
 	double ret;
@@ -137,7 +137,7 @@ double BigInteger::getValue() const throw(BigIntegerException)
 	return ret;
 }
 
-ASN1_INTEGER* BigInteger::getASN1Value() const throw(BigIntegerException) 
+ASN1_INTEGER* BigInteger::getASN1Value() const 
 {
 	ASN1_INTEGER* ret = NULL;
 	
@@ -154,7 +154,7 @@ ASN1_INTEGER* BigInteger::getASN1Value() const throw(BigIntegerException)
 	return ret;
 }
 
-ByteArray* BigInteger::getBinValue() const throw(BigIntegerException)
+ByteArray* BigInteger::getBinValue() const
 {
 	unsigned char* data;
 	int len;
@@ -217,7 +217,7 @@ string BigInteger::toDec() const throw()
 	return ret;
 }
 
-void BigInteger::setRandValue(int numBits) throw(BigIntegerException)
+void BigInteger::setRandValue(int numBits)
 {
 	int top;
 	int bottom;
@@ -262,7 +262,7 @@ int BigInteger::size() const throw()
 	return BN_num_bits(this->bigInt);
 }
 
-void BigInteger::setHexValue(std::string hex) throw(BigIntegerException)
+void BigInteger::setHexValue(std::string hex)
 {
 	if(!(BN_hex2bn(&this->bigInt, hex.c_str())))
 	{
@@ -270,7 +270,7 @@ void BigInteger::setHexValue(std::string hex) throw(BigIntegerException)
 	}
 }
 
-void BigInteger::setDecValue(std::string dec) throw(BigIntegerException)
+void BigInteger::setDecValue(std::string dec)
 {
 	if(!(BN_dec2bn(&this->bigInt, dec.c_str())))
 	{
@@ -278,7 +278,7 @@ void BigInteger::setDecValue(std::string dec) throw(BigIntegerException)
 	}
 }
 
-BigInteger& BigInteger::add(BigInteger const& a) throw(BigIntegerException)
+BigInteger& BigInteger::add(BigInteger const& a)
 {
 	if(!(BN_add(this->bigInt, this->bigInt, a.getBIGNUM())))
 	{
@@ -287,14 +287,14 @@ BigInteger& BigInteger::add(BigInteger const& a) throw(BigIntegerException)
 	return *this;
 }
 
-BigInteger& BigInteger::add(long const a) throw(BigIntegerException)
+BigInteger& BigInteger::add(long const a)
 {
 	BigInteger b(a);
 	
 	return this->add(b);
 }
 
-BigInteger& BigInteger::sub(BigInteger const& a) throw(BigIntegerException)
+BigInteger& BigInteger::sub(BigInteger const& a)
 {
 	if(!(BN_sub(this->bigInt, this->bigInt, a.getBIGNUM())))
 	{
@@ -303,13 +303,13 @@ BigInteger& BigInteger::sub(BigInteger const& a) throw(BigIntegerException)
 	return *this;
 }
 
-BigInteger& BigInteger::sub(long const a) throw(BigIntegerException)
+BigInteger& BigInteger::sub(long const a)
 {
 	BigInteger tmp(a);
 	return this->sub(tmp);
 }
 
-BigInteger& BigInteger::mul(BigInteger const& a) throw(BigIntegerException)
+BigInteger& BigInteger::mul(BigInteger const& a)
 {
 	BN_CTX* ctx = NULL;
 	BIGNUM* r = NULL;
@@ -339,26 +339,26 @@ BigInteger& BigInteger::mul(BigInteger const& a) throw(BigIntegerException)
 	return (*this);
 }
 
-BigInteger& BigInteger::mul(long const a) throw(BigIntegerException)
+BigInteger& BigInteger::mul(long const a)
 {
 	BigInteger tmp(a);
 	return this->mul(tmp);
 }
 
-BigInteger BigInteger::operator*(BigInteger const& a) const throw(BigIntegerException)
+BigInteger BigInteger::operator*(BigInteger const& a) const
 {
 	BigInteger tmp(*this);
 	return tmp.mul(a);
 }
 
-BigInteger BigInteger::operator*(long const c) const throw(BigIntegerException)
+BigInteger BigInteger::operator*(long const c) const
 {
 	BigInteger tmp1(*this);
 	BigInteger tmp2(c);
 	return tmp1.mul(tmp2);
 }
 
-BigInteger& BigInteger::div(BigInteger const& a) throw(BigIntegerException)
+BigInteger& BigInteger::div(BigInteger const& a)
 {
 	BN_CTX* ctx = NULL;
 	BIGNUM* dv = NULL;
@@ -400,19 +400,19 @@ BigInteger& BigInteger::div(BigInteger const& a) throw(BigIntegerException)
 	return (*this);
 }
 
-BigInteger& BigInteger::div(long const a) throw(BigIntegerException)
+BigInteger& BigInteger::div(long const a)
 {
 	BigInteger tmp(a);
 	return this->div(tmp);
 }
 
-BigInteger BigInteger::operator/(BigInteger const& a) const throw(BigIntegerException)
+BigInteger BigInteger::operator/(BigInteger const& a) const
 {
 	BigInteger tmp(*this);
 	return tmp.div(a);
 }
 
-BigInteger BigInteger::operator/(long const c) const throw(BigIntegerException)
+BigInteger BigInteger::operator/(long const c) const
 {
 	BigInteger a(*this);
 	BigInteger b(c);
@@ -420,7 +420,7 @@ BigInteger BigInteger::operator/(long const c) const throw(BigIntegerException)
 	return a.div(b);
 }
 
-BigInteger& BigInteger::mod(BigInteger const& a) throw(BigIntegerException)
+BigInteger& BigInteger::mod(BigInteger const& a)
 {
 	BN_CTX* ctx = NULL;
 	BIGNUM* rem = NULL;
@@ -455,19 +455,19 @@ BigInteger& BigInteger::mod(BigInteger const& a) throw(BigIntegerException)
 	return (*this);
 }
 
-BigInteger& BigInteger::mod(long const a) throw(BigIntegerException)
+BigInteger& BigInteger::mod(long const a)
 {
 	BigInteger tmp(a);
 	return this->mod(tmp);
 }
 
-BigInteger BigInteger::operator%(BigInteger const& a) const throw(BigIntegerException)
+BigInteger BigInteger::operator%(BigInteger const& a) const
 {
 	BigInteger tmp(*this);
 	return tmp.mod(a);
 }
 
-BigInteger BigInteger::operator%(long const c) const throw(BigIntegerException)
+BigInteger BigInteger::operator%(long const c) const
 {
 	BigInteger tmp(*this);
 	return tmp.mod(c);
@@ -478,46 +478,46 @@ int BigInteger::compare(BigInteger const& a) const throw()
 	return BN_cmp(this->getBIGNUM(), a.getBIGNUM());
 }
 
-BigInteger BigInteger::operator+(BigInteger const& c) const throw(BigIntegerException)
+BigInteger BigInteger::operator+(BigInteger const& c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.add(c);
 }
 
-BigInteger BigInteger::operator+(long const c) const throw(BigIntegerException)
+BigInteger BigInteger::operator+(long const c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.add(c);
 }
 
-BigInteger& BigInteger::operator+=(BigInteger const& c) throw(BigIntegerException)
+BigInteger& BigInteger::operator+=(BigInteger const& c)
 {
 	return this->add(c);
 }
 
-BigInteger& BigInteger::operator+=(long const c) throw(BigIntegerException)
+BigInteger& BigInteger::operator+=(long const c)
 {
 	BigInteger tmp(c);
 	return this->add(tmp);
 }
 
-BigInteger BigInteger::operator-(BigInteger const& c) const throw(BigIntegerException)
+BigInteger BigInteger::operator-(BigInteger const& c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.sub(c);
 }
 
-BigInteger BigInteger::operator-(long const c) const throw(BigIntegerException)
+BigInteger BigInteger::operator-(long const c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.sub(c);
 }
 
-BigInteger& BigInteger::operator=(BigInteger const& c) throw(BigIntegerException)
+BigInteger& BigInteger::operator=(BigInteger const& c)
 {
 	if(!(BN_copy(this->bigInt, c.getBIGNUM())))
 	{
@@ -527,7 +527,7 @@ BigInteger& BigInteger::operator=(BigInteger const& c) throw(BigIntegerException
 	return *this;
 }
 
-BigInteger& BigInteger::operator=(long const c) throw(BigIntegerException)
+BigInteger& BigInteger::operator=(long const c)
 {
 	this->setValue(c);	
 	return *this;
@@ -538,7 +538,7 @@ bool BigInteger::operator==(BigInteger const& c) const throw()
 	return this->compare(c) == 0;
 }
 
-bool BigInteger::operator==(long const c) const throw(BigIntegerException)
+bool BigInteger::operator==(long const c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) == 0;
@@ -549,7 +549,7 @@ bool BigInteger::operator!=(BigInteger const& c) const throw()
 	return this->compare(c) != 0;
 }
 
-bool BigInteger::operator!=(long const c) const throw(BigIntegerException)
+bool BigInteger::operator!=(long const c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) != 0;
@@ -560,7 +560,7 @@ bool BigInteger::operator>(BigInteger const& c) const throw()
 	return this->compare(c) == 1;
 }
 
-bool BigInteger::operator>(long const c) const throw(BigIntegerException)
+bool BigInteger::operator>(long const c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) == 1;
@@ -571,7 +571,7 @@ bool BigInteger::operator>=(BigInteger const& c) const throw()
 	return (this->compare(c) >= 0);
 }
 
-bool BigInteger::operator>=(long const c) const throw(BigIntegerException)
+bool BigInteger::operator>=(long const c) const
 {
 	BigInteger tmp(c);
 	return (*this >= tmp);
@@ -582,7 +582,7 @@ bool BigInteger::operator<(BigInteger const& c) const throw()
 	return this->compare(c) == -1;
 }
 
-bool BigInteger::operator<(long const c) const throw(BigIntegerException)
+bool BigInteger::operator<(long const c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) == -1;
@@ -593,7 +593,7 @@ bool BigInteger::operator<=(BigInteger const& c) const throw()
 	return (this->compare(c) <= 0);
 }
 
-bool BigInteger::operator<=(long const c) const throw(BigIntegerException)
+bool BigInteger::operator<=(long const c) const
 {
 	BigInteger tmp(c);
 	return (*this <= tmp);
@@ -612,7 +612,7 @@ bool BigInteger::operator||(BigInteger const& c) const throw()
 	return a || b;
 }
 
-bool BigInteger::operator||(long const c) const throw(BigIntegerException)
+bool BigInteger::operator||(long const c) const
 {
 	bool a = !((*this) == 0);
 	bool b = c != 0;
@@ -628,7 +628,7 @@ bool BigInteger::operator&&(BigInteger const& c) const throw()
 	return a && b;
 }
 
-bool BigInteger::operator&&(long const c) const throw(BigIntegerException)
+bool BigInteger::operator&&(long const c) const
 {
 	bool a = !((*this) == 0);
 	bool b = c != 0;
@@ -636,12 +636,12 @@ bool BigInteger::operator&&(long const c) const throw(BigIntegerException)
 	return a && b;
 }
 
-BigInteger operator+(long const c, BigInteger const& d) throw(BigIntegerException)
+BigInteger operator+(long const c, BigInteger const& d)
 {
 	return d + c;
 }
 
-BigInteger operator-(long const c, BigInteger const& d) throw(BigIntegerException)
+BigInteger operator-(long const c, BigInteger const& d)
 {
 	BigInteger tmp(c);
 	return tmp - d;

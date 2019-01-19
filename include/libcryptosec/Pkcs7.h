@@ -75,7 +75,7 @@ public:
 	 * @throw EncodeException se ocorrer algum erro no procedimento de codificação
 	 * do pacote para o formato PEM.
 	 **/
-	std::string getPemEncoded() throw (EncodeException);
+	std::string getPemEncoded();
 	
 	/**
 	 * Retorna uma representação do pacote codificada no formato DER.
@@ -83,7 +83,7 @@ public:
 	 * @throw EncodeException se ocorrer algum erro no procedimento de codificação
 	 * do pacote para o formato DER.
 	 **/
-	ByteArray getDerEncoded() throw (EncodeException);
+	ByteArray getDerEncoded();
 
 protected:
 

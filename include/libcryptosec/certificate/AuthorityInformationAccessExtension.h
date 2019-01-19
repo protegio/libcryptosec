@@ -19,7 +19,7 @@ public:
 		OCSP = NID_ad_OCSP,
 	};
 	AuthorityInformationAccessExtension();
-	AuthorityInformationAccessExtension(X509_EXTENSION *ext) throw (CertificationException);
+	AuthorityInformationAccessExtension(X509_EXTENSION *ext);
 	virtual ~AuthorityInformationAccessExtension();
 	X509_EXTENSION* getX509Extension();
 	void addAccessDescription(AccessDescription& accessDescription);

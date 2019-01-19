@@ -1,7 +1,6 @@
 #include <libcryptosec/RSAPublicKey.h>
 
-RSAPublicKey::RSAPublicKey(EVP_PKEY *key)
-		throw (AsymmetricKeyException) : PublicKey(key)
+RSAPublicKey::RSAPublicKey(EVP_PKEY *key) : PublicKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA)
@@ -10,8 +9,7 @@ RSAPublicKey::RSAPublicKey(EVP_PKEY *key)
 	}
 }
 
-RSAPublicKey::RSAPublicKey(ByteArray &derEncoded)
-		throw (EncodeException, AsymmetricKeyException) : PublicKey(derEncoded)
+RSAPublicKey::RSAPublicKey(ByteArray &derEncoded) : PublicKey(derEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA)
@@ -20,8 +18,7 @@ RSAPublicKey::RSAPublicKey(ByteArray &derEncoded)
 	}
 }
 
-RSAPublicKey::RSAPublicKey(std::string &pemEncoded)
-		throw (EncodeException, AsymmetricKeyException)	 : PublicKey(pemEncoded)
+RSAPublicKey::RSAPublicKey(std::string &pemEncoded)	 : PublicKey(pemEncoded)
 {
 	AsymmetricKey::Algorithm algorithm;
 	algorithm = this->getAlgorithm();

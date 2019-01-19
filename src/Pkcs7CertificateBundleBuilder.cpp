@@ -33,7 +33,6 @@ void Pkcs7CertificateBundleBuilder::init()
 }
 
 void Pkcs7CertificateBundleBuilder::addCertificate(Certificate &cert)
-					throw (Pkcs7Exception, InvalidStateException)
 {
 	int rc;
 	if (this->state != Pkcs7Builder::INIT && this->state != Pkcs7Builder::UPDATE)
@@ -48,7 +47,6 @@ void Pkcs7CertificateBundleBuilder::addCertificate(Certificate &cert)
 }
 
 Pkcs7CertificateBundle* Pkcs7CertificateBundleBuilder::doFinal()
-					throw (InvalidStateException, Pkcs7Exception)
 {
 	Pkcs7CertificateBundle *ret;
 

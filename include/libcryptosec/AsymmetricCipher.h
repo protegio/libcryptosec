@@ -24,6 +24,7 @@
 class AsymmetricCipher
 {
 public:
+
 	/**
 	 * supported padding values to perform asymmetric ciphers. Default: PKCS1.
 	 */
@@ -33,8 +34,8 @@ public:
 		PKCS1,
 		SSLV23,
 		PKCS1_OAEP,
-	/*	X931  only openssl 0.9.8 support */
 	};
+
 	/**
 	 * encrypt unreadable data using a asymmetric public key
 	 * @param key public key to encrypt data
@@ -43,8 +44,8 @@ public:
 	 * @return encrypted data
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray encrypt(RSAPublicKey &key, ByteArray &data, AsymmetricCipher::Padding padding)
-			throw (AsymmetricCipherException);
+	static ByteArray encrypt(const RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
+
 	/**
 	 * encrypt readable data using a asymmetric public key
 	 * @param key public key to encrypt data
@@ -53,8 +54,8 @@ public:
 	 * @return encrypted data
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray encrypt(RSAPublicKey &key, std::string &data, AsymmetricCipher::Padding padding)
-		throw (AsymmetricCipherException);
+	static ByteArray encrypt(const RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding);
+
 	/**
 	 * decrypt encrypted data using a asymmetric private key
 	 * @param key private key to decrypt encrypted data
@@ -63,9 +64,10 @@ public:
 	 * @return encrypted data
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray decrypt(RSAPrivateKey &key, ByteArray &data, AsymmetricCipher::Padding padding)
-			throw (AsymmetricCipherException);
+	static ByteArray decrypt(RSAPrivateKey &key, ByteArray &data, AsymmetricCipher::Padding padding);
+
 private:
+
 	/**
 	 * Internal use. Used to convert the libcryptosec padding value to openssl padding value.
 	 * @param libcryptosec padding value

@@ -1,7 +1,6 @@
 #include <libcryptosec/DSAPrivateKey.h>
 
-DSAPrivateKey::DSAPrivateKey(EVP_PKEY *key)
-		throw (AsymmetricKeyException) : PrivateKey(key)
+DSAPrivateKey::DSAPrivateKey(EVP_PKEY *key) : PrivateKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::DSA)
@@ -10,8 +9,7 @@ DSAPrivateKey::DSAPrivateKey(EVP_PKEY *key)
 	}
 }
 
-DSAPrivateKey::DSAPrivateKey(ByteArray &derEncoded)
-		throw (EncodeException, AsymmetricKeyException) : PrivateKey(derEncoded)
+DSAPrivateKey::DSAPrivateKey(ByteArray &derEncoded) : PrivateKey(derEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::DSA)
@@ -19,8 +17,7 @@ DSAPrivateKey::DSAPrivateKey(ByteArray &derEncoded)
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "DSAPrivateKey::DSAPrivateKey");
 	}
 }
-DSAPrivateKey::DSAPrivateKey(std::string &pemEncoded)
-		throw (EncodeException, AsymmetricKeyException) : PrivateKey(pemEncoded)
+DSAPrivateKey::DSAPrivateKey(std::string &pemEncoded) : PrivateKey(pemEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::DSA)
@@ -29,8 +26,7 @@ DSAPrivateKey::DSAPrivateKey(std::string &pemEncoded)
 	}
 }
 
-DSAPrivateKey::DSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase)
-		throw (EncodeException, AsymmetricKeyException) : PrivateKey (pemEncoded, passphrase)
+DSAPrivateKey::DSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase) : PrivateKey (pemEncoded, passphrase)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::DSA)

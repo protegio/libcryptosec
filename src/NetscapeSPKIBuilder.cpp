@@ -5,7 +5,7 @@ NetscapeSPKIBuilder::NetscapeSPKIBuilder()
 	this->netscapeSPKI = NETSCAPE_SPKI_new();
 }
 
-NetscapeSPKIBuilder::NetscapeSPKIBuilder(std::string netscapeSPKIBase64) throw (EncodeException)
+NetscapeSPKIBuilder::NetscapeSPKIBuilder(std::string netscapeSPKIBase64)
 {
 	this->netscapeSPKI = NETSCAPE_SPKI_b64_decode(netscapeSPKIBase64.c_str(), netscapeSPKIBase64.size());
 	if (!this->netscapeSPKI)
@@ -23,7 +23,7 @@ NetscapeSPKIBuilder::~NetscapeSPKIBuilder()
 	}
 }
 
-std::string NetscapeSPKIBuilder::getBase64Encoded() throw (EncodeException)
+std::string NetscapeSPKIBuilder::getBase64Encoded()
 {
 	char *base64Encoded;
 	std::string ret;
@@ -43,7 +43,6 @@ void NetscapeSPKIBuilder::setPublicKey(PublicKey &publicKey)
 }
 
 PublicKey* NetscapeSPKIBuilder::getPublicKey()
-			throw (AsymmetricKeyException, NetscapeSPKIException)
 {
 	EVP_PKEY *pubKey;
 	PublicKey *ret;
@@ -78,7 +77,7 @@ std::string NetscapeSPKIBuilder::getChallenge()
 	if (this->netscapeSPKI->spkac->challenge->length > 0)
 	{
 		/* pedir ao jeandré se é feito uma cópia do conteudo ao atribuir direto ao std::string */
-		data = (char *)ASN1_STRING_data(this->netscapeSPKI->spkac->challenge);
+		data = (char *) (this->netscapeSPKI->spkac->challenge->data);
 		ret = data;
 	}
 	else
@@ -89,7 +88,6 @@ std::string NetscapeSPKIBuilder::getChallenge()
 }
 
 NetscapeSPKI* NetscapeSPKIBuilder::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigest)
-		throw (NetscapeSPKIException)
 {
 	int rc;
 	NetscapeSPKI *ret;

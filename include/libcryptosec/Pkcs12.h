@@ -24,32 +24,32 @@ public:
 	/**
 	 * @return o conteudo em codificacao DER do pacote Pkcs12
 	 * */
-	ByteArray getDerEncoded() const throw(EncodeException);
+	ByteArray getDerEncoded() const;
 	
 	/**
 	 * Retorna uma copia da chave privada encapsulada pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	PrivateKey* getPrivKey(string password) throw(Pkcs12Exception);
+	PrivateKey* getPrivKey(string password);
 	
 	/**
 	 * Retorna uma copia do certificado encapsulados pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	Certificate* getCertificate(string password) throw(Pkcs12Exception);
+	Certificate* getCertificate(string password);
 	
 	/**
 	 * Retorna uma copia dos certificados adicionais encapsulados pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	vector<Certificate*> getAdditionalCertificates(string password) throw(Pkcs12Exception);
+	vector<Certificate*> getAdditionalCertificates(string password);
 
 protected:
 	/**
 	 * Popula os objetos internos da classe: privKey, cert e ca.
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	void parse(string password) throw(Pkcs12Exception);
+	void parse(string password);
 	
 protected:
 	PrivateKey* privKey;

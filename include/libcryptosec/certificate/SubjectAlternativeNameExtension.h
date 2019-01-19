@@ -14,7 +14,7 @@ class SubjectAlternativeNameExtension : public Extension
 {
 public:
 	SubjectAlternativeNameExtension();
-	SubjectAlternativeNameExtension(X509_EXTENSION *ext) throw (CertificationException);
+	SubjectAlternativeNameExtension(X509_EXTENSION *ext);
 	virtual ~SubjectAlternativeNameExtension();
 	/**
 	 * @deprecated

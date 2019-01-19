@@ -17,8 +17,7 @@ public:
 	virtual ~ObjectIdentifier();
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
-	std::string getOid()
-			throw (CertificationException);
+	std::string getOid();
 	int getNid() const;
 	std::string getName();
 	ASN1_OBJECT* getObjectIdentifier() const;

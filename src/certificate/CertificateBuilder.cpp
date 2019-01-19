@@ -10,7 +10,6 @@ CertificateBuilder::CertificateBuilder()
 }
 
 CertificateBuilder::CertificateBuilder(std::string pemEncoded)
-		throw (EncodeException)
 {
 	this->setIncludeEcdsaParameters(false);
 	BIO *buffer;
@@ -34,7 +33,6 @@ CertificateBuilder::CertificateBuilder(std::string pemEncoded)
 }
 
 CertificateBuilder::CertificateBuilder(ByteArray &derEncoded)
-	throw (EncodeException)
 {
 	this->setIncludeEcdsaParameters(false);
 	BIO *buffer;
@@ -368,7 +366,7 @@ std::string CertificateBuilder::toXml(std::string tab)
 
 }
 
-std::string CertificateBuilder::getPemEncoded() throw (EncodeException)
+std::string CertificateBuilder::getPemEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -399,7 +397,7 @@ std::string CertificateBuilder::getPemEncoded() throw (EncodeException)
 	return ret;
 }
 
-ByteArray CertificateBuilder::getDerEncoded() throw (EncodeException)
+ByteArray CertificateBuilder::getDerEncoded()
 {
 	BIO *buffer;
 	int ndata, wrote;
@@ -432,12 +430,12 @@ void CertificateBuilder::setSerialNumber(long serial)
 	ASN1_INTEGER_set(X509_get_serialNumber(this->cert), serial);
 }
 
-void CertificateBuilder::setSerialNumber(BigInteger serial) throw(BigIntegerException)
+void CertificateBuilder::setSerialNumber(BigInteger serial)
 {
 	X509_set_serialNumber(this->cert, serial.getASN1Value());
 }
 
-long CertificateBuilder::getSerialNumber() throw (CertificationException)
+long CertificateBuilder::getSerialNumber()
 {
 	ASN1_INTEGER *asn1Int;
 	long ret;
@@ -459,7 +457,7 @@ long CertificateBuilder::getSerialNumber() throw (CertificationException)
 	return ret;
 }
 
-BigInteger CertificateBuilder::getSerialNumberBigInt() throw (CertificationException, BigIntegerException)
+BigInteger CertificateBuilder::getSerialNumberBigInt()
 {
 	ASN1_INTEGER *asn1Int;
 	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
@@ -476,7 +474,6 @@ BigInteger CertificateBuilder::getSerialNumberBigInt() throw (CertificationExcep
 }
 
 MessageDigest::Algorithm CertificateBuilder::getMessageDigestAlgorithm()
-		throw (MessageDigestException)
 {
 	MessageDigest::Algorithm ret;
 	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
@@ -489,7 +486,6 @@ void CertificateBuilder::setPublicKey(PublicKey &publicKey)
 }
 
 PublicKey* CertificateBuilder::getPublicKey()
-		throw (CertificationException, AsymmetricKeyException)
 {
 	EVP_PKEY *key;
 	PublicKey *ret;
@@ -511,7 +507,6 @@ PublicKey* CertificateBuilder::getPublicKey()
 }
 
 ByteArray CertificateBuilder::getPublicKeyInfo()
-		throw (CertificationException)
 {
 	ByteArray ret;
 	unsigned int size;
@@ -534,7 +529,7 @@ void CertificateBuilder::setVersion(long version)
 	X509_set_version(this->cert, version);
 }
 
-long CertificateBuilder::getVersion() throw (CertificationException)
+long CertificateBuilder::getVersion()
 {
 	long ret;
 	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
@@ -589,7 +584,6 @@ void CertificateBuilder::setIssuer(RDNSequence &name)
 }
 
 void CertificateBuilder::setIssuer(X509* issuer)
-		throw (CertificationException)
 {
 	int rc;
 	X509_NAME *name = X509_get_subject_name(issuer);
@@ -606,7 +600,6 @@ RDNSequence CertificateBuilder::getIssuer()
 }
 
 void CertificateBuilder::alterSubject(RDNSequence &name)
-		throw (CertificationException)
 {
 	X509_NAME *subject = X509_get_subject_name(this->cert);
 	if(subject == NULL)
@@ -745,7 +738,6 @@ void CertificateBuilder::setSubject(RDNSequence &name)
 }
 
 void CertificateBuilder::setSubject(X509_REQ* req)
-		throw (CertificationException)
 {
 	int rc;
 	X509_NAME *name = X509_REQ_get_subject_name(req);
@@ -762,7 +754,6 @@ RDNSequence CertificateBuilder::getSubject()
 }
 
 void CertificateBuilder::addExtension(Extension &extension)
-		throw (CertificationException)
 {
 	X509_EXTENSION *ext;
 	int rc;
@@ -775,7 +766,6 @@ void CertificateBuilder::addExtension(Extension &extension)
 }
 
 void CertificateBuilder::addExtensions(std::vector<Extension *> &extensions)
-		throw (CertificationException)
 {
 	X509_EXTENSION *ext;
 	int rc;
@@ -792,7 +782,6 @@ void CertificateBuilder::addExtensions(std::vector<Extension *> &extensions)
 }
 
 void CertificateBuilder::replaceExtension(Extension &extension)
-		throw (CertificationException)
 {
 	int position;
 	X509_EXTENSION *ext;
@@ -940,6 +929,7 @@ std::vector<Extension *> CertificateBuilder::getUnknownExtensions()
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
+				break;
 			default:
 				break;
 		}
@@ -947,7 +937,7 @@ std::vector<Extension *> CertificateBuilder::getUnknownExtensions()
 	return ret;
 }
 
-std::vector<Extension *> CertificateBuilder::removeExtension(Extension::Name extensionName) throw (CertificationException)
+std::vector<Extension *> CertificateBuilder::removeExtension(Extension::Name extensionName)
 {
 	int i;
 	X509_EXTENSION *ext;
@@ -1014,7 +1004,7 @@ std::vector<Extension *> CertificateBuilder::removeExtension(Extension::Name ext
 
 }
 
-std::vector<Extension *> CertificateBuilder::removeExtension(ObjectIdentifier extOID) throw (CertificationException)
+std::vector<Extension *> CertificateBuilder::removeExtension(ObjectIdentifier extOID)
 {
 	int i;
 	X509_EXTENSION *ext = NULL;
@@ -1083,7 +1073,6 @@ std::vector<Extension *> CertificateBuilder::removeExtension(ObjectIdentifier ex
 }
 
 Certificate* CertificateBuilder::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
-		throw (CertificationException, AsymmetricKeyException)
 {
 	PublicKey *pub;
 	Certificate *ret;

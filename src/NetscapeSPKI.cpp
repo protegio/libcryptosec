@@ -1,6 +1,6 @@
 #include <libcryptosec/NetscapeSPKI.h>
 
-NetscapeSPKI::NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI) throw (NetscapeSPKIException)
+NetscapeSPKI::NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI)
 {
 	this->netscapeSPKI = NULL;
 	if (!netscapeSPKI)
@@ -10,7 +10,7 @@ NetscapeSPKI::NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI) throw (NetscapeSPKIExcep
 	this->netscapeSPKI = netscapeSPKI;
 }
 
-NetscapeSPKI::NetscapeSPKI(std::string netscapeSPKIBase64) throw (EncodeException)
+NetscapeSPKI::NetscapeSPKI(std::string netscapeSPKIBase64)
 {
 	this->netscapeSPKI = NETSCAPE_SPKI_b64_decode(netscapeSPKIBase64.c_str(), netscapeSPKIBase64.size());
 	if (!this->netscapeSPKI)
@@ -28,7 +28,7 @@ NetscapeSPKI::~NetscapeSPKI()
 	}
 }
 
-std::string NetscapeSPKI::getBase64Encoded() throw (EncodeException)
+std::string NetscapeSPKI::getBase64Encoded()
 {
 	char *base64Encoded;
 	std::string ret;
@@ -43,7 +43,6 @@ std::string NetscapeSPKI::getBase64Encoded() throw (EncodeException)
 }
 
 PublicKey* NetscapeSPKI::getPublicKey()
-		throw (AsymmetricKeyException, NetscapeSPKIException)
 {
 	EVP_PKEY *pubKey;
 	PublicKey *ret;
@@ -71,7 +70,7 @@ std::string NetscapeSPKI::getChallenge()
 	if (this->netscapeSPKI->spkac->challenge->length > 0)
 	{
 		/* pedir ao jeandré se é feito uma cópia do conteudo ao atribuir direto ao std::string */
-		data = (char *)ASN1_STRING_data(this->netscapeSPKI->spkac->challenge);
+		data = (char *) (this->netscapeSPKI->spkac->challenge->data);
 		ret = data;
 	}
 	else
@@ -81,7 +80,7 @@ std::string NetscapeSPKI::getChallenge()
 	return ret;
 }
 
-bool NetscapeSPKI::verify() throw (AsymmetricKeyException, NetscapeSPKIException)
+bool NetscapeSPKI::verify()
 {
 	PublicKey *pubKey;
 	int rc;
@@ -100,5 +99,5 @@ bool NetscapeSPKI::verify(PublicKey &publicKey)
 
 bool NetscapeSPKI::isSigned()
 {
-	return ASN1_STRING_data(this->netscapeSPKI->signature) != NULL;
+	return (this->netscapeSPKI->signature->data) != NULL;
 }

@@ -24,16 +24,14 @@ std::string SmartcardSlot::getLabel()
 }
 
 std::vector<SmartcardCertificate *> SmartcardSlot::getCertificates()
-		throw (SmartcardModuleException)
 {
 	PKCS11_CERT *certs;
-	unsigned int i, j, ncerts;
+	unsigned int j, k, ncerts;
 	char *bufferId;
 	std::string id, label, serial;
-	int rc, k, emptySlots;
+	int rc;
 	std::vector<SmartcardCertificate *> ret;
 	std::vector<SmartcardCertificate *>::iterator iter;
-	emptySlots = 0;
 	SmartcardCertificate *cert;
 
 	rc = PKCS11_enumerate_certs(this->slot[0].token, &certs, &ncerts);
@@ -45,12 +43,13 @@ std::vector<SmartcardCertificate *> SmartcardSlot::getCertificates()
 		}
 		throw SmartcardModuleException(SmartcardModuleException::ENUMERATING_CERTIFICATES, "SmartcardSlot::getCertificates", true);
 	}
-	for (j=0;j<ncerts;j++)
+
+	for (j = 0; j < ncerts; j++)
 	{
 		bufferId = (char *)calloc((certs[j].id_len * 2) + 1, sizeof(char));
-		for (k=0;k<certs[j].id_len;k++)
+		for (k = 0; k < certs[j].id_len; k++)
 		{
-			sprintf(&(bufferId[k*2]), "%02X", certs[i].id[k]);
+			sprintf(&(bufferId[k*2]), "%02X", certs[j].id[k]);
 		}
 		id.append(bufferId);
 		free(bufferId);
@@ -63,12 +62,11 @@ std::vector<SmartcardCertificate *> SmartcardSlot::getCertificates()
 }
 
 ByteArray SmartcardSlot::decrypt(std::string &keyId, std::string &pin, ByteArray &data)
-		throw (SmartcardModuleException)
 {
-	int rc, found = 0, nret, keySize, j, errorCode;
+	int rc, found = 0, nret, keySize, errorCode;
 	PKCS11_KEY *keys;
 	ByteArray ret;
-    unsigned int nKeys, i;
+    unsigned int nKeys, i, j;
     std::string idTmp;
     char *bufferId;
     ERR_clear_error();
@@ -103,7 +101,7 @@ ByteArray SmartcardSlot::decrypt(std::string &keyId, std::string &pin, ByteArray
 	for (i=0;(i<nKeys)&&(found==-1);i++)
 	{
 		bufferId = (char *)calloc((keys[i].id_len * 2) + 1, sizeof(char));
-		for (j=0;j<keys[i].id_len;j++)
+		for (j = 0; j < keys[i].id_len; j++)
 		{
 			sprintf(&(bufferId[j*2]), "%02X", keys[i].id[j]);
 		}

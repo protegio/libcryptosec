@@ -28,8 +28,7 @@ public:
 	 * @throws InvalidRandomDataSourceException
 	 * @throws SecretSharerInternalErrorException
 	 */
-	static void split(std::istream *data, int parts, int threshold, std::vector<std::ostream*> *secrets)
-		throw (SecretSharerException, RandomException);
+	static void split(std::istream *data, int parts, int threshold, std::vector<std::ostream*> *secrets);
 	
 	/**
 	 * recover the secret from pieces
@@ -42,8 +41,7 @@ public:
 	 * @throws SecretSharerInternalErrorException
 	 */
 	
-	static void join(std::vector<std::istream* > *secrets, unsigned int parts, unsigned int threshold, std::ostream *secret)
-		throw (SecretSharerException);
+	static void join(std::vector<std::istream* > *secrets, unsigned int parts, unsigned int threshold, std::ostream *secret);
 private:
 
 	static unsigned char * int2char(unsigned int value);
@@ -54,29 +52,20 @@ private:
 	static unsigned int * getHeader(std::vector<std::istream *>* secrets);
 	static unsigned int * order_parts(unsigned int *seq, unsigned int parts, unsigned int threshold);
 
-	static void rand_bytes(unsigned char *data, int num) throw (RandomException);
-	static unsigned int eval (unsigned int * poly, unsigned int n, unsigned int x, unsigned int mod)
-			throw (SecretSharerException);
-	static void split_poly (std::istream *data, int parts, int threshold, std::vector<std::ostream *>* secrets)
-			throw (RandomException, SecretSharerException);
-	static unsigned int get_limited_16 (std::istream *data, unsigned int limit, struct splitContext * ctx)
-			throw (RandomException);
-	static void split_out (unsigned int d, std::vector<std::ostream *>* secrets, int parts, int threshold)
-			throw (RandomException, SecretSharerException);
-	static void split_xor (std::istream *data, int parts, std::vector<std::ostream *>* secrets)
-			throw (RandomException);
+	static void rand_bytes(unsigned char *data, int num);
+	static unsigned int eval (unsigned int * poly, unsigned int n, unsigned int x, unsigned int mod);
+	static void split_poly (std::istream *data, int parts, int threshold, std::vector<std::ostream *>* secrets);
+	static unsigned int get_limited_16 (std::istream *data, unsigned int limit, struct splitContext * ctx);
+	static void split_out (unsigned int d, std::vector<std::ostream *>* secrets, int parts, int threshold);
+	static void split_xor (std::istream *data, int parts, std::vector<std::ostream *>* secrets);
 	
 	static void ExtBinEuclid(unsigned int * u, unsigned int * v, unsigned int * u1, unsigned int * u2, unsigned int * u3);
-	static unsigned int invert(unsigned int n, unsigned int modulus)
-			throw (SecretSharerException);
+	static unsigned int invert(unsigned int n, unsigned int modulus);
 	
-	static unsigned int interp (unsigned int i, unsigned int x [], unsigned int y [], unsigned int n, unsigned int mod)
-			throw (SecretSharerException);
+	static unsigned int interp (unsigned int i, unsigned int x [], unsigned int y [], unsigned int n, unsigned int mod);
 	static unsigned int get_assemble_16(std::vector<std::istream *>* secrets, unsigned int i, struct assembleContext * ctx, unsigned int limit);
-	static unsigned int get_assemble (std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, unsigned int x [], struct assembleContext * ctx)
-			throw (SecretSharerException);
-	static void assemble_poly(std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, std::ostream *secret)
-			throw (SecretSharerException);
+	static unsigned int get_assemble (std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, unsigned int x [], struct assembleContext * ctx);
+	static void assemble_poly(std::vector<std::istream *>* secrets, unsigned int *seq, unsigned int threshold, std::ostream *secret);
 	static void assemble_xor(std::vector<std::istream *>* secrets, unsigned int parts, std::ostream *secret);
 };
 #endif /*SECRETSHARER_H_*/

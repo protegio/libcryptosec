@@ -1,6 +1,6 @@
 #include <libcryptosec/Pkcs7CertificateBundle.h>
 
-Pkcs7CertificateBundle::Pkcs7CertificateBundle(PKCS7 *pkcs7) throw (Pkcs7Exception) : Pkcs7(pkcs7)
+Pkcs7CertificateBundle::Pkcs7CertificateBundle(PKCS7 *pkcs7) : Pkcs7(pkcs7)
 {
 	if (OBJ_obj2nid(this->pkcs7->type) != NID_pkcs7_signed)
 	{
@@ -16,7 +16,7 @@ Pkcs7CertificateBundle::~Pkcs7CertificateBundle()
 	}
 }
 
-void Pkcs7CertificateBundle::extract(std::ostream *out) throw (Pkcs7Exception)
+void Pkcs7CertificateBundle::extract(std::ostream *out)
 {
 	BIO *p7bio;
 	p7bio = PKCS7_dataInit(this->pkcs7, NULL);
@@ -24,10 +24,9 @@ void Pkcs7CertificateBundle::extract(std::ostream *out) throw (Pkcs7Exception)
 	{
 		throw Pkcs7Exception(Pkcs7Exception::INTERNAL_ERROR, "Pkcs7CertificateBundle::extract");
 	}
-	int size, maxSize, finalSize;
+	int size, maxSize;
 	maxSize = 1024;
 	size = maxSize;
-	finalSize = 0;
 	char buf[maxSize+1];
 	while (size == maxSize)
 	{

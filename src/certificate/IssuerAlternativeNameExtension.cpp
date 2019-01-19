@@ -5,8 +5,7 @@ IssuerAlternativeNameExtension::IssuerAlternativeNameExtension() : Extension()
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_issuer_alt_name);
 }
 
-IssuerAlternativeNameExtension::IssuerAlternativeNameExtension(X509_EXTENSION *ext)
-		throw (CertificationException) : Extension(ext)
+IssuerAlternativeNameExtension::IssuerAlternativeNameExtension(X509_EXTENSION *ext) : Extension(ext)
 {
 	GENERAL_NAMES *generalNames;
 	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);

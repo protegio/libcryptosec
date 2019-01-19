@@ -9,7 +9,6 @@ CertificateRevocationListBuilder::CertificateRevocationListBuilder()
 }
 
 CertificateRevocationListBuilder::CertificateRevocationListBuilder(std::string pemEncoded)
-		throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -32,7 +31,6 @@ CertificateRevocationListBuilder::CertificateRevocationListBuilder(std::string p
 }
 
 CertificateRevocationListBuilder::CertificateRevocationListBuilder(ByteArray &derEncoded)
-	throw (EncodeException)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -120,7 +118,6 @@ std::string CertificateRevocationListBuilder::getXmlEncoded(std::string tab)
 }
 
 void CertificateRevocationListBuilder::setSerialNumber(long serial)
-		throw (CertificationException)
 {
 	ASN1_INTEGER* serialAsn1;
 	int rc;
@@ -135,7 +132,6 @@ void CertificateRevocationListBuilder::setSerialNumber(long serial)
 }
 
 void CertificateRevocationListBuilder::setSerialNumber(BigInteger serial)
-		throw (CertificationException, BigIntegerException)
 {
 	int rc;
 	rc = X509_CRL_add1_ext_i2d(this->crl, NID_crl_number, serial.getASN1Value(), 0, 0);
@@ -146,7 +142,6 @@ void CertificateRevocationListBuilder::setSerialNumber(BigInteger serial)
 }
 
 long CertificateRevocationListBuilder::getSerialNumber()
-		throw (CertificationException)
 {
 	ASN1_INTEGER *asn1Int;
 	long ret;
@@ -172,7 +167,6 @@ long CertificateRevocationListBuilder::getSerialNumber()
 }
 
 BigInteger CertificateRevocationListBuilder::getSerialNumberBigInt()
-		throw (CertificationException, BigIntegerException)
 {
 	ASN1_INTEGER *asn1Int;
 	if (this->crl == NULL)
@@ -197,7 +191,6 @@ void CertificateRevocationListBuilder::setVersion(long version)
 }
 
 long CertificateRevocationListBuilder::getVersion()
-		throw (CertificationException)
 {
 	long ret;
 	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
@@ -214,7 +207,6 @@ long CertificateRevocationListBuilder::getVersion()
 }
 
 void CertificateRevocationListBuilder::setIssuer(RDNSequence &issuer)
-		throw (CertificationException)
 {
 	int rc;
 	X509_NAME *name;
@@ -228,7 +220,6 @@ void CertificateRevocationListBuilder::setIssuer(RDNSequence &issuer)
 }
 
 void CertificateRevocationListBuilder::setIssuer(X509* issuer)
-		throw (CertificationException)
 {
 	//TODO(lucasperin):
 	int rc;
@@ -262,7 +253,7 @@ void CertificateRevocationListBuilder::setLastUpdate(DateTime &dateTime)
 
 DateTime CertificateRevocationListBuilder::getLastUpdate()
 {
-	return DateTime(X509_CRL_get_lastUpdate(this->crl));
+	return DateTime(X509_CRL_get0_lastUpdate(this->crl));
 }
 
 void CertificateRevocationListBuilder::setNextUpdate(DateTime &dateTime)
@@ -280,11 +271,10 @@ void CertificateRevocationListBuilder::setNextUpdate(DateTime &dateTime)
 
 DateTime CertificateRevocationListBuilder::getNextUpdate()
 {
-	return DateTime(X509_CRL_get_nextUpdate(this->crl));
+	return DateTime(X509_CRL_get0_nextUpdate(this->crl));
 }
 
 void CertificateRevocationListBuilder::addRevokedCertificate(RevokedCertificate &revoked)
-		throw (CertificationException)
 {
 	int rc;
 //	X509_REVOKED *x509Revoked;
@@ -298,7 +288,6 @@ void CertificateRevocationListBuilder::addRevokedCertificate(RevokedCertificate 
 }
 
 void CertificateRevocationListBuilder::addRevokedCertificates(std::vector<RevokedCertificate> &revoked)
-		throw (CertificationException)
 {
 	int rc;
 	unsigned int i;
@@ -331,7 +320,6 @@ std::vector<RevokedCertificate> CertificateRevocationListBuilder::getRevokedCert
 }
 
 CertificateRevocationList* CertificateRevocationListBuilder::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
-		throw (CertificationException)
 {
 	int rc;
 	CertificateRevocationList *ret;
@@ -373,7 +361,6 @@ CertificateRevocationListBuilder& CertificateRevocationListBuilder::operator =(c
 
 /// Martin: 14/09/07 
 void CertificateRevocationListBuilder::addExtension(Extension& extension)
-	throw (CertificationException)
 {	
 	X509_EXTENSION *ext;
 	int rc;
@@ -387,7 +374,6 @@ void CertificateRevocationListBuilder::addExtension(Extension& extension)
 
 /// Martin: 14/09/07
 void CertificateRevocationListBuilder::addExtensions(std::vector<Extension *> &extensions)
-		throw (CertificationException)
 {
 	unsigned int i;
 	for (i=0;i<extensions.size();i++)
@@ -399,7 +385,6 @@ void CertificateRevocationListBuilder::addExtensions(std::vector<Extension *> &e
 
 //Martin: 18/09/07
 void CertificateRevocationListBuilder::replaceExtension(Extension &extension)
-		throw (CertificationException)
 {
 	int position;
 	X509_EXTENSION *ext;
@@ -553,6 +538,7 @@ std::vector<Extension *> CertificateRevocationListBuilder::getUnknownExtensions(
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
+				break;
 			default:
 				break;
 		}

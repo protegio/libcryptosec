@@ -10,12 +10,9 @@
 class ObjectIdentifierFactory
 {
 public:
-	static ObjectIdentifier getObjectIdentifier(std::string oid)
-			throw (CertificationException);
-	static ObjectIdentifier getObjectIdentifier(int nid)
-		throw (CertificationException);
-	static ObjectIdentifier createObjectIdentifier(std::string oid, std::string name)
-			throw (CertificationException);
+	static ObjectIdentifier getObjectIdentifier(std::string oid);
+	static ObjectIdentifier getObjectIdentifier(int nid);
+	static ObjectIdentifier createObjectIdentifier(std::string oid, std::string name);
 };
 
 #endif /*OBJECTIDENTIFIERFACTORY_H_*/

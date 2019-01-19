@@ -12,7 +12,7 @@ class BasicConstraintsExtension : public Extension
 {
 public:
 	BasicConstraintsExtension();
-	BasicConstraintsExtension(X509_EXTENSION *ext) throw (CertificationException);
+	BasicConstraintsExtension(X509_EXTENSION *ext);
 	virtual ~BasicConstraintsExtension();
 	virtual std::string extValue2Xml(std::string tab = "");
 	virtual std::string getXmlEncoded();

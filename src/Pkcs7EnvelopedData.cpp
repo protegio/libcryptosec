@@ -1,6 +1,6 @@
 #include <libcryptosec/Pkcs7EnvelopedData.h>
 
-Pkcs7EnvelopedData::Pkcs7EnvelopedData(PKCS7 *pkcs7) throw (Pkcs7Exception) : Pkcs7(pkcs7)
+Pkcs7EnvelopedData::Pkcs7EnvelopedData(PKCS7 *pkcs7) : Pkcs7(pkcs7)
 {
 	if (OBJ_obj2nid(this->pkcs7->type) != NID_pkcs7_enveloped)
 	{
@@ -34,10 +34,9 @@ Pkcs7::Type Pkcs7EnvelopedData::getType()
 //}
 
 void Pkcs7EnvelopedData::decrypt(Certificate &certificate, PrivateKey &privateKey, std::ostream *out)
-		throw (Pkcs7Exception)
 {
 	BIO *p7bio;
-	int size, maxSize, finalSize;
+	int size, maxSize;
 	p7bio = PKCS7_dataDecode(this->pkcs7, privateKey.getEvpPkey(), NULL, certificate.getX509());
 	if (!p7bio)
 	{
@@ -45,7 +44,6 @@ void Pkcs7EnvelopedData::decrypt(Certificate &certificate, PrivateKey &privateKe
 	}
 	maxSize = 4096;
 	size = maxSize;
-	finalSize = 0;
 	char buf[maxSize+1];
 	while (size == maxSize)
 	{

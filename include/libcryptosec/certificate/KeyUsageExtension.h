@@ -25,7 +25,7 @@ public:
 		DECIPHER_ONLY = 8,
 	};
 	KeyUsageExtension();
-	KeyUsageExtension(X509_EXTENSION *ext) throw (CertificationException);
+	KeyUsageExtension(X509_EXTENSION *ext);
 	virtual ~KeyUsageExtension();
 	
 	/**

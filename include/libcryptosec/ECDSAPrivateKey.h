@@ -23,7 +23,7 @@ public:
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	ECDSAPrivateKey(EVP_PKEY *key) throw (AsymmetricKeyException);
+	ECDSAPrivateKey(EVP_PKEY *key);
 	
 	/**
 	 * Construtor recebendo a representação da chave privada no formato DER.
@@ -31,8 +31,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do DER.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 **/	
-	ECDSAPrivateKey(ByteArray &derEncoded)
-			throw (EncodeException, AsymmetricKeyException);
+	ECDSAPrivateKey(ByteArray &derEncoded);
 			
 	/**
 	 * Construtor recebendo a representação da chave privada no formato PEM.
@@ -40,8 +39,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do PEM.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 **/		
-	ECDSAPrivateKey(std::string &pemEncoded)
-			throw (EncodeException, AsymmetricKeyException);
+	ECDSAPrivateKey(std::string &pemEncoded);
 			
 	/**
 	 * Construtor recebendo a representação da chave privada no formato PEM protegida 
@@ -51,8 +49,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do PEM.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 */	
-	ECDSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase)
-			throw (EncodeException, AsymmetricKeyException);
+	ECDSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase);
 	
 	/**
 	 * Destrutor padrão, limpa a estrutura interna EVP_PKEY

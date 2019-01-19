@@ -1,6 +1,6 @@
 #include <libcryptosec/Engines.h>
 
-std::vector<std::string> Engines::getEnginesList() throw (EngineException)
+std::vector<std::string> Engines::getEnginesList()
 {
 	ENGINE *e;
 	const char *name;
@@ -21,7 +21,6 @@ std::vector<std::string> Engines::getEnginesList() throw (EngineException)
 }
 
 void Engines::setEngineDefault(Engine &engine, Engine::Algorithm algorithm)
-		throw (EngineException)
 {
 	unsigned int flag;
 	ENGINE *e;
@@ -38,7 +37,6 @@ void Engines::setEngineDefault(Engine &engine, Engine::Algorithm algorithm)
 }
 
 Engine* Engines::getEngineDefault(Engine::Algorithm algorithm)
-		throw (EngineException)
 {
 	ENGINE *eng = NULL;
 	switch (algorithm)
@@ -80,7 +78,7 @@ Engine* Engines::getEngineDefault(Engine::Algorithm algorithm)
 	return new Engine(eng);
 }
 
-Engine* Engines::getEngineById(std::string id) throw (EngineException)
+Engine* Engines::getEngineById(std::string id)
 {
 	ENGINE *eng;
 	eng = ENGINE_by_id(id.c_str());
