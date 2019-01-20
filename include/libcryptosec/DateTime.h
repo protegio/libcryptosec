@@ -352,7 +352,7 @@ public:
 	 * @param aString string no formato 'YYMMDDHHMMSSZ' ou 'YYYYMMDDHHMMSSZ'.
 	 * return segundos.
 	 * */
-	static BigInteger date2epoch(string aString)
+	static BigInteger date2epoch(std::string aString)
 	{
 		int year;
 		int month; //[0-11]
@@ -361,7 +361,7 @@ public:
 		int min; //[0-59]
 		int sec; //[0-59]  + leap second?	
 		bool utc = false;
-		istringstream stream;
+		std::istringstream stream;
 		int gtoffset = 0; //deslocamento adicionar para substring se for generalizedtime
 		
 		utc = aString.size() == 13;

@@ -2,35 +2,56 @@
 
 RSAKeyPair::RSAKeyPair(int length)
 {
-	RSA *rsa;
-	BIGNUM *rsa_f4;
+	RSA *rsa = NULL;
+	BIGNUM *rsa_f4 = NULL;
 	this->key = NULL;
 	this->engine = NULL;
+
 	rsa = RSA_new();
+	if (!rsa)
+		goto err0;
+
 	rsa_f4 = BN_new();
-	BN_is_word(rsa_f4, RSA_F4);
+	if (!rsa_f4)
+		goto err1;
+
+	if(BN_set_word(rsa_f4, RSA_F4) == 0)
+		goto err2;
+
 	if (RSA_generate_key_ex(rsa, length, rsa_f4, NULL) == 0)
-	{
-		RSA_free(rsa);
-		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "RSAKeyPair::RSAKeyPair");
-	}
+		goto err2;
+
 	this->key = EVP_PKEY_new();
-	EVP_PKEY_assign_RSA(this->key, rsa);
 	if (!this->key)
-	{
-		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "RSAKeyPair::RSAKeyPair");
-	}
+		goto err2;
+
+	if(EVP_PKEY_assign_RSA(this->key, rsa) == 0)
+		goto err3;
+
+	return;
+
+err3:
+	EVP_PKEY_free(this->key);
+	this->key = 0;
+
+err2:
+	BN_free(rsa_f4);
+
+err1:
+	RSA_free(rsa);
+
+err0:
+	throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "RSAKeyPair::RSAKeyPair");
 }
 
 RSAKeyPair::~RSAKeyPair()
 {
-	if (this->key)
-	{
+	if (this->key) {
 		EVP_PKEY_free(this->key);
 		this->key = NULL;
 	}
-	if (this->engine)
-	{
+
+	if (this->engine) {
 		ENGINE_free(this->engine);
 		this->engine = NULL;
 	}
@@ -38,44 +59,43 @@ RSAKeyPair::~RSAKeyPair()
 
 PublicKey* RSAKeyPair::getPublicKey()
 {
-	PublicKey *ret;
+	PublicKey *ret = NULL;
 	std::string keyTemp;
+
+	// TODO: that's a lasy method to create a RSAPublicKey object
 	keyTemp = this->getPublicKeyPemEncoded();
 	ret = new RSAPublicKey(keyTemp);
+
 	return ret;
 }
 
 PrivateKey* RSAKeyPair::getPrivateKey()
 {
-	PrivateKey *ret;
-	EVP_PKEY *pkey;
-	ret = NULL;
-	if (engine)
-	{
+	PrivateKey *ret = NULL;
+	EVP_PKEY *pkey = NULL;
+
+	if (this->engine) {
 		pkey = ENGINE_load_private_key(this->engine, this->keyId.c_str(), NULL, NULL);
-		if (!pkey)
-		{
+		if (!pkey) {
 			throw AsymmetricKeyException(AsymmetricKeyException::UNAVAILABLE_KEY, "KeyId: " + this->keyId, "RSAKeyPair::getPrivateKey");
 		}
-		try
-		{
+
+		try	{
 			ret = new PrivateKey(pkey);
-		}
-		catch (...)
-		{
+		} catch (...) {
 			EVP_PKEY_free(pkey);
-			throw;
+			throw AsymmetricKeyException(AsymmetricKeyException::UNAVAILABLE_KEY, "KeyId: " + this->keyId, "RSAKeyPair::getPrivateKey");
 		}
-	}
-	else
-	{
+	} else {
 		ret = new RSAPrivateKey(this->key);
-		if (ret == NULL)
-		{
+		if (ret == NULL) {
 			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "RSAKeyPair::getPrivateKey");
 		}
+
+		// TODO: shouldn't the EVP_PKEY_up_ref be in the PrivateKey class?
 		EVP_PKEY_up_ref(this->key);
 	}
+
 	return ret;
 }
 

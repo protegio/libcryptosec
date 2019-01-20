@@ -133,8 +133,8 @@ void GeneralName::setOtherName(std::string oid, std::string data) {
 	this->data = data;
 }
 
-pair<std::string, std::string> GeneralName::getOtherName() const {
-	return pair<std::string, std::string>(this->oid, this->data);
+std::pair<std::string, std::string> GeneralName::getOtherName() const {
+	return std::pair<std::string, std::string>(this->oid, this->data);
 }
 
 void GeneralName::setRfc822Name(std::string rfc822Name)

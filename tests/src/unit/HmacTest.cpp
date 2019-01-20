@@ -166,7 +166,7 @@ TEST_F(HmacTest, HmacSha256FromEmptyText_key150bytes) {
  * @brief Gera e testa Hmac com o algoritmo sha1 de um arquivo binário e chave de 63 bytes.
  */
 TEST_F(HmacTest, HmacSha1FromBinaryFile_key63bytes) {
-	fstream file ("files/binaryFile", ios::in|ios::binary|ios::ate);
+	std::fstream file ("files/binaryFile", std::ios::in | std::ios::binary | std::ios::ate);
 	if(file.is_open()){
 		file.seekg (0, file.end);
 		int length = file.tellg();

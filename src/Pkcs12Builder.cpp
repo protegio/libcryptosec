@@ -4,21 +4,21 @@ Pkcs12Builder::Pkcs12Builder()
 {
 	this->key = NULL;
 	this->keyCert = NULL;
-	this->friendlyName = string("");
+	this->friendlyName = std::string("");
 }
 
 Pkcs12Builder::~Pkcs12Builder()
 {
 }
 
-void Pkcs12Builder::setKeyAndCertificate(PrivateKey* key, Certificate* cert, string friendlyName) throw()
+void Pkcs12Builder::setKeyAndCertificate(PrivateKey* key, Certificate* cert, std::string friendlyName) throw()
 {
 	this->key = key;
 	this->keyCert = cert;
 	this->friendlyName = friendlyName;
 }
 
-void Pkcs12Builder::setAdditionalCerts(vector<Certificate*> certs) throw()
+void Pkcs12Builder::setAdditionalCerts(std::vector<Certificate*> certs) throw()
 {
 	this->certs = certs;
 }
@@ -33,7 +33,7 @@ void Pkcs12Builder::clearAdditionalCerts() throw()
 	this->certs.clear();
 }
 
-Pkcs12* Pkcs12Builder::doFinal(string password) const
+Pkcs12* Pkcs12Builder::doFinal(std::string password) const
 {
 	PKCS12* tmp = NULL;
 	STACK_OF(X509)* ca = NULL;

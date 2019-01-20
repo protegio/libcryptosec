@@ -193,9 +193,9 @@ bool BigInteger::isNegative() const throw()
 	return ret;
 }
 
-string BigInteger::toHex() const throw()
+std::string BigInteger::toHex() const throw()
 {
-	string ret;
+	std::string ret;
 	char* str; 
 	
 	str = BN_bn2hex(this->bigInt);
@@ -205,9 +205,9 @@ string BigInteger::toHex() const throw()
 	return ret;
 }
 
-string BigInteger::toDec() const throw()
+std::string BigInteger::toDec() const throw()
 {
-	string ret;
+	std::string ret;
 	char* str; 
 	
 	str = BN_bn2dec(this->bigInt);

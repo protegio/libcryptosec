@@ -39,7 +39,7 @@ std::string CRLNumberExtension::getXmlEncoded()
 //TODO testar!
 std::string CRLNumberExtension::extValue2Xml(std::string tab)
 {
-	stringstream s;
+	std::stringstream s;
 	std::string ret, string, serial;
 		
 	s << this->serial;
@@ -53,7 +53,7 @@ std::string CRLNumberExtension::extValue2Xml(std::string tab)
 //TODO: metodo nunca invocado
 std::string CRLNumberExtension::getXmlEncoded(std::string tab)
 {
-	stringstream s;
+	std::stringstream s;
 	std::string ret, string, serial;
 		
 	s << this->serial;

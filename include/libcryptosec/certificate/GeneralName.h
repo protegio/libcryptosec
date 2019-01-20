@@ -31,7 +31,7 @@ public:
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
 	void setOtherName(std::string oid, std::string data);
-	pair<std::string, std::string> getOtherName() const;
+	std::pair<std::string, std::string> getOtherName() const;
 	void setRfc822Name(std::string data);
 	std::string getRfc822Name() const; 
 	void setDnsName(std::string data);

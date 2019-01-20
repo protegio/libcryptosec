@@ -108,7 +108,7 @@ DateTime::DateTime(ASN1_TIME *asn1Time)
 		}
 	}*/
 	
-	string str(reinterpret_cast<char*>(asn1Time->data), asn1Time->length);
+	std::string str(reinterpret_cast<char*>(asn1Time->data), asn1Time->length);
 	this->setDateTime(this->date2epoch(str));
 }
 
@@ -172,10 +172,10 @@ time_t DateTime::getDateTime() const
 std::string DateTime::getXmlEncoded(std::string tab) const
 {	
 	ASN1_TIME* gt;
-	string str;
+	std::string str;
 	
 	gt = this->getAsn1Time();
-	str = string(reinterpret_cast<char*>(gt->data), gt->length);
+	str = std::string(reinterpret_cast<char*>(gt->data), gt->length);
 	
 	str = tab + str; 
 	
@@ -203,12 +203,12 @@ ASN1_TIME* DateTime::getGeneralizedTime() const
 {
 	ASN1_TIME *ret;
 	DateVal date;
-	stringstream stream;
-	string gt;
+	std::stringstream stream;
+	std::string gt;
 	
 	date = DateTime::getDate(this->seconds);
 	
-	stream.setf(ios_base::right);
+	stream.setf(std::ios_base::right);
 	stream.fill('0');
 	
 	stream.width(4); //no maximo 4 digitos para ano
@@ -241,13 +241,13 @@ ASN1_TIME* DateTime::getUTCTime() const
 {
 	ASN1_TIME *ret;
 	DateVal date;
-	stringstream stream;
-	string tmp;
-	string utc;
+	std::stringstream stream;
+	std::string tmp;
+	std::string utc;
 	
 	date = DateTime::getDate(this->seconds);
 	
-	stream.setf(ios_base::right);
+	stream.setf(std::ios_base::right);
 	stream.fill('0');
 	
 	stream.width(2); //define um tamanho minimo de 2 chars
@@ -288,11 +288,11 @@ ASN1_TIME* DateTime::getUTCTime() const
 std::string DateTime::getISODate() const
 {
 	DateVal date;
-	stringstream stream;
+	std::stringstream stream;
 	
 	date = DateTime::getDate(this->seconds);
 	
-	stream.setf(ios_base::right);
+	stream.setf(std::ios_base::right);
 	stream.fill('0');
 	
 	stream.width(4); //no maximo 4 digitos para ano

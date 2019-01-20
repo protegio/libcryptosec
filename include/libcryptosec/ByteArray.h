@@ -9,8 +9,6 @@
 #include <string.h>
 #include <stdio.h>
 
-using namespace std;
-
 /**
  * @ingroup Util
  */
@@ -56,15 +54,14 @@ public:
 	 * 
 	 * @param data dados que serão colocados no objeto
 	 */
-    ByteArray(std::string data);
+    ByteArray(const std::string& data);
 
-	ByteArray(char *data);
 	/**
-	 * ByteArray com tamanho definido.
-	 * 
-	 * @param length Tamanho do novo ByteArray.
+	 * ByteArray a partir de dados legíveis.
+	 *
+	 * @param data dados que serão colocados no objeto
 	 */
-    ByteArray(int length);
+	ByteArray(const char *data);
 
 	/**
 	 * ByteArray a partir de outro ByteArray (que será copiado).
@@ -83,7 +80,7 @@ public:
      * 
      * @param pos Posição desejada.
      */
-    char at(int pos) const;
+    char at(unsigned int pos) const;
     
     /**
      * Fazer uma cópia profunda ao invés de copiar a referência
@@ -113,7 +110,7 @@ public:
      * 
      * @param pos Posição desejada.
      */
-    unsigned char& operator [](int pos);
+    unsigned char& operator [](unsigned int pos);
 
     /**
      * Fazer ou-exclusivo entre dois ByteArray's.
@@ -144,7 +141,7 @@ public:
     /**
      * Returns an istringstream representing current byte array.
      */
-	std::istringstream * toStream();
+	std::istringstream * toInputStringStream();
 
     /**
      * Set the content of ByteArray to be an already allocated memory space.
@@ -165,43 +162,42 @@ public:
     unsigned char* getDataPointer();
 
     /**
-     * Returns the memory location of byte array content.
-     */
-//    char* data();
-
-    /**
-     * Returns the byte array content encoded as base 64 characters.
-     */
-//    std::string toBase64();
-    
-    /**
      * Returns the size of current byte array.
      */
     unsigned int size() const;
     
     /**
+     * @brief Sets the byte array size.
+     *
+     * @param size: the desired size for the byte array.
+     * @throw out_of_range if size is bigger than the allocated memory
+     */
+    void setSize(unsigned int size);
+
+    /**
      * Consider that current byte array is a char array, and retuirns it as a QString.
      */
-    virtual std::string toString();
+    virtual std::string toString() const;
     
     /**
      * Converts the content of this bytearray to hexadecimal value.
      */    
-    virtual std::string toHex();
+    virtual std::string toHex() const;
     
     /**
      * Converts the content of this bytearray to hexadecimal value separated using the char informed as argument.
      */    
-    virtual std::string toHex(char separator);
+    virtual std::string toHex(char separator) const;
     
     /**
      * Computes multiple xor of vector elements.
      */
-    static ByteArray xOr(vector<ByteArray> &array);
+    static ByteArray xOr(std::vector<ByteArray> &array);
 
 private:
     unsigned char* m_data;
     unsigned int length;
+    unsigned int originalLength;
 };
 
 #endif /*BYTEARRAY_H_*/

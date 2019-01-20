@@ -57,7 +57,7 @@ ByteArray Pkcs12::getDerEncoded() const
 	return ret;
 }
 
-PrivateKey* Pkcs12::getPrivKey(string password)
+PrivateKey* Pkcs12::getPrivKey(std::string password)
 {
 	PrivateKey* ret = NULL;
 	
@@ -90,7 +90,7 @@ PrivateKey* Pkcs12::getPrivKey(string password)
 	return ret;
 }
 
-Certificate* Pkcs12::getCertificate(string password)
+Certificate* Pkcs12::getCertificate(std::string password)
 {
 	if(this->privKey == NULL)
 	{
@@ -100,9 +100,9 @@ Certificate* Pkcs12::getCertificate(string password)
 	return new Certificate(X509_dup(this->cert->getX509()));
 }
 
-vector<Certificate*> Pkcs12::getAdditionalCertificates(string password)
+std::vector<Certificate*> Pkcs12::getAdditionalCertificates(std::string password)
 {
-	vector<Certificate*> ret;
+	std::vector<Certificate*> ret;
 	
 	if(this->privKey == NULL)
 	{
@@ -117,7 +117,7 @@ vector<Certificate*> Pkcs12::getAdditionalCertificates(string password)
 	return ret;
 }
 
-void Pkcs12::parse(string password)
+void Pkcs12::parse(std::string password)
 {
 	EVP_PKEY* pkey = NULL;
 	X509* cert = NULL;

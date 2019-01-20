@@ -14,8 +14,8 @@ public:
 	ObjectIdentifier getOid() const throw();
 	void setOid() const throw();
 	
-	vector<Asn1Type> getValue() const throw();
-	void setValue(vector<Asn1Type>) const throw();
+	std::vector<Asn1Type> getValue() const throw();
+	void setValue(std::vector<Asn1Type>) const throw();
 	
 	//nao faz copia
 	X509_ATTRIBUTE* getX509Attribute() const throw();

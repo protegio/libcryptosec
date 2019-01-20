@@ -28,13 +28,11 @@ public:
 	/**
 	 * supported padding values to perform asymmetric ciphers. Default: PKCS1.
 	 */
-	enum Padding
-	{
+	DECLARE_ENUM( Padding, 3,
 		NO_PADDING,
 		PKCS1,
-		SSLV23,
-		PKCS1_OAEP,
-	};
+		PKCS1_OAEP
+	);
 
 	/**
 	 * encrypt unreadable data using a asymmetric public key
@@ -44,7 +42,7 @@ public:
 	 * @return encrypted data
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray encrypt(const RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
+	static ByteArray encrypt(RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
 
 	/**
 	 * encrypt readable data using a asymmetric public key
@@ -54,7 +52,7 @@ public:
 	 * @return encrypted data
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray encrypt(const RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding);
+	static ByteArray encrypt(RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding);
 
 	/**
 	 * decrypt encrypted data using a asymmetric private key
@@ -64,7 +62,7 @@ public:
 	 * @return encrypted data
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray decrypt(RSAPrivateKey &key, ByteArray &data, AsymmetricCipher::Padding padding);
+	static ByteArray decrypt(RSAPrivateKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
 
 private:
 

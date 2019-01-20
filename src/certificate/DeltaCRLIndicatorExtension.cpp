@@ -40,7 +40,7 @@ std::string DeltaCRLIndicatorExtension::getXmlEncoded()
 
 std::string DeltaCRLIndicatorExtension::extValue2Xml(std::string tab)
 {
-	stringstream s;
+	std::stringstream s;
 	std::string ret, string, baseCrlNumber;
 		
 	s << this->baseCrlNumber;
@@ -54,7 +54,7 @@ std::string DeltaCRLIndicatorExtension::extValue2Xml(std::string tab)
 
 std::string DeltaCRLIndicatorExtension::getXmlEncoded(std::string tab)
 {
-	stringstream s;	
+	std::stringstream s;
 	std::string ret, string, baseCrlNumber;
 		
 	s << this->baseCrlNumber;

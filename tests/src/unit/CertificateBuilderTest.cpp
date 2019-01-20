@@ -148,12 +148,12 @@ protected:
      * @param r RDNSequence o qual se deseja comparar com rdn interno.
      */
     void testStringValues(RDNSequence r) {
-        vector<pair<ObjectIdentifier, string> > entries_before = r.getEntries();
-        vector<pair<ObjectIdentifier, string> > entries_after = rdn.getEntries();
+        std::vector<std::pair<ObjectIdentifier, std::string> > entries_before = r.getEntries();
+        std::vector<std::pair<ObjectIdentifier, std::string> > entries_after = rdn.getEntries();
         for (unsigned int i = 0; i < entries_before.size(); i++) {
             if (entries_before[i].first.getNid() == entries_after[i].first.getNid()) {
-            	string before = entries_before[i].second;
-            	string after = entries_after[i].second;
+            	std::string before = entries_before[i].second;
+            	std::string after = entries_after[i].second;
             	ASSERT_EQ(before, after);
             }
         }
@@ -163,7 +163,7 @@ protected:
      * Testa se os RDNs estão na ordem padrão OpenSSL.
      */
     void testRDNOrder() {
-    	vector<pair<ObjectIdentifier, std::string> > entries = rdn.getEntries();
+    	std::vector<std::pair<ObjectIdentifier, std::string> > entries = rdn.getEntries();
     	int previous_type = id2Type(entries[0].first.getNid());
     	for (unsigned int i = 1; i < entries.size(); i++) {
     		int current_type = id2Type(entries[i].first.getNid());

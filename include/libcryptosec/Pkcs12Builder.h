@@ -12,17 +12,17 @@ public:
 	Pkcs12Builder();
 	virtual ~Pkcs12Builder();
 	
-	void setKeyAndCertificate(PrivateKey* key, Certificate* cert, string friendlyName = string("")) throw();
-	void setAdditionalCerts(vector<Certificate*> certs) throw();
+	void setKeyAndCertificate(PrivateKey* key, Certificate* cert, std::string friendlyName = std::string("")) throw();
+	void setAdditionalCerts(std::vector<Certificate*> certs) throw();
 	void addAdditionalCert(Certificate* cert) throw();
 	void clearAdditionalCerts() throw();
-	Pkcs12* doFinal(string password = string("")) const;
+	Pkcs12* doFinal(std::string password = std::string("")) const;
 	
 protected:
-	string friendlyName;
+	std::string friendlyName;
 	PrivateKey* key;
 	Certificate* keyCert;
-	vector<Certificate*> certs;
+	std::vector<Certificate*> certs;
 };
 
 #endif /*PKCS12BUILDER_H_*/

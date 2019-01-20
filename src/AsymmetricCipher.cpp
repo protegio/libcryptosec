@@ -1,62 +1,64 @@
 #include <libcryptosec/AsymmetricCipher.h>
 
-ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, ByteArray &data, AsymmetricCipher::Padding padding)
+INITIALIZE_ENUM( AsymmetricCipher::Padding, 3,
+	NO_PADDING,
+	PKCS1,
+	PKCS1_OAEP
+);
+
+ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding)
 {
-	int rsaSize, paddingValue, rc;
-	ByteArray ret;
-	paddingValue = AsymmetricCipher::getPadding(padding);
-	rsaSize = key.getSize();
-	ret = ByteArray(rsaSize);
+	int rc;
+	int paddingValue = AsymmetricCipher::getPadding(padding);
+	int rsaSize = key.getSize();
+	ByteArray ret(rsaSize);
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
-	rc = RSA_public_encrypt(data.size(), data.getDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
+
+	rc = RSA_public_encrypt(data.size(), data.getConstDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
 	if (rc == -1 || rc != rsaSize)
-	{
 		throw AsymmetricCipherException(AsymmetricCipherException::ENCRYPTING_DATA, "AsymmetricCipher::encrypt");
-	}
+
 	return ret;
 }
 
-ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, std::string &data, AsymmetricCipher::Padding padding)
+ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding)
 {
-	int rsaSize, paddingValue, rc;
-	ByteArray ret;
-	paddingValue = AsymmetricCipher::getPadding(padding);
-	rsaSize = key.getSize();
-	ret = ByteArray(rsaSize);
+	int rc;
+	int paddingValue = AsymmetricCipher::getPadding(padding);
+	int rsaSize = key.getSize();
+	ByteArray ret(rsaSize);
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
-	rc = RSA_public_encrypt(data.size(), (const unsigned char *)data.c_str(), ret.getDataPointer(), rsaKey, paddingValue);
+
+	rc = RSA_public_encrypt(data.size(), (const unsigned char *) data.c_str(), ret.getDataPointer(), rsaKey, paddingValue);
 	if (rc == -1 || rc != rsaSize)
-	{
 		throw AsymmetricCipherException(AsymmetricCipherException::ENCRYPTING_DATA, "AsymmetricCipher::encrypt");
-	}
+
 	return ret;
 }
 
-ByteArray AsymmetricCipher::decrypt(RSAPrivateKey &key, ByteArray &ciphered, AsymmetricCipher::Padding padding)
+ByteArray AsymmetricCipher::decrypt(RSAPrivateKey &key, const ByteArray &ciphered, AsymmetricCipher::Padding padding)
 {
-	int rsaSize, paddingValue, rc;
-	ByteArray *retTemp, ret;
-	paddingValue = AsymmetricCipher::getPadding(padding);
-	rsaSize = key.getSize();
-	retTemp = new ByteArray(rsaSize);
+	int rc;
+	int paddingValue = AsymmetricCipher::getPadding(padding);
+	int rsaSize = key.getSize();
+	ByteArray ret(rsaSize);
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
-	rc = RSA_private_decrypt(ciphered.size(), ciphered.getDataPointer(), retTemp->getDataPointer(), rsaKey, paddingValue);
+
+	rc = RSA_private_decrypt(ciphered.size(), ciphered.getConstDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
 	if (rc <= 0)
-	{
-		delete retTemp;
 		throw AsymmetricCipherException(AsymmetricCipherException::DECRYPTING_DATA, "AsymmetricCipher::decrypt");
-	}
-	ret = ByteArray(retTemp->getDataPointer(), rc);
-	delete retTemp;
+
+	ret.setSize(rc);
+
 	return ret;
 }
 
 int AsymmetricCipher::getPadding(AsymmetricCipher::Padding padding)
 {
-	int ret;
+	int ret = -1;
 	switch (padding)
 	{
 		case AsymmetricCipher::NO_PADDING:
@@ -65,15 +67,9 @@ int AsymmetricCipher::getPadding(AsymmetricCipher::Padding padding)
 		case AsymmetricCipher::PKCS1:
 			ret = RSA_PKCS1_PADDING;
 			break;
-		case AsymmetricCipher::SSLV23:
-			ret = RSA_SSLV23_PADDING;
-			break;
 		case AsymmetricCipher::PKCS1_OAEP:
 			ret = RSA_PKCS1_OAEP_PADDING;
 			break;
-//		case AsymmetricCipher::X931:
-//			ret = RSA_X931_PADDING;
-//			break;
 	}
 	return ret;
 }

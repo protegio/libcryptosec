@@ -4,73 +4,61 @@ ByteArray::ByteArray()
 {
     this->m_data = NULL;
     this->length = 0;
+    this->originalLength = 0;
 }
 
 ByteArray::ByteArray(unsigned int length)
 {
     this->length = length;
+    this->originalLength = length;
     this->m_data = new unsigned char[length + 1];
-    
-    for(unsigned int i = 0; i <= length; i++)
-    {
-        this->m_data[i] = '\0';   
-    }
+    memset(this->m_data, 0, this->length + 1);
 }
 
 ByteArray::ByteArray(const unsigned char* data, unsigned int length)
 {
     this->length = length;
+    this->originalLength = length;
     this->m_data = new unsigned char[length + 1];
-    
     memcpy(this->m_data, data, length);
-    
     this->m_data[length] = '\0';
 }
 
 ByteArray::ByteArray(std::ostringstream *buffer)
 {
 	std::string data = buffer->str();
-	this->length = data.size();
-    this->m_data = new unsigned char[length + 1];
-    memcpy(this->m_data, (const unsigned char *)data.c_str(), length);
+	this->length = data.size() + 1;
+	this->originalLength = this->length;
+    this->m_data = new unsigned char[length+1];
+    memcpy(this->m_data, (const unsigned char *) data.c_str(), this->length);
     this->m_data[length] = '\0';
 }
 
-ByteArray::ByteArray(std::string data)
+ByteArray::ByteArray(const std::string& data)
 {
-	this->length = data.size();
-    this->m_data = new unsigned char[this->length + 1]; 
-    memcpy(this->m_data, data.c_str(), length);
+	this->length = data.size() + 1;
+	this->originalLength = this->length;
+    this->m_data = new unsigned char[this->length + 1];
+    memcpy(this->m_data, data.c_str(), this->length);
     this->m_data[this->length] = '\0';
 }
 
-ByteArray::ByteArray(char *data)
+ByteArray::ByteArray(const char *data)
 {
-	this->length = strlen(data);
-    this->m_data = new unsigned char[this->length + 1]; 
+	this->length = strlen(data) + 1;
+	this->originalLength = this->length;
+    this->m_data = new unsigned char[this->length + 1];
     memcpy(this->m_data, data, length);
     this->m_data[this->length] = '\0';
-}
-
-ByteArray::ByteArray(int length)
-{
-    this->length = (unsigned int)length;
-    this->m_data = new unsigned char[length + 1];
-    
-    for(unsigned int i = 0; i <= this->length; i++)
-    {
-        this->m_data[i] = '\0';   
-    }
 }
 
 ByteArray::ByteArray(const ByteArray& value)
 {
     this->length = value.length;
-    this->m_data = new unsigned char[this->length + 1];
-    
-    memcpy(this->m_data, value.m_data, value.length);
-    
-    this->m_data[length] = '\0';
+    this->originalLength = value.originalLength;
+    this->m_data = new unsigned char[this->originalLength + 1];
+    memcpy(this->m_data, value.m_data, this->originalLength);
+    this->m_data[this->originalLength] = '\0';
 }
 
 ByteArray::~ByteArray()
@@ -80,76 +68,89 @@ ByteArray::~ByteArray()
 
 ByteArray& ByteArray::operator =(const ByteArray& value)
 {
-    if(this->m_data){ delete this->m_data; }
-    
+    if(this->m_data) {
+    	delete[] this->m_data;
+    }
+
     this->length = value.length;
-    this->m_data = new unsigned char[this->length + 1]; 
-    
-    memcpy(this->m_data, value.m_data, this->length);
-    
-    this->m_data[this->length] = '\0';
-    
+    this->originalLength = value.originalLength;
+    this->m_data = new unsigned char[this->originalLength + 1];
+    memcpy(this->m_data, value.m_data, this->originalLength);
+    this->m_data[this->originalLength] = '\0';
+
     return (*this);
 }
 
 bool operator ==(const ByteArray& left, const ByteArray& right)
 {
+	// TODO: we should consider using a constant time method
+	int cmp_result = 0;
+
     if(left.length != right.length)
-    {
         return false;
-    }
+
+    cmp_result = memcmp(left.m_data, right.m_data, left.length);
     
-    int res = memcmp(left.m_data, right.m_data, left.length);
-    
-    return (res ? false : true);
+    return (cmp_result ? false : true);
 }
 
 bool operator !=(const ByteArray& left, const ByteArray& right)
 {
+	// TODO: we should consider using a constant time method
+	int cmp_result = 0;
+
     if(left.length != right.length)
-    {
         return true;
-    }
     
-    int res = memcmp(left.m_data, right.m_data, left.length);
+    cmp_result = memcmp(left.m_data, right.m_data, left.length);
     
-    return (res ? true : false);
+    return (cmp_result ? true : false);
 }
 
-unsigned char& ByteArray::operator [](int pos)
+unsigned char& ByteArray::operator [](unsigned int pos)
 {
-    if(pos < 0 || pos >= (int)this->length)
-    {
-        throw out_of_range("");
-    }
+	if(pos < 0 || pos >= this->length) {
+		throw std::out_of_range("");
+	}
+
     return this->m_data[pos];
 }
 
-char ByteArray::at(int pos) const {
-    if(pos < 0 || pos >= (int)this->length)     {
-        throw out_of_range("");
-    }
-    return this->m_data[pos];
+char ByteArray::at(unsigned int pos) const
+{
+	if(pos < 0 || pos >= this->length) {
+		throw std::out_of_range("");
+	}
+
+	return this->m_data[pos];
 }
 
 void ByteArray::copyFrom(unsigned char* d, unsigned int length)
 {
-    if(this->m_data){ delete this->m_data; }
-    
-    this->length = length;
-    this->m_data   = new unsigned char[this->length + 1]; 
-    
-    memcpy(this->m_data, d, length);
-    
-    this->m_data[length] = '\0';
+	if(this->m_data) {
+    	delete this->m_data;
+	}
+
+	this->length = length;
+	this->m_data   = new unsigned char[this->length];
+	memcpy(this->m_data, d, length);
+}
+
+// TODO: this looks wrong
+void ByteArray::copyFrom(int offset, int length, ByteArray& data, int offset2)
+{
+    for (int top = offset + length; offset < top; offset++, offset2++) {
+        data.m_data[offset2] = this->m_data[offset];
+    }
 }
 
 void ByteArray::setDataPointer(unsigned char* d, unsigned int length)
 {
-    if(this->m_data){ delete this->m_data; }
-    
-    this->length = length;
-    this->m_data = d;
+	if(this->m_data)
+		delete this->m_data;
+
+	this->length = length;
+	this->m_data = d;
 }
 
 const unsigned char* ByteArray::getConstDataPointer() const {
@@ -158,70 +159,55 @@ const unsigned char* ByteArray::getConstDataPointer() const {
 
 unsigned char* ByteArray::getDataPointer()
 {
-    return this->m_data;
+	return this->m_data;
 }
-
-//char* ByteArray::data()
-//{
-//    return reinterpret_cast<char*>(this->m_data);
-//}
 
 unsigned int ByteArray::size() const
 {
-    return this->length;
+	return this->length;
 }
 
-//std::string ByteArray::toBase64()
-//{	
-////	BIO *b64, *buffer;
-////	char* result; 
-//    string temp = B64Codec::encode(this->m_data, this->length);
-////	QString base64String(temp);
-////	
-////	buffer = BIO_new(BIO_s_mem()); 
-////	b64 = BIO_new(BIO_f_base64()); 
-////	BIO_push(b64, buffer);  
-////	BIO_write(b64, this->m_data, this->length); 
-////	BIO_flush(b64);
-////	BIO_get_mem_data(buffer, &result); 
-////	base64String.append(result);
-////	BIO_free_all(b64);
-////
-//	return temp;
-//}
-
-std::string ByteArray::toString()
+void ByteArray::setSize(unsigned int size)
 {
-	std::string data;
-	data = (char *)this->m_data;
-    return data;
+
+	if (size <= this->originalLength) {
+		this->length = size;
+	} else {
+		unsigned char* new_m_data = new unsigned char[size + 1];
+		memcpy(new_m_data, this->m_data, this->originalLength);
+		this->m_data = new_m_data;
+		this->length = size;
+		this->originalLength = size;
+	}
 }
 
-std::string ByteArray::toHex()
+std::string ByteArray::toString() const
 {
-	//sets the hexadecimal lenght for twice the lenght of the bytearray
-	//because each byte contains 2 hexadecimals characters	
-	//go trought the bytearray m_data, coping each byte to two hex in the hex_data
+	return (char *) this->m_data;
+}
+
+std::string ByteArray::toHex() const
+{
 	std::string data;	
-    char *hex_data = new char[this->length*2 +1];
-    
-    int j = 0;
-    for(unsigned int i = 0; i < this->length; i++)
-    {    	
+	char *hex_data = new char[this->length * 2 +1];
+
+	unsigned int j = 0;
+	for(unsigned int i = 0; i < this->length; i++)
+	{
 		sprintf(&hex_data[j], "%02X", this->m_data[i]);
-		j+=2;		
-    }
-    hex_data[j] = '\0';
+		j += 2;
+	}
+
+	hex_data[j] = '\0';
 	data = hex_data;
+
 	delete[] hex_data;
-    return data;
+
+	return data;
 }
 
-std::string ByteArray::toHex(char separator)
+std::string ByteArray::toHex(char separator) const
 {
-	//sets the hexadecimal lenght for twice the lenght of the bytearray
-	//because each byte contains 2 hexadecimals characters	
-	//go trought the bytearray m_data, coping each byte to two hex in the hex_data
 	std::stringstream data;	
     char* hex_data = new char[2];
     
@@ -232,50 +218,49 @@ std::string ByteArray::toHex(char separator)
 		if(i < this->length-1)
 			data << separator;
     }
-	delete[] hex_data; 
+
+	delete[] hex_data;
+
     return data.str();
 }
 
-void ByteArray::copyFrom(int offset, int length, ByteArray& data, int offset2) 
+std::istringstream* ByteArray::toInputStringStream()
 {
-    for (int top = offset + length; offset < top; offset++, offset2++) {
-        data.m_data[offset2] = this->m_data[offset];
-    }
-}
-
-std::istringstream* ByteArray::toStream()
-{
-	std::string data((const char *)this->m_data, this->length);
+	std::string data((const char *) this->m_data, this->length + 1);
 	std::istringstream *stream = new std::istringstream(data);
 	return stream;
 }
 
 ByteArray& operator xor(const ByteArray& left, const ByteArray& right)
 {
-    const ByteArray* biggest;
-    const ByteArray* smallest;
-    if (left.size() > right.size()) {
-        biggest = &left;
-        smallest = &right;
-    } else {
-        biggest = &right;
-        smallest = &left;
-    }
-    
-    ByteArray* xored = new ByteArray(*biggest);
-    for (unsigned int i = 0; i < smallest->size(); i++) {
-        (*xored)[i] = (*xored)[i] xor smallest->at(i);
-    }
-    return *xored;
+	const ByteArray* biggest = 0;
+	const ByteArray* smallest = 0;
+
+	if (left.size() > right.size()) {
+		biggest = &left;
+		smallest = &right;
+	} else {
+		biggest = &right;
+		smallest = &left;
+	}
+
+	ByteArray *xored = new ByteArray(*biggest);
+	for (unsigned int i = 0; i < smallest->size(); i++) {
+		(*xored)[i] = (*xored)[i] xor smallest->at(i);
+	}
+
+	return (*xored);
 }
 
-ByteArray ByteArray::xOr(vector<ByteArray> &array) {
+ByteArray ByteArray::xOr(std::vector<ByteArray> &array)
+{
+	if (array.size() < 1)
+		return ByteArray();
+
     ByteArray ba(array.at(0));
-    ByteArray temp;
-    
     for (unsigned int i = 1; i < array.size(); i++) {
-        temp = (ba xor array.at(i));
-        ba = temp;
+        ba = (ba xor array.at(i));
     }
+
     return ba;
 }

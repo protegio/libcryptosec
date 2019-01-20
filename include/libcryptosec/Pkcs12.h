@@ -30,31 +30,31 @@ public:
 	 * Retorna uma copia da chave privada encapsulada pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	PrivateKey* getPrivKey(string password);
+	PrivateKey* getPrivKey(std::string password);
 	
 	/**
 	 * Retorna uma copia do certificado encapsulados pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	Certificate* getCertificate(string password);
+	Certificate* getCertificate(std::string password);
 	
 	/**
 	 * Retorna uma copia dos certificados adicionais encapsulados pelo objeto Pkcs12
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	vector<Certificate*> getAdditionalCertificates(string password);
+	std::vector<Certificate*> getAdditionalCertificates(std::string password);
 
 protected:
 	/**
 	 * Popula os objetos internos da classe: privKey, cert e ca.
 	 * @param password passphrase do pacote Pkcs12
 	 * */
-	void parse(string password);
+	void parse(std::string password);
 	
 protected:
 	PrivateKey* privKey;
 	Certificate* cert;
-	vector<Certificate*> ca;
+	std::vector<Certificate*> ca;
 	PKCS12* pkcs12;
 };
 
