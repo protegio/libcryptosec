@@ -57,14 +57,14 @@ TEST_F(AsymmetricCipherTest, encryptDecryptString) {
 		for (auto padding : AsymmetricCipher::PaddingList) {
 			if (padding != AsymmetricCipher::Padding::NO_PADDING) {
 				auto encryptedData = AsymmetricCipher::encrypt(*rsaPublicKey, testString, padding);
-				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, encryptedData, padding);
-				this->testPrint(size, padding, testString, encryptedData, decryptedData);
-				EXPECT_EQ(decryptedData.toString(), testString);
+				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, *encryptedData, padding);
+				this->testPrint(size, padding, ByteArray(testString), *encryptedData, *decryptedData);
+				EXPECT_EQ(decryptedData->toString(), testString);
 			} else {
 				auto encryptedData = AsymmetricCipher::encrypt(*rsaPublicKey, noPaddingTests[size]->toString(), padding);
-				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, encryptedData, padding);
-				this->testPrint(size, padding, noPaddingTests[size]->toString(), encryptedData, decryptedData);
-				EXPECT_EQ(decryptedData.toString(), noPaddingTests[size]->toString());
+				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, *encryptedData, padding);
+				this->testPrint(size, padding, *(noPaddingTests[size]), *encryptedData, *decryptedData);
+				EXPECT_EQ(decryptedData->toString(), noPaddingTests[size]->toString());
 			}
 		}
 	}
@@ -82,14 +82,14 @@ TEST_F(AsymmetricCipherTest, encryptDecryptByteArray) {
 		for (auto padding : AsymmetricCipher::PaddingList) {
 			if (padding != AsymmetricCipher::Padding::NO_PADDING) {
 				auto encryptedData = AsymmetricCipher::encrypt(*rsaPublicKey, testByteArray, padding);
-				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, encryptedData, padding);
-				testPrint(size, padding, testByteArray, encryptedData, decryptedData);
-				EXPECT_TRUE(decryptedData == testByteArray);
+				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, *encryptedData, padding);
+				testPrint(size, padding, testByteArray, *encryptedData, *decryptedData);
+				EXPECT_EQ(*decryptedData, testByteArray);
 			} else {
 				auto encryptedData = AsymmetricCipher::encrypt(*rsaPublicKey, *(noPaddingTests[size]), padding);
-				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, encryptedData, padding);
-				testPrint(size, padding, *(noPaddingTests[size]), encryptedData, decryptedData);
-				EXPECT_EQ(decryptedData, *(noPaddingTests[size]));
+				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, *encryptedData, padding);
+				testPrint(size, padding, *(noPaddingTests[size]), *encryptedData, *decryptedData);
+				EXPECT_EQ(*decryptedData, *(noPaddingTests[size]));
 			}
 		}
 	}

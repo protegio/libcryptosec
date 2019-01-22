@@ -1,17 +1,15 @@
 #ifndef ASYMMETRICCIPHER_H_
 #define ASYMMETRICCIPHER_H_
 
-/* OpenSSL includes */
+#include <libcryptosec/Macros.h>
 
 #include <openssl/evp.h>
 
-/* local includes */
-#include "ByteArray.h"
-#include "RSAPublicKey.h"
-#include "RSAPrivateKey.h"
+#include <string>
 
-/* exceptions includes */
-#include <libcryptosec/exception/AsymmetricCipherException.h>
+class ByteArray;
+class RSAPublicKey;
+class RSAPrivateKey;
 
 /**
  * @ingroup Util 
@@ -35,41 +33,52 @@ public:
 	);
 
 	/**
-	 * encrypt unreadable data using a asymmetric public key
-	 * @param key public key to encrypt data
-	 * @param data data to be encrypted
-	 * @padding type of padding to use in process
-	 * @return encrypted data
-	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
+	 * @brief Encrypt binary data using a asymmetric public key.
+	 *
+	 * @param key		Public key to encrypt data.
+	 * @param data		Data to be encrypted.
+	 * @param padding	Type of padding to use in process.
+	 *
+	 * @return Encrypted data.
+	 * @throws AsymmetricCipherException If any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray encrypt(RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
+	static ByteArray* encrypt(RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
 
 	/**
-	 * encrypt readable data using a asymmetric public key
-	 * @param key public key to encrypt data
-	 * @param data data to be encrypted
-	 * @padding type of padding to use in process
-	 * @return encrypted data
+	 * @brief Encrypt string using a asymmetric public key.
+	 *
+	 * The null terminator (\0) is included in the encrypted data.
+	 *
+	 * @param key		Public key to encrypt data.
+	 * @param data		Data to be encrypted.
+	 * @param padding	Type of padding to use in process.
+	 *
+	 * @return Encrypted data.
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray encrypt(RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding);
+	static ByteArray* encrypt(RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding);
 
 	/**
-	 * decrypt encrypted data using a asymmetric private key
-	 * @param key private key to decrypt encrypted data
-	 * @param data data to be decrypted
-	 * @padding type of padding to use in process (must be the same used to perform the encrypting operation
-	 * @return encrypted data
+	 * @brief Decrypt encrypted data using a asymmetric private key.
+	 *
+	 * @param key		Private key to decrypt encrypted data.
+	 * @param data		Data to be decrypted.
+	 * @param padding	Type of padding to use in process (must be the same used
+	 * 						to perform the encrypting operation)
+	 *
+	 * @return Encrypted data.
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray decrypt(RSAPrivateKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
+	static ByteArray* decrypt(RSAPrivateKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
 
 private:
 
 	/**
-	 * Internal use. Used to convert the libcryptosec padding value to openssl padding value.
-	 * @param libcryptosec padding value
-	 * @return openssl padding value
+	 * @brief Internal use. Used to convert the libcryptosec padding value to openssl padding value.
+	 *
+	 * @param padding Libcryptosec padding id.
+	 *
+	 * @return OpenSSL padding id.
 	 */
 	static int getPadding(AsymmetricCipher::Padding padding);
 };

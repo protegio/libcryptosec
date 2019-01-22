@@ -58,7 +58,7 @@ TEST_F(SymmetricCipherTest, encryptDecryptString) {
 			SymmetricCipher decipher(*key, *iv, SymmetricCipher::Operation::DECRYPT, mode);
 			ByteArray *encryptedData = cipher.doFinal(testString);
 			ByteArray *decryptedData = decipher.doFinal(*encryptedData);
-			this->testPrint(algorithm, mode, testString, *encryptedData, *decryptedData);
+			this->testPrint(algorithm, mode, ByteArray(testString), *encryptedData, *decryptedData);
 			EXPECT_EQ(decryptedData->toString(), testString);
 		}
 	}
