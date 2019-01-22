@@ -1,64 +1,67 @@
 #include <libcryptosec/ByteArray.h>
+#include <libcryptosec/exception/ByteArrayException.h>
+
+#include <openssl/rand.h>
 
 ByteArray::ByteArray()
 {
     this->m_data = NULL;
-    this->length = 0;
-    this->originalLength = 0;
+    this->size = 0;
+    this->originalSize = 0;
 }
 
-ByteArray::ByteArray(unsigned int length)
+ByteArray::ByteArray(unsigned int size)
 {
-    this->length = length;
-    this->originalLength = length;
-    this->m_data = new unsigned char[length + 1];
-    memset(this->m_data, 0, this->length + 1);
+    this->size = size;
+    this->originalSize = size;
+    this->m_data = new unsigned char[size + 1];
+    memset(this->m_data, 0, this->size + 1);
 }
 
-ByteArray::ByteArray(const unsigned char* data, unsigned int length)
+ByteArray::ByteArray(const unsigned char* data, unsigned int size)
 {
-    this->length = length;
-    this->originalLength = length;
-    this->m_data = new unsigned char[length + 1];
-    memcpy(this->m_data, data, length);
-    this->m_data[length] = '\0';
+    this->size = size;
+    this->originalSize = size;
+    this->m_data = new unsigned char[size + 1];
+    memcpy(this->m_data, data, size);
+    this->m_data[size] = '\0';
 }
 
 ByteArray::ByteArray(std::ostringstream *buffer)
 {
 	std::string data = buffer->str();
-	this->length = data.size() + 1;
-	this->originalLength = this->length;
-    this->m_data = new unsigned char[length+1];
-    memcpy(this->m_data, (const unsigned char *) data.c_str(), this->length);
-    this->m_data[length] = '\0';
+	this->size = data.size() + 1;
+	this->originalSize = this->size;
+    this->m_data = new unsigned char[size + 1];
+    memcpy(this->m_data, (const unsigned char *) data.c_str(), this->size);
+    this->m_data[size] = '\0';
 }
 
 ByteArray::ByteArray(const std::string& data)
 {
-	this->length = data.size() + 1;
-	this->originalLength = this->length;
-    this->m_data = new unsigned char[this->length + 1];
-    memcpy(this->m_data, data.c_str(), this->length);
-    this->m_data[this->length] = '\0';
+	this->size = data.size() + 1;
+	this->originalSize = this->size;
+    this->m_data = new unsigned char[this->size + 1];
+    memcpy(this->m_data, data.c_str(), this->size);
+    this->m_data[this->size] = '\0';
 }
 
 ByteArray::ByteArray(const char *data)
 {
-	this->length = strlen(data) + 1;
-	this->originalLength = this->length;
-    this->m_data = new unsigned char[this->length + 1];
-    memcpy(this->m_data, data, length);
-    this->m_data[this->length] = '\0';
+	this->size = strlen(data) + 1;
+	this->originalSize = this->size;
+    this->m_data = new unsigned char[this->size + 1];
+    memcpy(this->m_data, data, size);
+    this->m_data[this->size] = '\0';
 }
 
 ByteArray::ByteArray(const ByteArray& value)
 {
-    this->length = value.length;
-    this->originalLength = value.originalLength;
-    this->m_data = new unsigned char[this->originalLength + 1];
-    memcpy(this->m_data, value.m_data, this->originalLength);
-    this->m_data[this->originalLength] = '\0';
+    this->size = value.size;
+    this->originalSize = value.originalSize;
+    this->m_data = new unsigned char[this->originalSize + 1];
+    memcpy(this->m_data, value.m_data, this->originalSize);
+    this->m_data[this->originalSize] = '\0';
 }
 
 ByteArray::~ByteArray()
@@ -72,11 +75,11 @@ ByteArray& ByteArray::operator =(const ByteArray& value)
     	delete[] this->m_data;
     }
 
-    this->length = value.length;
-    this->originalLength = value.originalLength;
-    this->m_data = new unsigned char[this->originalLength + 1];
-    memcpy(this->m_data, value.m_data, this->originalLength);
-    this->m_data[this->originalLength] = '\0';
+    this->size = value.size;
+    this->originalSize = value.originalSize;
+    this->m_data = new unsigned char[this->originalSize + 1];
+    memcpy(this->m_data, value.m_data, this->originalSize);
+    this->m_data[this->originalSize] = '\0';
 
     return (*this);
 }
@@ -86,10 +89,10 @@ bool operator ==(const ByteArray& left, const ByteArray& right)
 	// TODO: we should consider using a constant time method
 	int cmp_result = 0;
 
-    if(left.length != right.length)
+    if(left.size != right.size)
         return false;
 
-    cmp_result = memcmp(left.m_data, right.m_data, left.length);
+    cmp_result = memcmp(left.m_data, right.m_data, left.size);
     
     return (cmp_result ? false : true);
 }
@@ -99,57 +102,56 @@ bool operator !=(const ByteArray& left, const ByteArray& right)
 	// TODO: we should consider using a constant time method
 	int cmp_result = 0;
 
-    if(left.length != right.length)
+    if(left.size != right.size)
         return true;
     
-    cmp_result = memcmp(left.m_data, right.m_data, left.length);
+    cmp_result = memcmp(left.m_data, right.m_data, left.size);
     
     return (cmp_result ? true : false);
 }
 
 unsigned char& ByteArray::operator [](unsigned int pos)
 {
-	if(pos < 0 || pos >= this->length) {
+	if(pos < 0 || pos >= this->size) {
 		throw std::out_of_range("");
 	}
 
     return this->m_data[pos];
 }
 
-char ByteArray::at(unsigned int pos) const
+unsigned char ByteArray::at(unsigned int pos) const
 {
-	if(pos < 0 || pos >= this->length) {
+	if(pos < 0 || pos >= this->size) {
 		throw std::out_of_range("");
 	}
 
 	return this->m_data[pos];
 }
 
-void ByteArray::copyFrom(unsigned char* d, unsigned int length)
+void ByteArray::copyFrom(unsigned char* data, unsigned int size)
 {
-	if(this->m_data) {
-    	delete this->m_data;
-	}
-
-	this->length = length;
-	this->m_data   = new unsigned char[this->length];
-	memcpy(this->m_data, d, length);
+	this->setSize(size);
+	memcpy(this->m_data, data, size);
 }
 
-// TODO: this looks wrong
-void ByteArray::copyFrom(int offset, int length, ByteArray& data, int offset2)
+void ByteArray::copyTo(ByteArray& to, unsigned int toOffset, unsigned int fromOffset, unsigned int fromSize) const
 {
-    for (int top = offset + length; offset < top; offset++, offset2++) {
-        data.m_data[offset2] = this->m_data[offset];
+	if (this->size < (fromOffset + fromSize) || to.size < toOffset || to.size < fromSize)
+		throw std::out_of_range("");
+
+    for (unsigned int top = fromOffset + fromSize; toOffset < top; toOffset++, fromOffset++) {
+        to.m_data[toOffset] = this->m_data[fromOffset];
     }
 }
 
-void ByteArray::setDataPointer(unsigned char* d, unsigned int length)
+void ByteArray::setDataPointer(unsigned char* d, unsigned int size)
 {
-	if(this->m_data)
-		delete this->m_data;
+	if(this->m_data) {
+		delete[] this->m_data;
+	}
 
-	this->length = length;
+	this->size = size;
+	this->originalSize = size;
 	this->m_data = d;
 }
 
@@ -162,22 +164,21 @@ unsigned char* ByteArray::getDataPointer()
 	return this->m_data;
 }
 
-unsigned int ByteArray::size() const
+unsigned int ByteArray::getSize() const
 {
-	return this->length;
+	return this->size;
 }
 
 void ByteArray::setSize(unsigned int size)
 {
-
-	if (size <= this->originalLength) {
-		this->length = size;
+	if (size <= this->originalSize) {
+		this->size = size;
 	} else {
 		unsigned char* new_m_data = new unsigned char[size + 1];
-		memcpy(new_m_data, this->m_data, this->originalLength);
+		memcpy(new_m_data, this->m_data, this->originalSize);
 		this->m_data = new_m_data;
-		this->length = size;
-		this->originalLength = size;
+		this->size = size;
+		this->originalSize = size;
 	}
 }
 
@@ -189,10 +190,10 @@ std::string ByteArray::toString() const
 std::string ByteArray::toHex() const
 {
 	std::string data;	
-	char *hex_data = new char[this->length * 2 +1];
+	char *hex_data = new char[this->size * 2 +1];
 
 	unsigned int j = 0;
-	for(unsigned int i = 0; i < this->length; i++)
+	for(unsigned int i = 0; i < this->size; i++)
 	{
 		sprintf(&hex_data[j], "%02X", this->m_data[i]);
 		j += 2;
@@ -211,11 +212,11 @@ std::string ByteArray::toHex(char separator) const
 	std::stringstream data;	
     char* hex_data = new char[2];
     
-    for(unsigned int i = 0; i < this->length; i++)
+    for(unsigned int i = 0; i < this->size; i++)
     {    	
 		sprintf(&hex_data[0], "%02X", this->m_data[i]);
 		data << hex_data;
-		if(i < this->length-1)
+		if(i < this->size - 1)
 			data << separator;
     }
 
@@ -224,9 +225,9 @@ std::string ByteArray::toHex(char separator) const
     return data.str();
 }
 
-std::istringstream* ByteArray::toInputStringStream()
+std::istringstream* ByteArray::toInputStringStream() const
 {
-	std::string data((const char *) this->m_data, this->length + 1);
+	std::string data((const char *) this->m_data, this->size + 1);
 	std::istringstream *stream = new std::istringstream(data);
 	return stream;
 }
@@ -236,7 +237,7 @@ ByteArray& operator xor(const ByteArray& left, const ByteArray& right)
 	const ByteArray* biggest = 0;
 	const ByteArray* smallest = 0;
 
-	if (left.size() > right.size()) {
+	if (left.getSize() > right.getSize()) {
 		biggest = &left;
 		smallest = &right;
 	} else {
@@ -245,22 +246,26 @@ ByteArray& operator xor(const ByteArray& left, const ByteArray& right)
 	}
 
 	ByteArray *xored = new ByteArray(*biggest);
-	for (unsigned int i = 0; i < smallest->size(); i++) {
+	for (unsigned int i = 0; i < smallest->getSize(); i++) {
 		(*xored)[i] = (*xored)[i] xor smallest->at(i);
 	}
 
 	return (*xored);
 }
 
-ByteArray ByteArray::xOr(std::vector<ByteArray> &array)
-{
-	if (array.size() < 1)
-		return ByteArray();
+void ByteArray::burn(bool useRandomBytes) {
+	if (!useRandomBytes) {
+		memset(this->m_data, 0, this->originalSize);
+	} else {
+		if (this->originalSize > INT32_MAX) {
+			if (RAND_bytes(this->m_data, INT32_MAX) == 0)
+				throw ByteArrayException(ByteArrayException::RANDOM_ERROR, "ByteArray::burn");
 
-    ByteArray ba(array.at(0));
-    for (unsigned int i = 1; i < array.size(); i++) {
-        ba = (ba xor array.at(i));
-    }
-
-    return ba;
+			if (RAND_bytes(this->m_data + INT32_MAX, this->originalSize - INT32_MAX) == 0)
+				throw ByteArrayException(ByteArrayException::RANDOM_ERROR, "ByteArray::burn");
+		} else {
+			if(RAND_bytes(this->m_data, (int) this->originalSize) == 0)
+				throw ByteArrayException(ByteArrayException::RANDOM_ERROR, "ByteArray::burn");
+		}
+	}
 }

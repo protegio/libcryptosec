@@ -55,7 +55,7 @@ protected:
 			ASSERT_TRUE(keypair.getSize() > 0);
 			ASSERT_TRUE(keypair.getSizeBits() > 0);
 			ASSERT_TRUE(pem.size() > 0);
-			ASSERT_TRUE(der.size() > 0);
+			ASSERT_TRUE(der.getSize() > 0);
 
 			ASSERT_TRUE(pubPem.size() > 0);
 			ASSERT_TRUE(pubKey->getSize() > 0);

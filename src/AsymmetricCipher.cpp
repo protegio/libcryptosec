@@ -15,7 +15,7 @@ ByteArray AsymmetricCipher::encrypt(RSAPublicKey &key, const ByteArray &data, As
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
 
-	rc = RSA_public_encrypt(data.size(), data.getConstDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
+	rc = RSA_public_encrypt(data.getSize(), data.getConstDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
 	if (rc == -1 || rc != rsaSize)
 		throw AsymmetricCipherException(AsymmetricCipherException::ENCRYPTING_DATA, "AsymmetricCipher::encrypt");
 
@@ -47,7 +47,7 @@ ByteArray AsymmetricCipher::decrypt(RSAPrivateKey &key, const ByteArray &ciphere
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
 
-	rc = RSA_private_decrypt(ciphered.size(), ciphered.getConstDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
+	rc = RSA_private_decrypt(ciphered.getSize(), ciphered.getConstDataPointer(), ret.getDataPointer(), rsaKey, paddingValue);
 	if (rc <= 0)
 		throw AsymmetricCipherException(AsymmetricCipherException::DECRYPTING_DATA, "AsymmetricCipher::decrypt");
 

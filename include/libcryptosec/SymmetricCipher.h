@@ -1,13 +1,13 @@
 #ifndef SYMMETRICCIPHER_H_
 #define SYMMETRICCIPHER_H_
 
-#include <string>
+#include <libcryptosec/SymmetricKey.h>
+#include <libcryptosec/exception/SymmetricCipherException.h>
+#include <libcryptosec/exception/InvalidStateException.h>
 
 #include <openssl/evp.h>
 
-#include "SymmetricKey.h"
-#include <libcryptosec/exception/SymmetricCipherException.h>
-#include <libcryptosec/exception/InvalidStateException.h>
+#include <string>
 
 /**
  * @defgroup Symmetric Classes envolvidas no uso da criptografia simétrica. 
@@ -27,31 +27,27 @@ public:
 
 	/**
 	 * @enum OperationMode
-	 **/
-	/**
+	 *
 	 * Modos de operação suportados pelo cifrador.
 	 **/
-	enum OperationMode
-	{
-		NO_MODE, /*!< quando o cifrador possuir um único modo de operação */
-		CBC, /*!< para usar o modo cipher block chaining */
-		ECB, /*!< para usar o modo eletronic code book */
-		CFB, /*!< para usar o modo cipher feedback mode */
-		OFB, /*!< para usar o modo output feedback mode */
-	};
+	DECLARE_ENUM( OperationMode, 5,
+		NO_MODE,	/*!< quando o cifrador possuir um único modo de operação */
+		CBC,		/*!< para usar o modo cipher block chaining */
+		ECB,		/*!< para usar o modo eletronic code book */
+		CFB,		/*!< para usar o modo cipher feedback mode */
+		OFB			/*!< para usar o modo output feedback mode */
+	);
 	
 	/**
 	 * @enum Operation
-	 **/
-	/**
+	 *
 	 * Tipos de operações possíveis no cifrador.
 	 **/
-	enum Operation
-	{
-		NO_OPERATION, /*!< quando o cifrador não tiver sido inicializado */
-		ENCRYPT, /*!< na cifragem de dados */
-		DECRYPT, /*!< na decifragem de dados */
-	};
+	DECLARE_ENUM( Operation, 3,
+		NO_OPERATION,	/*!< quando o cifrador não tiver sido inicializado */
+		ENCRYPT,		/*!< na cifragem de dados */
+		DECRYPT,		/*!< na decifragem de dados */
+	);
 	
 	/**
 	 * Construtor padrão.
@@ -59,26 +55,16 @@ public:
 	SymmetricCipher();
 	
 	/**
-	 * Construtor de cópia recebendo uma chave simétrica e o tipo de operação requerida.
-	 * Esse construtor invoca a versão do método SymmetricCipher::init() de mesmos 
-	 * parâmetros.
-	 * @param key a chave simétrica a ser usada na operação.
-	 * @param operation a operação a ser executada.
-	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
+	 * @brief Inicializa o cifrador para uso.
+	 *
+	 * @param key		A chave simétrica a ser usada na operação.
+	 * @param iv		O vetor de inicialização do cifrador.
+	 * @param operation Determina se é uma operação de cifração ou decifração.
+	 * @param mode 		Determina o modo de cifração (operação de bloco).
+	 *
+	 * @throw SymmetricCipherException caso ocorra algum erro na inicialização do cifrador.
 	 **/
-	SymmetricCipher(SymmetricKey &key, SymmetricCipher::Operation operation);
-	
-	/**
-	 * Construtor de cópia recebendo uma chave simétrica, o modo de operação
-	 * e o tipo de operação requerida.
-	 * Esse construtor invoca a versão do método SymmetricCipher::init() de mesmos 
-	 * parâmetros.
-	 * @param key a chave simétrica a ser usada na operação.
-	 * @param mode o modo de operação do algoritmo.
-	 * @param operation a operação a ser executada.
-	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
-	 **/		
-	SymmetricCipher(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation);
+	SymmetricCipher(const SymmetricKey &key, const ByteArray& iv, SymmetricCipher::Operation operation, SymmetricCipher::OperationMode mode);
 	
 	/**
 	 * Destrutor padrão.
@@ -86,66 +72,105 @@ public:
 	virtual ~SymmetricCipher();
 	
 	/**
-	 * Inicializa o cifrador para uso. Necessário caso o builder tenha sido instanciado
-	 * a partir de seu contrutor sem parâmetros.
-	 * @param key a chave simétrica a ser usada na operação.
-	 * @param operation a operação a ser executada.
-	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
+	 * @brief Inicializa o cifrador para uso.
+	 *
+	 * Essa função deve ser usada caso o objeto tenha sido instanciado com o construtor padrão.
+	 *
+	 * @param key		A chave simétrica a ser usada na operação.
+	 * @param iv		O vetor de inicialização do cifrador.
+	 * @param operation Determina se é uma operação de cifração ou decifração.
+	 * @param mode 		Determina o modo de cifração (operação de bloco).
+	 *
+	 * @throw SymmetricCipherException caso ocorra algum erro na inicialização do cifrador.
 	 **/
-	void init(SymmetricKey &key, SymmetricCipher::Operation operation);
+	void init(const SymmetricKey& key, const ByteArray& iv, SymmetricCipher::Operation operation, SymmetricCipher::OperationMode mode);
 	
 	/**
-	 * Inicializa o cifrador para uso. Necessário caso o builder tenha sido instanciado
-	 * a partir de seu contrutor sem parâmetros.
-	 * @param key a chave simétrica a ser usada na operação.
-	 * @param mode o modo de operação do algoritmo.
-	 * @param operation a operação a ser executada.
-	 * @throw SymmetricCipherException caso ocorra algum erro na criação do cifrador.
-	 **/
-	void init(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation);
-	
-	/**
-	 * Concatena dados aos previamente adicionados para serem cifrados/decifrados.
-	 * @param data referência para os dados no formato de texto.
-	 * @throw InvalidStateException caso o builder não tenha sido inicializado.
-	 * @throw SymmetricCipherException caso tenha ocorrido algum erro ao atualizar os dados.
-	 **/
-	void update(std::string &data);
+	 * @brief Atualiza o cifrador com os dados passados.
+	 *
+	 * Essa função inclui o terminador nulo (\0) da string.
+	 *
+	 * @param data Os dados para serem inseridos no cifrador.
+	 *
+	 * @return O bloco cifrado. O bloco pode retornar vazio se não houver dados suficientes para fechar um bloco.
+	 * @throw SymmetricCipherException
+	 */
+	ByteArray* update(const std::string& data);
 
 	/**
-	 * Concatena dados aos previamente adicionados para serem cifrados/decifrados.
-	 * @param data referência para os dados no formato binário.
-	 * @throw InvalidStateException caso o builder não tenha sido inicializado.
-	 * @throw SymmetricCipherException caso tenha ocorrido algum erro ao atualizar os dados.
-	 **/	
-	void update(ByteArray &data);
+	 * @brief Atualiza o cifrador com os dados passados.
+	 *
+	 * @param data Os dados para serem inseridos no cifrador.
+	 *
+	 * @return O bloco cifrado. O bloco pode retornar vazio se não houver dados suficientes para fechar um bloco.
+	 * @throw SymmetricCipherException
+	 */
+	ByteArray* update(const ByteArray& data);
 	
 	/**
-	 * Finaliza a operação e retorna o resultado da mesma.
-	 * @return o resultado da operação aplicada aos dados submetidos ao cifrador.
-	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::UPDATE).
-	 * @throw SymmetricCipherException caso ocorra algum erro na finalização do procedimento.
+	 * @brief Atualiza o cifrador com os dados passados.
+	 *
+	 * @param data Os dados para serem inseridos no cifrador.
+	 * @param size O número de bytes a serem inseridos.
+	 *
+	 * @return O bloco cifrado. O bloco pode retornar vazio se não houver dados suficientes para fechar um bloco.
+	 * @throw SymmetricCipherException
+	 */
+	ByteArray* update(const unsigned char* data, unsigned int size);
+
+	/**
+	 * @brief Atualiza o cifrador com os dados passados.
+	 *
+	 * @param out						Buffer de saída dos dados cifrados.
+	 * @param numberOfEncryptedBytes	O número de bytes cifrados.
+	 * @param data						Os dados para serem inseridos no cifrador.
+	 * @param size						O número de bytes a serem inseridos.
+	 *
+	 * @return O bloco cifrado. O bloco pode retornar vazio se não houver dados suficientes para fechar um bloco.
+	 * @throw SymmetricCipherException
+	 */
+	void update(unsigned char* out, int* numberOfEncryptedBytes, const unsigned char* data, int size);
+
+	/**
+	 * @brief Finaliza o cifrador e retorna o último bloco cifrado/decifrado.
+	 *
+	 * @return O último bloco cifrado/decifrado. Esse bloco nunca é vazio.
+	 * @throw SymmetricCipherException Caso ocorra algum erro na finalização do cifrador.
 	 **/	
-	ByteArray doFinal();
+	ByteArray* doFinal();
 	
 	/**
-	 * Concatena os dados passados como parâmetro, finaliza a operação e retorna o resultado da mesma.
-	 * @param os dados a serem concatenados no formato de texto.
-	 * @return o resultado da operação aplicada aos dados submetidos ao cifrador.
-	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::UPDATE).
-	 * @throw SymmetricCipherException caso ocorra algum erro na finalização do procedimento.
-	 **/	
-	ByteArray doFinal(std::string &data);
-	
-	/**
-	 * Concatena os dados passados como parâmetro, finaliza a operação e retorna o resultado da mesma.
-	 * @param os dados a serem concatenados no formato binário.
-	 * @return o resultado da operação aplicada aos dados submetidos ao cifrador.
-	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::UPDATE).
-	 * @throw SymmetricCipherException caso ocorra algum erro na finalização do procedimento.
+	 * @brief Finaliza o cifrador e retorna o último bloco cifrado/decifrado.
+	 *
+	 * @param out						O buffer pra escrever o último bloco.
+	 * @param numberOfEncryptedBytes	O número de bytes cifrados.
+	 *
+	 * @throw SymmetricCipherException Caso ocorra algum erro na finalização do cifrador.
 	 **/
-	ByteArray doFinal(ByteArray &data);
+	void doFinal(unsigned char* out, int* numberOfEncryptedBytes);
+
+	/**
+	 * @brief Atualiza, finaliza o cifrador e retorna o último bloco cifrado/decifrado.
+	 *
+	 * Essa função inclui o terminador nulo (\0) da string.
+	 *
+	 * @param data Os dados para serem inseridos no cifrador.
+	 *
+	 * @return Os últimos blocos cifrados/decifrados. Esse bloco nunca é vazio.
+	 * @throw SymmetricCipherException Caso ocorra algum erro na atualização ou finalização do cifrador.
+	 **/
+	ByteArray* doFinal(const std::string &data);
 	
+	/**
+	 * @brief Atualiza, finaliza o cifrador e retorna o último bloco cifrado/decifrado.
+	 *
+	 * @param data Os dados para serem inseridos no cifrador.
+	 *
+	 * @return Os últimos blocos cifrados/decifrados. Esse bloco nunca é vazio.
+	 * @throw SymmetricCipherException Caso ocorra algum erro na atualização ou finalização do cifrador.
+	 **/
+	ByteArray* doFinal(const ByteArray &data);
+
 	/**
 	 * Retorna o modo de operação do cifrador.
 	 * @return o modo de operação do cifrador.
@@ -159,7 +184,6 @@ public:
 	 * @throw InvalidStateException não esteja no esteja no estado apropriado (State::INIT).
 	 **/
 	SymmetricCipher::Operation getOperation();
-	
 	
 	/**
 	 * Retorna o nome do modo de operação passado como parâmetro.
@@ -184,8 +208,7 @@ private:
 
 	/**
 	 * @enum State
-	 **/
-	/**
+	 *
 	 *  Possíveis estados do builder. 
 	 **/
 	enum State
@@ -217,11 +240,6 @@ private:
 	EVP_CIPHER_CTX* ctx;
 
 	/**
-	 * Buffer de dados a serem processados. 
-	 **/
-	ByteArray *buffer;
-	
-	/**
 	 * @brief Gera uma chave e um vetor de incialização.
 	 *
 	 * Essa função funciona como uma função de derivação de chave (KDF). Ela deriva a chave e o iv
@@ -237,7 +255,7 @@ private:
 	 * @param count		O número de iterações da derivação (útil contra ataques de rainbow tables directionadas).
 	 * @return 			Um par contendo a chave e o iv gerados na primeira e segunda posição, respectivamente.
 	 **/
-	std::pair<ByteArray*, ByteArray*> keyToKeyIv(ByteArray &key, const EVP_CIPHER *cipher, const EVP_MD* md = EVP_md5(), const unsigned char* salt=0, int count=1);
+	std::pair<ByteArray*, ByteArray*> keyToKeyIv(const ByteArray &key, const EVP_CIPHER *cipher, const EVP_MD* md = EVP_md5(), const unsigned char* salt=0, int count=1);
 
 };
 

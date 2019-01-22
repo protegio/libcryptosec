@@ -45,7 +45,7 @@ void Pkcs7Builder::update(ByteArray &data)
 			throw Pkcs7Exception(Pkcs7Exception::INTERNAL_ERROR, "Pkcs7Builder::update", true);
 		}
 	}
-	rc = BIO_write(this->p7bio, data.getDataPointer(), data.size());
+	rc = BIO_write(this->p7bio, data.getDataPointer(), data.getSize());
 	if (!rc)
 	{
 		this->state = Pkcs7Builder::NO_INIT;

@@ -28,7 +28,7 @@ PublicKey::PublicKey(ByteArray &derEncoded) : AsymmetricKey(NULL)
 	{
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PublicKey::PublicKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.size())) != derEncoded.size())
+	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
 	{
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PublicKey::PublicKey");

@@ -49,7 +49,7 @@ BigInteger::BigInteger(ByteArray& b)
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
-	if(!(BN_mpi2bn(b.getDataPointer(), b.size(), this->bigInt)))
+	if(!(BN_mpi2bn(b.getDataPointer(), b.getSize(), this->bigInt)))
 	{
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
 	}

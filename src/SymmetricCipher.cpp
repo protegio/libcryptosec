@@ -1,285 +1,205 @@
 #include <libcryptosec/SymmetricCipher.h>
 
+INITIALIZE_ENUM( SymmetricCipher::OperationMode, 5,
+	NO_MODE,
+	CBC,
+	ECB,
+	CFB,
+	OFB
+);
+
+INITIALIZE_ENUM( SymmetricCipher::Operation, 3,
+	NO_OPERATION,
+	ENCRYPT,
+	DECRYPT,
+);
+
 SymmetricCipher::SymmetricCipher()
 {
 	this->operation = SymmetricCipher::NO_OPERATION;
 	this->state = SymmetricCipher::NO_INIT;
 	this->mode = SymmetricCipher::NO_MODE;
-	this->buffer = NULL;
-	this->ctx = 0;
+	this->ctx = EVP_CIPHER_CTX_new();
 }
 
-SymmetricCipher::SymmetricCipher(SymmetricKey &key, SymmetricCipher::Operation operation)
+SymmetricCipher::SymmetricCipher(const SymmetricKey &key, const ByteArray& iv, SymmetricCipher::Operation operation, SymmetricCipher::OperationMode mode)
 {
-	const EVP_CIPHER *cipher;
-	ByteArray keyEncoded, *newKey, *iv;
-	std::pair<ByteArray*, ByteArray*> keyIv;
-
-	cipher = SymmetricCipher::getCipher(key.getAlgorithm(), SymmetricCipher::CBC);
-	keyEncoded = key.getEncoded();
-
-	// TODO: Essa derivação de chave não parece correta, pois torna a classe incompatível com um cifrador padrão.
-	keyIv = this->keyToKeyIv(keyEncoded, cipher);
-	newKey = keyIv.first;
-	iv = keyIv.second;
-	
-	EVP_CIPHER_CTX_init(this->ctx);
-	int rc = EVP_CipherInit_ex(this->ctx, cipher, NULL, newKey->getDataPointer(), iv->getDataPointer(), (operation == this->ENCRYPT)?1:0);
-	if (!rc)
-	{
-		delete newKey;
-		delete iv;
-		EVP_CIPHER_CTX_cleanup(this->ctx);
-		throw SymmetricCipherException(SymmetricCipherException::CTX_INIT, "SymmetricCipher::SymmetricCipher");
-	}
-	delete newKey;
-	delete iv;
-
-	this->operation = operation;
-	this->state = SymmetricCipher::INIT;
-	this->mode = SymmetricCipher::CBC;
-	this->buffer = NULL;
-}
-
-SymmetricCipher::SymmetricCipher(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation)
-{
-	const EVP_CIPHER *cipher;
-	ByteArray keyEncoded, *newKey, *iv;
-	std::pair<ByteArray*, ByteArray*> keyIv;
-	cipher = SymmetricCipher::getCipher(key.getAlgorithm(), mode);
-	keyEncoded = key.getEncoded();
-
-	// TODO: Essa derivação de chave não parece correta, pois torna a classe incompatível com um cifrador padrão.
-	keyIv = this->keyToKeyIv(keyEncoded, cipher);
-	newKey = keyIv.first;
-	iv = keyIv.second;
-	
-	EVP_CIPHER_CTX_reset(this->ctx);
-	int rc = EVP_CipherInit_ex(this->ctx, cipher, NULL, newKey->getDataPointer(), iv->getDataPointer(), (operation == this->ENCRYPT)?1:0);
-	if (!rc)
-	{
-		delete newKey;
-		delete iv;
-		EVP_CIPHER_CTX_reset(this->ctx);
-		throw SymmetricCipherException(SymmetricCipherException::CTX_INIT, "SymmetricCipher::SymmetricCipher");
-	}
-	delete newKey;
-	delete iv;
-
-	this->operation = operation;
-	this->state = SymmetricCipher::INIT;
-	this->mode = mode;
-	this->buffer = NULL;
+	this->operation = SymmetricCipher::NO_OPERATION;
+	this->state = SymmetricCipher::NO_INIT;
+	this->mode = SymmetricCipher::NO_MODE;
+	this->ctx = EVP_CIPHER_CTX_new();
+	this->init(key, iv, operation, mode);
 }
 
 SymmetricCipher::~SymmetricCipher()
 {
-	EVP_CIPHER_CTX_reset(this->ctx);
-	EVP_CIPHER_CTX_free(this->ctx);
-	if (this->buffer)
-	{
-		delete this->buffer;
+	if (this->ctx) {
+		EVP_CIPHER_CTX_reset(this->ctx);
+		EVP_CIPHER_CTX_free(this->ctx);
 	}
 }
 
-void SymmetricCipher::init(SymmetricKey &key, SymmetricCipher::Operation operation)
+void SymmetricCipher::init(const SymmetricKey& key, const ByteArray& iv, SymmetricCipher::Operation operation, SymmetricCipher::OperationMode mode)
 {
-	this->init(key, SymmetricCipher::CBC, operation);
-//	EVP_CIPHER_CTX_cleanup(&this->ctx);
-//	if (this->buffer)
-//	{
-//		delete this->buffer;
-//		this->buffer = NULL;
-//	}
-//	const EVP_CIPHER *cipher;
-//	ByteArray *keyEncoded, *newKey, *iv;
-//	std::pair<ByteArray*, ByteArray*> keyIv;
-//	cipher = SymmetricCipher::getCipher(key->getAlgorithm(), SymmetricCipher::CBC);
-//	keyEncoded = key->getEncoded();
-//	keyIv = this->keyToKeyIv(keyEncoded, cipher);
-//	newKey = keyIv.first;
-//	iv = keyIv.second;
-//	
-//	EVP_CIPHER_CTX_init(&this->ctx);
-//	int rc = EVP_CipherInit_ex(&this->ctx, cipher, NULL, newKey->getDataPointer(), iv->getDataPointer(), (operation == this->ENCRYPT)?1:0);
-//	if (!rc)
-//	{
-//		delete newKey;
-//		delete iv;
-//		delete keyEncoded;
-//		EVP_CIPHER_CTX_cleanup(&this->ctx);
-//		this->state = SymmetricCipher::NO_INIT;
-//		throw SymmetricCipherException();
-//	}
-//	delete newKey;
-//	delete iv;
-//	delete keyEncoded;
-//	this->state = SymmetricCipher::INIT;
-}
+	const EVP_CIPHER *cipher = NULL;
+	const ByteArray* keyData = NULL;
 
-void SymmetricCipher::init(SymmetricKey &key, SymmetricCipher::OperationMode mode, SymmetricCipher::Operation operation)
-{
-	EVP_CIPHER_CTX_cleanup(this->ctx);
-	if (this->buffer)
-	{
-		delete this->buffer;
-		this->buffer = NULL;
+	if(EVP_CIPHER_CTX_cleanup(this->ctx) == 0) {
+		throw SymmetricCipherException(SymmetricCipherException::CTX_CLEANUP, "SymmetricCipher::init");
 	}
-	const EVP_CIPHER *cipher;
-	ByteArray keyEncoded, *newKey, *iv;
-	std::pair<ByteArray*, ByteArray*> keyIv;
+
 	cipher = SymmetricCipher::getCipher(key.getAlgorithm(), mode);
-	keyEncoded = key.getEncoded();
+	keyData = key.getEncoded();
 
-	// TODO: Essa derivação de chave não parece correta, pois torna a classe incompatível com um cifrador padrão.
-	keyIv = this->keyToKeyIv(keyEncoded, cipher);
-	newKey = keyIv.first;
-	iv = keyIv.second;
-	
 	EVP_CIPHER_CTX_init(this->ctx);
-	int rc = EVP_CipherInit_ex(this->ctx, cipher, NULL, newKey->getDataPointer(),
-			iv->getDataPointer(), (operation == this->ENCRYPT) ? 1 : 0);
+	int rc = EVP_CipherInit_ex(this->ctx, cipher, NULL, keyData->getConstDataPointer(),
+			iv.getConstDataPointer(), (operation == this->ENCRYPT) ? 1 : 0);
 
-	if (!rc)
-	{
-		delete newKey;
-		delete iv;
-		EVP_CIPHER_CTX_cleanup(this->ctx);
+	if (!rc) {
 		throw SymmetricCipherException(SymmetricCipherException::CTX_INIT, "SymmetricCipher::init");
 	}
 
-	delete newKey;
-	delete iv;
 	this->operation = operation;
-	this->state = SymmetricCipher::INIT;
+	this->state = SymmetricCipher::State::INIT;
 	this->mode = mode;
 }
 
-void SymmetricCipher::update(std::string &data)
+ByteArray* SymmetricCipher::update(const std::string& data)
 {
-	ByteArray newData;
-	newData = ByteArray(data);
-	this->update(newData);
+	return this->update((unsigned char*) data.c_str(), data.size() + 1);
 }
 
-void SymmetricCipher::update(ByteArray &data)
+ByteArray* SymmetricCipher::update(const ByteArray& data)
 {
-	int ret, totalEncrypted, encrypted;
-	ByteArray *newBuffer;
-	if (this->state != this->INIT && this->state != this->UPDATE)
-	{
-		throw InvalidStateException("SymmetricCipher::update");
+	return this->update(data.getConstDataPointer(), data.getSize());
+}
+
+ByteArray* SymmetricCipher::update(const unsigned char* data, unsigned int size)
+{
+	int numberOfEncryptedBytes = 0;
+	ByteArray *encryptedBuffer = NULL;
+
+	encryptedBuffer = new ByteArray(size + EVP_MAX_BLOCK_LENGTH - 1);
+	try {
+		this->update(encryptedBuffer->getDataPointer(), &numberOfEncryptedBytes, data, size);
+	} catch (SymmetricCipherException& e) {
+		delete encryptedBuffer;
+		throw e;
 	}
-	if (data.size() <= 0)
-	{
+	encryptedBuffer->setSize(numberOfEncryptedBytes);
+
+	return encryptedBuffer;
+}
+
+void SymmetricCipher::update(unsigned char* out, int* numberOfEncryptedBytes, const unsigned char* data, int size)
+{
+	int ret = 0;
+
+	if (this->state != SymmetricCipher::State::INIT && this->state != SymmetricCipher::State::UPDATE) {
+		throw SymmetricCipherException(SymmetricCipherException::INVALID_STATE, "SymmetricCipher::update");
+	}
+
+	if (size <= 0) {
+		// TODO porque não retornar um ByteArray vazio?
 		throw SymmetricCipherException(SymmetricCipherException::NO_INPUT_DATA, "SymmetricCipher::update");
 	}
-	if (this->state == this->INIT)
-	{
-		totalEncrypted = 0;
-	}
-	else
-	{
-		totalEncrypted = this->buffer->size();
-	}
-	newBuffer = new ByteArray(data.size() + EVP_MAX_BLOCK_LENGTH + totalEncrypted);
-	if (this->buffer)
-	{
-		memcpy(newBuffer->getDataPointer(), this->buffer->getDataPointer(), this->buffer->size());
-	}
-	ret = EVP_CipherUpdate(this->ctx, &((newBuffer->getDataPointer())[totalEncrypted]), &encrypted, data.getDataPointer(), data.size());
-	if (!ret)
-	{
-		delete newBuffer;
-		this->state = this->NO_INIT;
-		EVP_CIPHER_CTX_cleanup(this->ctx);
+
+	ret = EVP_CipherUpdate(this->ctx, out, numberOfEncryptedBytes, data, size);
+
+	if (!ret) {
+		// TODO: Ok resetar o cipher?
+		this->state = SymmetricCipher::State::NO_INIT;
 		throw SymmetricCipherException(SymmetricCipherException::CTX_UPDATE, "SymmetricCipher::update");
 	}
-	totalEncrypted += encrypted;
-	if (this->buffer)
-	{
-		delete this->buffer;
-	}
-	buffer = new ByteArray(newBuffer->getDataPointer(), totalEncrypted);
-	delete newBuffer;
-	this->state = this->UPDATE;
+
+	this->state = SymmetricCipher::State::UPDATE;
 }
 
-ByteArray SymmetricCipher::doFinal()
+ByteArray* SymmetricCipher::doFinal()
 {
-	int rc, totalEncrypted = 0, encrypted;
-	ByteArray *newBuffer;
-	ByteArray ret; 
-	if (this->state != this->UPDATE)
-	{
-		throw InvalidStateException("SymmetricCipher::doFinal");
+	int numberOfEncryptedBytes = 0;
+	ByteArray *finalBlock = NULL;
+
+	finalBlock = new ByteArray(EVP_MAX_BLOCK_LENGTH);
+	try {
+		this->doFinal(finalBlock->getDataPointer(), &numberOfEncryptedBytes);
+	} catch (SymmetricCipherException &e) {
+		delete finalBlock;
+		throw e;
 	}
-	this->state = this->NO_INIT;
-	newBuffer = new ByteArray(EVP_MAX_BLOCK_LENGTH + EVP_MAX_BLOCK_LENGTH + this->buffer->size());
-	memcpy(newBuffer->getDataPointer(), this->buffer->getDataPointer(), this->buffer->size());
-	rc = EVP_CipherFinal_ex(this->ctx, &((newBuffer->getDataPointer())[totalEncrypted]), &encrypted);
-	if (!rc)
-	{
-		delete newBuffer;
+	finalBlock->setSize(numberOfEncryptedBytes);
+
+	return finalBlock;
+}
+
+void SymmetricCipher::doFinal(unsigned char* out, int* numberOfEncryptedBytes)
+{
+	int rc = 0;
+
+	if (this->state != SymmetricCipher::State::UPDATE) {
+		throw SymmetricCipherException(SymmetricCipherException::INVALID_STATE, "SymmetricCipher::doFinal");
+	}
+
+	rc = EVP_CipherFinal_ex(this->ctx, out, numberOfEncryptedBytes);
+	this->state = SymmetricCipher::State::NO_INIT;
+
+	if (!rc) {
 		throw SymmetricCipherException(SymmetricCipherException::CTX_FINISH, "SymmetricCipher::doFinal");
 	}
-	totalEncrypted += encrypted;
-	ret = ByteArray(newBuffer->getDataPointer(), totalEncrypted);
-	delete newBuffer;
-	return ret;
 }
 
-ByteArray SymmetricCipher::doFinal(std::string &data)
+ByteArray* SymmetricCipher::doFinal(const std::string &data)
 {
-	if (this->state != this->INIT && this->state != this->UPDATE)
-	{
-		throw InvalidStateException("SymmetricCipher::doFinal");
+	int totalSize = 0, numberOfEncryptedBytes = 0;
+
+	if (this->state != SymmetricCipher::State::INIT && this->state != SymmetricCipher::State::UPDATE) {
+		throw SymmetricCipherException(SymmetricCipherException::INVALID_STATE, "SymmetricCipher::doFinal");
 	}
-	this->update(data);
-	return this->doFinal();
+
+	ByteArray* encryptedData = new ByteArray(data.size() + 2 * EVP_MAX_BLOCK_LENGTH - 1);
+	unsigned char* encryptedDataPointer = encryptedData->getDataPointer();
+
+	this->update(encryptedDataPointer, &numberOfEncryptedBytes, (const unsigned char*) data.c_str(), data.size() + 1);
+	totalSize = numberOfEncryptedBytes;
+
+	this->doFinal(encryptedDataPointer + numberOfEncryptedBytes, &numberOfEncryptedBytes);
+	totalSize += numberOfEncryptedBytes;
+
+	encryptedData->setSize(totalSize);
+
+	return encryptedData;
 }
 
-ByteArray SymmetricCipher::doFinal(ByteArray &data)
+ByteArray* SymmetricCipher::doFinal(const ByteArray &data)
 {
-	if (this->state != this->INIT && this->state != this->UPDATE)
-	{
-		throw InvalidStateException("SymmetricCipher::doFinal");
+	int totalSize = 0, numberOfEncryptedBytes = 0;
+
+	if (this->state != SymmetricCipher::State::INIT && this->state != SymmetricCipher::State::UPDATE) {
+		throw SymmetricCipherException(SymmetricCipherException::INVALID_STATE, "SymmetricCipher::doFinal");
 	}
-	this->update(data);
-	return this->doFinal();
+
+	ByteArray* encryptedData = new ByteArray(data.getSize() + 2*EVP_MAX_BLOCK_LENGTH - 1);
+	unsigned char* encryptedDataPointer = encryptedData->getDataPointer();
+
+	this->update(encryptedDataPointer, &numberOfEncryptedBytes, data.getConstDataPointer(), data.getSize());
+	totalSize = numberOfEncryptedBytes;
+
+	this->doFinal(encryptedDataPointer + numberOfEncryptedBytes, &numberOfEncryptedBytes);
+	totalSize += numberOfEncryptedBytes;
+
+	encryptedData->setSize(totalSize);
+
+	return encryptedData;
 }
 
 SymmetricCipher::OperationMode SymmetricCipher::getOperationMode()
 {
-	if (this->state == this->NO_INIT)
-	{
-		throw InvalidStateException("SymmetricCipher::getOperationMode");
-	}
 	return this->mode;
 }
 
 SymmetricCipher::Operation SymmetricCipher::getOperation()
 {
-	if (this->state == this->NO_INIT)
-	{
-		throw InvalidStateException("SymmetricCipher::getOperation");
-	}
 	return this->operation;
-}
-
-std::pair<ByteArray*, ByteArray*> SymmetricCipher::keyToKeyIv(ByteArray &key,
-		const EVP_CIPHER *cipher, const EVP_MD* md, const unsigned char* salt, int count)
-{
-	int rc = 0;
-	std::pair<ByteArray*, ByteArray*> ret;
-	ByteArray *newKey = new ByteArray(EVP_CIPHER_key_length(cipher));
-    ByteArray *iv = new ByteArray(EVP_CIPHER_iv_length(cipher));
-    rc = EVP_BytesToKey(cipher, md, salt, key.getDataPointer(), key.size(), count, newKey->getDataPointer(), iv->getDataPointer());
-	if (rc == 0)
-		throw SymmetricCipherException("SymmetricCipher::keyToKeyIv");
-    ret.first = newKey;
-	ret.second = iv;
-	return ret;
 }
 
 std::string SymmetricCipher::getOperationModeName(SymmetricCipher::OperationMode mode)
@@ -309,22 +229,22 @@ std::string SymmetricCipher::getOperationModeName(SymmetricCipher::OperationMode
 const EVP_CIPHER* SymmetricCipher::getCipher(SymmetricKey::Algorithm algorithm, SymmetricCipher::OperationMode mode)
 {
 	std::string algName, modeName, cipherName;
-	const EVP_CIPHER *cipher;
+	const EVP_CIPHER *cipher = NULL;
+
 	algName = SymmetricKey::getAlgorithmName(algorithm);
 	modeName = SymmetricCipher::getOperationModeName(mode);
-	if (modeName != "")
-	{
+
+	if (modeName != "") {
 		cipherName = algName + "-" + modeName;
-	}
-	else
-	{
+	} else {
 		cipherName = algName;
 	}
+
 	cipher = EVP_get_cipherbyname(cipherName.c_str());
-	if (!cipher)
-	{
+	if (!cipher) {
 		throw SymmetricCipherException(SymmetricCipherException::INVALID_CIPHER, "SymmetricCipher::getCipher");
 	}
+
 	return cipher;
 }
 

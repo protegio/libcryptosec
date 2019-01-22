@@ -72,7 +72,7 @@ X509_EXTENSION* SubjectKeyIdentifierExtension::getX509Extension()
 	ret = X509_EXTENSION_new();
 	octetString = ASN1_OCTET_STRING_new();
 	data = this->keyIdentifier;
-	ASN1_OCTET_STRING_set(octetString, data.getDataPointer(), data.size());
+	ASN1_OCTET_STRING_set(octetString, data.getDataPointer(), data.getSize());
 	ret = X509V3_EXT_i2d(NID_subject_key_identifier, this->critical?1:0, (void *)octetString);
 	return ret;
 }

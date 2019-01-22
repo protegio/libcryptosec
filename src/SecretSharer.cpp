@@ -238,9 +238,10 @@ unsigned int * SecretSharer::order_parts(unsigned int *seq, unsigned int parts, 
 //}
 
 void SecretSharer::rand_bytes(unsigned char *data, int num){
-	ByteArray rand;
+	ByteArray *rand;
 	rand = Random::bytes(num);
-	memcpy(data, rand.getDataPointer(), num);
+	memcpy(data, rand->getDataPointer(), num);
+	delete rand;
 }
 
 /*

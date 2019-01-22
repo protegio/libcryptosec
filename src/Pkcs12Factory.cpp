@@ -9,7 +9,7 @@ Pkcs12* Pkcs12Factory::fromDerEncoded(ByteArray &derEncoded)
 	{
 		throw EncodeException(EncodeException::BUFFER_CREATING, "Pkcs12::loadFromDerEncoded");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.size())) != derEncoded.size())
+	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
 	{
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "Pkcs12::loadFromDerEncoded");

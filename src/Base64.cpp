@@ -12,7 +12,7 @@ std::string Base64::encode(ByteArray &data)
 	unsigned char char_array_3[3];
 	unsigned char char_array_4[4];
 	
-	in_len = data.size();
+	in_len = data.getSize();
 	bytes_to_encode = data.getDataPointer();
 	
 	while (in_len--)

@@ -131,7 +131,7 @@ KeyPair::KeyPair(ByteArray derEncoded)
 	{
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::KeyPair");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.size())) != derEncoded.size())
+	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
 	{
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "KeyPair::KeyPair");
@@ -248,7 +248,7 @@ std::string KeyPair::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::Op
 	std::string ret;
 	ByteArray *retTemp;
 	unsigned char *data;
-	ByteArray passphraseData;
+	const ByteArray* passphraseData;
 	buffer = BIO_new(BIO_s_mem());
 	if (buffer == NULL)
 	{
@@ -264,7 +264,9 @@ std::string KeyPair::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::Op
 		throw;
 	}
 	passphraseData = passphrase.getEncoded();
-	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0, KeyPair::passphraseCallBack, (void *)&passphraseData);
+
+	// TODO: is it ok to pass a ByteArray object here?
+	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0, KeyPair::passphraseCallBack, (void *) passphraseData);
 	if (!wrote)
 	{
 		BIO_free(buffer);
@@ -415,7 +417,7 @@ int KeyPair::getSizeBits()
 int KeyPair::passphraseCallBack(char *buf, int size, int rwflag, void *u)
 {
     ByteArray* passphrase = (ByteArray*) u;
-    int length = passphrase->size();
+    int length = passphrase->getSize();
     if (length > 0)
     {
         if (length > size)

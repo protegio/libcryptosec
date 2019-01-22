@@ -106,7 +106,7 @@ X509_EXTENSION* Extension::getX509Extension()
 
 	ASN1_OCTET_STRING* value = ASN1_OCTET_STRING_new();
 	data = this->value;
-	ASN1_OCTET_STRING_set(value, data.getDataPointer(), this->value.size());
+	ASN1_OCTET_STRING_set(value, data.getDataPointer(), this->value.getSize());
 
 	X509_EXTENSION_set_data(ret, value);
 	X509_EXTENSION_set_object(ret, this->objectIdentifier.getObjectIdentifier());

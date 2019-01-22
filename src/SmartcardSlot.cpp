@@ -120,7 +120,7 @@ ByteArray SmartcardSlot::decrypt(std::string &keyId, std::string &pin, ByteArray
 		throw SmartcardModuleException(SmartcardModuleException::ID_NOT_FOUND, "SmartcardSlot::decrypt", true);
 	}
 	ret = ByteArray(keySize);
-    nret = PKCS11_private_decrypt(data.size(), data.getDataPointer(), ret.getDataPointer(), &keys[found], RSA_PKCS1_PADDING);
+    nret = PKCS11_private_decrypt(data.getSize(), data.getDataPointer(), ret.getDataPointer(), &keys[found], RSA_PKCS1_PADDING);
     PKCS11_logout(this->slot);
     if (nret <= 0)
     {

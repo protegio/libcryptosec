@@ -40,7 +40,7 @@ CertificateRequest::CertificateRequest(ByteArray &derEncoded)
 	{
 		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRequest::Certificate");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.size())) != derEncoded.size())
+	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
 	{
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateRequest::Certificate");

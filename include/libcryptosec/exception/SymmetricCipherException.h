@@ -14,6 +14,8 @@ public:
 		CTX_UPDATE,
 		CTX_FINISH,
 		NO_INPUT_DATA,
+		INVALID_STATE,
+		CTX_CLEANUP,
 	};
     SymmetricCipherException(std::string where)
     {
@@ -70,15 +72,12 @@ public:
     		case SymmetricCipherException::NO_INPUT_DATA:
     			ret = "No input data";
     			break;
-//    		case SymmetricCipherException::NO_INPUT_DATA:
-//    			ret = "";
-//    			break;
-//    		case SymmetricCipherException::NO_INPUT_DATA:
-//    			ret = "";
-//    			break;
-//    		case SymmetricCipherException::NO_INPUT_DATA:
-//    			ret = "";
-//    			break;
+    		case SymmetricCipherException::INVALID_STATE:
+    			ret = "Invalid state";
+    			break;
+    		case SymmetricCipherException::CTX_CLEANUP:
+    			ret = "Cleaning up the cipher context";
+    			break;
     	}
     	return ret;
     }

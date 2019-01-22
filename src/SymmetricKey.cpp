@@ -1,24 +1,54 @@
 #include <libcryptosec/SymmetricKey.h>
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/Random.h>
 
-SymmetricKey::SymmetricKey(ByteArray &key, SymmetricKey::Algorithm algorithm)
+INITIALIZE_ENUM( SymmetricKey::Algorithm, 3,
+	AES_128,
+	AES_192,
+	AES_256
+);
+
+SymmetricKey::SymmetricKey(SymmetricKey::Algorithm algorithm)
 {
-	this->key = key;
+	unsigned int size = 0;
+
+	switch (algorithm) {
+	case AES_128:
+		size = 128;
+		break;
+	case AES_192:
+		size = 192;
+		break;
+	case AES_256:
+		size = 256;
+		break;
+	}
+
+	this->algorithm = algorithm;
+	this->keyData = Random::bytes(size);
+}
+
+SymmetricKey::SymmetricKey(const ByteArray &keyData, SymmetricKey::Algorithm algorithm)
+{
+	this->keyData = new ByteArray(keyData);
 	this->algorithm = algorithm;
 }
 
 SymmetricKey::SymmetricKey(const SymmetricKey &symmetricKey)
 {
-	this->key = symmetricKey.getEncoded();
+	this->keyData = new ByteArray(*(symmetricKey.getEncoded()));
 	this->algorithm = symmetricKey.getAlgorithm();
 }
 
 SymmetricKey::~SymmetricKey()
 {
+	this->keyData->burn();
+	delete this->keyData;
 }
 
-ByteArray SymmetricKey::getEncoded() const
+const ByteArray* SymmetricKey::getEncoded() const
 {
-	return this->key;
+	return this->keyData;
 }
 
 SymmetricKey::Algorithm SymmetricKey::getAlgorithm() const
@@ -28,14 +58,20 @@ SymmetricKey::Algorithm SymmetricKey::getAlgorithm() const
 
 int SymmetricKey::getSize()
 {
-	return this->key.size();
+	return this->keyData->getSize();
 }
 
 SymmetricKey& SymmetricKey::operator =(const SymmetricKey& value)
 {
-    this->key = value.getEncoded();
+	if(this == &value)
+		return *this;
+
+	this->keyData->burn();
+	delete this->keyData;
+
+	this->keyData = new ByteArray(*(value.keyData));
     this->algorithm = value.getAlgorithm();
-    return (*this);
+    return *this;
 }
 
 std::string SymmetricKey::getAlgorithmName(SymmetricKey::Algorithm algorithm)
@@ -52,21 +88,26 @@ std::string SymmetricKey::getAlgorithmName(SymmetricKey::Algorithm algorithm)
 		case SymmetricKey::AES_256:
 			ret = "aes-256";
 			break;
-		case SymmetricKey::DES:
-			ret = "des";
-			break;
-		case SymmetricKey::DES_EDE:
-			ret = "des-ede";
-			break;
-		case SymmetricKey::DES_EDE3:
-			ret = "des-ede3";
-			break;
-		case SymmetricKey::RC2:
-			ret = "rc2";
-			break;
-		case SymmetricKey::RC4:
-			ret = "rc4";
-			break;
 	}
 	return ret;
+}
+
+unsigned int SymmetricKey::getAlgorithmBlockSize(SymmetricKey::Algorithm algorithm) {
+	switch (algorithm)
+	{
+		case SymmetricKey::AES_128:
+		case SymmetricKey::AES_192:
+		case SymmetricKey::AES_256:
+			return 16;
+	}
+}
+
+unsigned int SymmetricKey::getAlgorithmIvSize(SymmetricKey::Algorithm algorithm) {
+	switch (algorithm)
+	{
+		case SymmetricKey::AES_128:
+		case SymmetricKey::AES_192:
+		case SymmetricKey::AES_256:
+			return 16;
+	}
 }

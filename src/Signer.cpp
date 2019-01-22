@@ -15,15 +15,15 @@ ByteArray Signer::sign(PrivateKey &key, ByteArray &hash, MessageDigest::Algorith
 	switch (alg)
 	{
 		case AsymmetricKey::RSA:
-			rc = RSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.size(), ret.getDataPointer(),
+			rc = RSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), ret.getDataPointer(),
 					&signedSize, EVP_PKEY_get0_RSA(key.getEvpPkey()));
 			break;
 		case AsymmetricKey::DSA:
-			rc = DSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.size(), ret.getDataPointer(),
+			rc = DSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), ret.getDataPointer(),
 					&signedSize, EVP_PKEY_get0_DSA(key.getEvpPkey()));
 			break;
 		case AsymmetricKey::ECDSA:
-			rc = ECDSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.size(), ret.getDataPointer(),
+			rc = ECDSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), ret.getDataPointer(),
 					&signedSize, EVP_PKEY_get0_EC_KEY(key.getEvpPkey()));
 			break;
 		default:
@@ -48,16 +48,16 @@ bool Signer::verify(PublicKey &key, ByteArray &signature, ByteArray &hash, Messa
 	switch (alg)
 	{
 		case AsymmetricKey::RSA:
-			rc = RSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.size(), signature.getDataPointer(),
-					signature.size(), EVP_PKEY_get0_RSA(key.getEvpPkey()));
+			rc = RSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), signature.getDataPointer(),
+					signature.getSize(), EVP_PKEY_get0_RSA(key.getEvpPkey()));
 			break;
 		case AsymmetricKey::DSA:
-			rc = DSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.size(), signature.getDataPointer(),
-					signature.size(), EVP_PKEY_get0_DSA(key.getEvpPkey()));
+			rc = DSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), signature.getDataPointer(),
+					signature.getSize(), EVP_PKEY_get0_DSA(key.getEvpPkey()));
 			break;
 		case AsymmetricKey::ECDSA:
-			rc = ECDSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.size(), signature.getDataPointer(),
-					signature.size(), EVP_PKEY_get0_EC_KEY(key.getEvpPkey()));
+			rc = ECDSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), signature.getDataPointer(),
+					signature.getSize(), EVP_PKEY_get0_EC_KEY(key.getEvpPkey()));
 			break;
 		default:
 			throw SignerException(SignerException::UNSUPPORTED_ASYMMETRIC_KEY_TYPE, "Signer::verify");

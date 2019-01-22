@@ -167,7 +167,7 @@ EC_GROUP * ECDSAKeyPair::createGroup(ByteArray &derEncoded) {
 	EC_GROUP *group = NULL;
 	BIO * in;
 
-	in = BIO_new_mem_buf(derEncoded.getDataPointer(), derEncoded.size());
+	in = BIO_new_mem_buf(derEncoded.getDataPointer(), derEncoded.getSize());
 
 	if ((in == NULL)) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR,

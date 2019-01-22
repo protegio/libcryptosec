@@ -1,50 +1,36 @@
 #include <libcryptosec/Random.h>
 
-ByteArray Random::bytes(int nbytes)
+#include <libcryptosec/exception/RandomException.h>
+
+#include <openssl/rand.h>
+
+ByteArray* Random::bytes(int nbytes)
 {
 	int rc;
-	ByteArray ret;
-	ret = ByteArray(nbytes);
-	rc = RAND_bytes(ret.getDataPointer(), nbytes);
-	if (rc == -1)
-	{
+	ByteArray* ret = NULL;
+
+	ret = new ByteArray(nbytes);
+	rc = RAND_bytes(ret->getDataPointer(), nbytes);
+
+	if (rc == -1) {
 		throw RandomException(RandomException::NO_IMPLEMENTED_FUNCTION, "Random::bytes");
-	}
-	else if (rc == 0)
-	{
+	} else if (rc == 0)	{
 		throw RandomException(RandomException::NO_DATA_SEEDED, "Random::bytes");
 	}
+
 	return ret;
 }
 
-ByteArray Random::pseudoBytes(int nbytes)
+void Random::seedData(const ByteArray &data)
 {
-	int rc;
-	ByteArray ret;
-	ret = ByteArray(nbytes);
-	rc = RAND_bytes(ret.getDataPointer(), nbytes);
-	if (rc == -1)
-	{
-		throw RandomException(RandomException::NO_IMPLEMENTED_FUNCTION, "Random::pseudoBytes");
-	}
-	else if (rc == 0)
-	{
-		throw RandomException(RandomException::NO_DATA_SEEDED, "Random::pseudoBytes");
-	}
-	return ret;
+	RAND_seed(data.getConstDataPointer(), data.getSize());
 }
 
-void Random::seedData(ByteArray &data)
-{
-	RAND_seed(data.getDataPointer(), data.size());
-}
-
-void Random::seedFile(std::string &filename, int nbytes)
+void Random::seedFile(const std::string &filename, int nbytes)
 {
 	int rc;
 	rc = RAND_load_file(filename.c_str(), nbytes);
-	if (!rc)
-	{
+	if (!rc) {
 		throw RandomException(RandomException::INTERNAL_ERROR, "Random::seedFile");
 	}
 }
@@ -56,5 +42,5 @@ void Random::cleanSeed()
 
 bool Random::status()
 {
-	return (RAND_status())?true:false;
+	return (RAND_status() ? true : false);
 }

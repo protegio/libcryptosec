@@ -42,7 +42,7 @@ std::string AuthorityKeyIdentifierExtension::extValue2Xml(std::string tab)
 	std::string ret, string;
 	char temp[15];
 
-	if (this->keyIdentifier.size() > 0)
+	if (this->keyIdentifier.getSize() > 0)
 	{
 		ret += tab + "<keyIdentifier>" + Base64::encode(this->keyIdentifier) + "</keyIdentifier>\n";
 	}
@@ -79,7 +79,7 @@ std::string AuthorityKeyIdentifierExtension::getXmlEncoded(std::string tab)
 		ret += tab + "\t<critical>" + string + "</critical>\n";
 		ret += tab + "\t<extnValue>\n";
 
-			if (this->keyIdentifier.size() > 0)
+			if (this->keyIdentifier.getSize() > 0)
 			{
 				ret += tab + "\t\t<keyIdentifier>" + Base64::encode(this->keyIdentifier) + "</keyIdentifier>\n";
 			}
@@ -139,11 +139,11 @@ X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension()
 	AUTHORITY_KEYID *authKeyId;
 	ByteArray temp;
 	authKeyId = AUTHORITY_KEYID_new();
-	if (this->keyIdentifier.size() > 0)
+	if (this->keyIdentifier.getSize() > 0)
 	{
 		authKeyId->keyid = ASN1_OCTET_STRING_new();
 		temp = this->keyIdentifier;
-		ASN1_OCTET_STRING_set(authKeyId->keyid, temp.getDataPointer(), temp.size());
+		ASN1_OCTET_STRING_set(authKeyId->keyid, temp.getDataPointer(), temp.getSize());
 	}
 	if (this->authorityCertIssuer.getNumberOfEntries() > 0)
 	{

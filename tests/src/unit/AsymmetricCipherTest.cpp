@@ -35,16 +35,16 @@ protected:
 		rsaKeyPairs.clear();
 		noPaddingTests.clear();
 	}
-};
 
-void testPrint(int keySize, AsymmetricCipher::Padding padding, const ByteArray& originalData,
-		const ByteArray& encryptedData, const ByteArray& decryptedData) {
-	std::cout << "Key size: " << keySize << std::endl;
-	std::cout << "Padding: " << padding << std::endl;
-	std::cout << "Original data : " << originalData.toHex(':') << std::endl;
-	std::cout << "Encrypted data: " << encryptedData.toHex(':') << std::endl;
-	std::cout << "Decrypted data: " << decryptedData.toHex(':') << std::endl << std::endl;
-}
+	void testPrint(int keySize, AsymmetricCipher::Padding padding, const ByteArray& originalData,
+			const ByteArray& encryptedData, const ByteArray& decryptedData) {
+		std::cout << "Key size: " << keySize << std::endl;
+		std::cout << "Padding: " << padding << std::endl;
+		std::cout << "Original data : " << originalData.toHex(':') << std::endl;
+		std::cout << "Encrypted data: " << encryptedData.toHex(':') << std::endl;
+		std::cout << "Decrypted data: " << decryptedData.toHex(':') << std::endl << std::endl;
+	}
+};
 
 /**
  * @brief Testa a função AsymmetricCipher::encrypt e AsymmetricCipher::decrypt para std::string
@@ -58,12 +58,12 @@ TEST_F(AsymmetricCipherTest, encryptDecryptString) {
 			if (padding != AsymmetricCipher::Padding::NO_PADDING) {
 				auto encryptedData = AsymmetricCipher::encrypt(*rsaPublicKey, testString, padding);
 				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, encryptedData, padding);
-				testPrint(size, padding, testString, encryptedData, decryptedData);
+				this->testPrint(size, padding, testString, encryptedData, decryptedData);
 				EXPECT_EQ(decryptedData.toString(), testString);
 			} else {
 				auto encryptedData = AsymmetricCipher::encrypt(*rsaPublicKey, noPaddingTests[size]->toString(), padding);
 				auto decryptedData = AsymmetricCipher::decrypt(*rsaPrivateKey, encryptedData, padding);
-				testPrint(size, padding, noPaddingTests[size]->toString(), encryptedData, decryptedData);
+				this->testPrint(size, padding, noPaddingTests[size]->toString(), encryptedData, decryptedData);
 				EXPECT_EQ(decryptedData.toString(), noPaddingTests[size]->toString());
 			}
 		}

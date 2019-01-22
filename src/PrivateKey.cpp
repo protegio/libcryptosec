@@ -28,7 +28,7 @@ PrivateKey::PrivateKey(ByteArray &derEncoded) : AsymmetricKey(NULL)
 	{
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::PrivateKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.size())) != derEncoded.size())
+	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
 	{
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PrivateKey::PrivateKey");
@@ -130,7 +130,7 @@ std::string PrivateKey::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher:
 	std::string ret;
 	ByteArray *retTemp;
 	unsigned char *data;
-	ByteArray passphraseData;
+	const ByteArray *passphraseData;
 	buffer = BIO_new(BIO_s_mem());
 	if (buffer == NULL)
 	{
@@ -146,7 +146,8 @@ std::string PrivateKey::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher:
 		throw;
 	}
 	passphraseData = passphrase.getEncoded();
-	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0, PrivateKey::passphraseCallBack, (void *)&passphraseData);
+	// TODO: is it ok to pass a ByteArray object here?
+	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0, PrivateKey::passphraseCallBack, (void *) passphraseData);
 	if (!wrote)
 	{
 		BIO_free(buffer);
@@ -201,7 +202,7 @@ bool PrivateKey::operator==(PrivateKey& priv) throw()
 int PrivateKey::passphraseCallBack(char *buf, int size, int rwflag, void *u)
 {
     ByteArray* passphrase = (ByteArray*) u;
-    int length = passphrase->size();
+    int length = passphrase->getSize();
     if (length > 0)
     {
         if (length > size)

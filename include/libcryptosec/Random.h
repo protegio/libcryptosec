@@ -1,13 +1,9 @@
 #ifndef RANDOM_H_
 #define RANDOM_H_
 
-/* OpenSSL includes */
-#include <openssl/rand.h>
-/* c++ objects includes */
 #include <string>
-/* local includes */
-#include "ByteArray.h"
-#include <libcryptosec/exception/RandomException.h>
+
+class ByteArray;
 
 /**
  * @brief Implementa funcionalidades de um Gerador de Números Aleatórios.
@@ -25,28 +21,20 @@ public:
 	 * @return objeto ByteArray que representa bytes randômicos.
 	 * @throw RandomException caso função de geração de bytes não esteja implementada ou caso o gerador não tenha sido semeado.
 	 */
-	static ByteArray bytes(int nbytes);
+	static ByteArray* bytes(int nbytes);
 	
-	/**
-	 * Gera bytes pseudo-randômicos.
-	 * @param nbytes quantidade de bytes a ser gerada.
-	 * @return objeto ByteArray que representa bytes pseudo-randômicos.
-	 * @throw RandomException caso função de geração de bytes não esteja implementada ou caso o gerador não tenha sido semeado.
-	 */
-	static ByteArray pseudoBytes(int nbytes);
-
 	/**
 	 * Semeia o Gerador de Número Aleatórios com semente.
 	 * @param data dados aleatórios utilizados como semente.
 	 */
-	static void seedData(ByteArray &data);
+	static void seedData(const ByteArray& data);
 	
 	/**
 	 * Semeia o Gerador de Número Aleatórios com semente a partir de um arquivo.
 	 * @param filename caminho para arquivo.
 	 * @param nbytes número máximo de bytes a ser lido do conteúdo do arquivo.
 	 */
-	static void seedFile(std::string &filename, int nbytes);
+	static void seedFile(const std::string& filename, int nbytes);
 	
 	/**
 	 * Limpa recursos utilizados pelo Gerador de Números Aleatórios.

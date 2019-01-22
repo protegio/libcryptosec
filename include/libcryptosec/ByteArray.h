@@ -15,189 +15,232 @@
 
 /**
  * @brief Classe usada para transportar dados binários pelo sistema. Pode ser usada para conversão de 
- * texto em array de bytes e vice-versa.
- * Usar esta classe ao invés do QByteArray por causa do uso de "unsigned char", e pela possibilidade
- * de fazer "cópias profundas" dos dados.
+ * texto em array de bytes e vice-versa. Usar esta classe ao invés do QByteArray por causa do uso de
+ * "unsigned char", e pela possibilidade de fazer "cópias profundas" dos dados.
  */
 class ByteArray
 {
+
 public:
+
 	/**
-	 * Default constructor.
+	 * @brief Constrói um ByteArray vazio de tamanho 0.
 	 */
     ByteArray();
 
 	/**
-	 * ByteArray com tamanho definido.
+	 * @brief Constrói um ByteArray de tamanho definido igual a \p size.
 	 * 
-	 * @param length Tamanho do novo ByteArray.
+	 * @param size tamanho do novo ByteArray.
 	 */
-	ByteArray(unsigned int length);
+	ByteArray(unsigned int size);
 
 	/**
-	 * ByteArray a partir do buffer desejado, copiando os dados.
+	 * @brief Constrói um ByteArray a partir do buffer desejado, copiando os dados.
 	 * 
-	 * @param data Buffer de origem dos bytes.
-	 * @param length Tamanho do buffer.
+	 * @param data		Array de bytes a ser copiado.
+	 * @param size	Tamanho do array de bytes.
 	 */
-    ByteArray(const unsigned char* data, unsigned int length);
+    ByteArray(const unsigned char* data, unsigned int size);
 
 	/**
-	 * ByteArray a partir de ostringstream copiando os dados.
+	 * @brief Constrói um ByteArray a partir de um std::ostringstream, copiando os dados.
 	 * 
-	 * @param buffer ostream com os dados para colocar no ByteArray
+	 * @param buffer string stream com os dados a serem copiados.
 	 */
     ByteArray(std::ostringstream *buffer);
 
 	/**
-	 * ByteArray a partir de dados legíveis.
+	 * @brief Constrói um ByteArray a partir de uma std::string.
 	 * 
-	 * @param data dados que serão colocados no objeto
-	 */
-    ByteArray(const std::string& data);
-
-	/**
-	 * ByteArray a partir de dados legíveis.
+	 * A string precisa terminar em \0, que também é copiado para o ByteArray.
 	 *
-	 * @param data dados que serão colocados no objeto
+	 * @param str	A std::string que será copiada para o ByteArray.
 	 */
-	ByteArray(const char *data);
+    ByteArray(const std::string& str);
 
 	/**
-	 * ByteArray a partir de outro ByteArray (que será copiado).
+	 * @brief Constrói um ByteArray a partir de uma std::string.
+	 *
+	 * A string precisa terminar em \0, que também é copiado para o ByteArray.
+	 *
+	 * @param str	A string que será copiada para o ByteArray.
+	 */
+	ByteArray(const char *str);
+
+	/**
+	 * @brief Contrói um ByteArray a partir de outro ByteArray.
 	 * 
-	 * @param value ByteArray de origem.
+	 * O conteúdo do ByteArray é copiado.
+	 *
+	 * @param value	O ByteArray de origem.
 	 */
     ByteArray(const ByteArray& value);
 
 	/**
-	 * Deafult destructor.
+	 * @brief Destrutor.
 	 */
 	virtual ~ByteArray();
     
     /**
-     * Ler o byte da posição desejada.
+     * @brief Lê o byte da posição desejada.
      * 
-     * @param pos Posição desejada.
+     * @param pos	A posição desejada.
+     *
+     * @return O valor do byte na posição passada.
+     * @throw std::out_of_bound Se a posição ultrapassar o tamanho do ByteArray.
      */
-    char at(unsigned int pos) const;
+    unsigned char at(unsigned int pos) const;
     
     /**
-     * Fazer uma cópia profunda ao invés de copiar a referência
-     * 
-     * @param value ByteArray a ser copiado.
-     */
-    ByteArray& operator =(const ByteArray& value);
-    
-    /**
-     * Permitir comparação booleana de ByteArray's
-     * 
-     * @param left Primeiro ByteArray da comparação.
-     * @param right Segundo ByteArray da comparação.
-     */
-    friend bool operator ==(const ByteArray& left, const ByteArray& right);
-    
-    /**
-     * Permitir diferença booleana de ByteArray's
-     * 
-     * @param left Primeiro ByteArray da comparação.
-     * @param right Segundo ByteArray da comparação.
-     */
-    friend bool operator !=(const ByteArray& left, const ByteArray& right);
-
-    /**
-     * Ler o byte da posição desejada.
-     * 
-     * @param pos Posição desejada.
+     * @brief Lê ou escreve o byte da posição desejada.
+     *
+     * @param pos	A posição desejada.
+     *
+     * @return A referência para o byte da posição.
+     * @throw std::out_of_bound Se a posição ultrapassar o tamanho do ByteArray.
      */
     unsigned char& operator [](unsigned int pos);
 
     /**
-     * Fazer ou-exclusivo entre dois ByteArray's.
+     * @brief Faz uma cópia do ByteArray passado.
      * 
-     * @param left Primeiro ByteArray da operação.
-     * @param right Segundo ByteArray da operação.
+     * @param value	O ByteArray a ser copiado.
+     *
+     * @return O ByteArray resultante da cópia.
+     */
+    ByteArray& operator =(const ByteArray& value);
+    
+    /**
+     * @brief Compara dois ByteArray e retorna true se forem iguais, false caso contrário.
+     * 
+     * @param left	Primeiro ByteArray da comparação.
+     * @param right	Segundo ByteArray da comparação.
+     *
+     * @return True se forem iguais, false caso contrário.
+     */
+    friend bool operator ==(const ByteArray& left, const ByteArray& right);
+    
+    /**
+     * @brief Compara dois ByteArray e retorna true se forem diferentes, false caso contrário.
+     * 
+     * @param left	Primeiro ByteArray da comparação.
+     * @param right	Segundo ByteArray da comparação.
+     *
+     * @return True se forem diferentes, false caso contrário.
+     */
+    friend bool operator !=(const ByteArray& left, const ByteArray& right);
+
+    /**
+     * @brief Executa a operação lógica xor entre dois ByteArray.
+     * 
+     * Essa função constrói um novo ByteArray com o resultado da operação.
+     *
+     * Se os ByteArray tiverem tamanhos diferentes, o ByteArray de menor tamanho
+     * é expandido com zeros até ficar do tamanho do maior ByteArray.
+     *
+     * @param left	Primeiro ByteArray da operação.
+     * @param right	Segundo ByteArray da operação.
+     *
+     * @return O ByteArray resultante da operação xor.
      */
     friend ByteArray& operator xor(const ByteArray& left, const ByteArray& right);
 
     /**
-     * Copy bytes from desired memory location.
+     * @brief Copia os dados do array de bytes \p from.
      * 
-     * @param data Desired memory location.
-     * @param length Amount to copy.
+     * @param data		Array de bytes a ser copiado.
+     * @param size	Tamanho do array de bytes a ser copiado.
      */
-    void copyFrom(unsigned char* data, unsigned int length);
+    void copyFrom(unsigned char* from, unsigned int size);
 
     /**
-     * Copy bytes from desired ByteArray, considering an offset.
+     * @brief Copia os dados do ByteArray para \p to.
      * 
-     * @param offset Offset to consider for copying.
-     * @param length Amount to copy.
-     * @param data Desired ByteArray.
-     * @param offset2 Offset to consider for copy begin in data.
+     * @param to 				O ByteArray de destino.
+     * @param toOffset			O offset de onde começar a copiar no destino.
+     * @param fromOffset		O offset de onde começar a copiar da origem.
+     * @param fromNumberOfBytes	O número de bytes a ser copiado da origem.
+     *
+     * @throw std::out_of_range se qualquer limite da origem ou destino for quebrado.
      */
-    void copyFrom(int offset, int length, ByteArray& data, int offset2);
+    void copyTo(ByteArray& to, unsigned int toOffset, unsigned int fromOffset, unsigned int fromNumberOfBytes) const;
 
     /**
-     * Returns an istringstream representing current byte array.
+     * @brief Retorna um std::istringstream representando o ByteArray.
+     *
+     * Os dados do ByteArray são copiados para o std::istringstream.
+     *
+     * @return O std::istringstream.
      */
-	std::istringstream * toInputStringStream();
+	std::istringstream* toInputStringStream() const;
 
     /**
-     * Set the content of ByteArray to be an already allocated memory space.
+     * @brief Modifica o ponteiro de memória do ByteArray para um já alocado, sem copiá-lo.
      * 
-     * @param data Desired memory location.
-     * @param length Length of allocated memory.
+     * O ponteiro será deletado quando o ByteArray for destruído.
+     *
+     * @param data	O array de bytes para ser gerenciado pelo ByteArray.
+     * @param size	O tamanho do array de bytes.
      */
-    void setDataPointer(unsigned char* data, unsigned int length);
+    void setDataPointer(unsigned char* data, unsigned int size);
 
     /**
-     * Returns a const pointer to the byte array content.
+     * @return Um ponteiro const para o array de bytes gerenciado pelo ByteArray.
      */
     const unsigned char* getConstDataPointer() const;
 
     /**
-     * Returns a pointer to the byte array content.
+     * @return Um ponteiro para o array de bytes gerenciado pelo ByteArray.
      */
     unsigned char* getDataPointer();
 
     /**
-     * Returns the size of current byte array.
+     * @return O tamanho do ByteArray.
      */
-    unsigned int size() const;
+    unsigned int getSize() const;
     
     /**
-     * @brief Sets the byte array size.
+     * @brief Define o tamanho do ByteArray.
      *
-     * @param size: the desired size for the byte array.
-     * @throw out_of_range if size is bigger than the allocated memory
+     * @param size	O tamanho desejado para o ByteArray.
      */
     void setSize(unsigned int size);
 
     /**
-     * Consider that current byte array is a char array, and retuirns it as a QString.
+     * @brief Retorna o ByteArray como uma std::string.
+     *
+     * Os dados são copiados para a std::string.
+     *
+     * Essa função garante que a string é terminada em \0.
+     *
+     * @return A std::string.
      */
     virtual std::string toString() const;
     
     /**
-     * Converts the content of this bytearray to hexadecimal value.
+     * @return A representação hexadecimal do ByteArray.
      */    
     virtual std::string toHex() const;
     
     /**
-     * Converts the content of this bytearray to hexadecimal value separated using the char informed as argument.
-     */    
+     * @param separator O separador a ser usado a cada dois caracteres hexadecimal.
+     * @return A representação hexadecimal do ByteArray.
+     */
     virtual std::string toHex(char separator) const;
     
     /**
-     * Computes multiple xor of vector elements.
+     * @brief Sobrescreve os dados do ByteArray.
+     *
+     * @param useRandomBytes Indica que o ByteArray deve ser sobrescrito com dados
+     * aleatórios, caso contrário ele será sobrescrito com zeros.
      */
-    static ByteArray xOr(std::vector<ByteArray> &array);
+    virtual void burn(bool useRandomBytes = false);
 
 private:
     unsigned char* m_data;
-    unsigned int length;
-    unsigned int originalLength;
+    unsigned int size;
+    unsigned int originalSize;
 };
 
 #endif /*BYTEARRAY_H_*/

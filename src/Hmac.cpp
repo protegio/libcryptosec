@@ -43,7 +43,7 @@ void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm) {
 
 	this->algorithm = algorithm;
 	const EVP_MD *md = MessageDigest::getMessageDigest( this->algorithm );
-	int rc = HMAC_Init_ex( this->ctx, (void*)key.getDataPointer(), key.size(), md, NULL );
+	int rc = HMAC_Init_ex( this->ctx, (void*)key.getDataPointer(), key.getSize(), md, NULL );
 	if (!rc)
 	{
 		this->state = Hmac::NO_INIT;
@@ -58,7 +58,7 @@ void Hmac::init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engi
 
 	this->algorithm = algorithm;
 	const EVP_MD *md = MessageDigest::getMessageDigest( this->algorithm );
-	int rc = HMAC_Init_ex( this->ctx, (void*)key.getDataPointer(), key.size(), md, engine.getEngine() );
+	int rc = HMAC_Init_ex( this->ctx, (void*)key.getDataPointer(), key.getSize(), md, engine.getEngine() );
 	if (!rc)
 	{
 		this->state = Hmac::NO_INIT;
@@ -83,7 +83,7 @@ void Hmac::update(ByteArray &data) {
 	{
 		throw InvalidStateException("Hmac::update");
 	}
-	int rc = HMAC_Update( this->ctx, data.getDataPointer(), data.size() );
+	int rc = HMAC_Update( this->ctx, data.getDataPointer(), data.getSize() );
 	if (!rc)
 	{
 		throw HmacException(HmacException::CTX_UPDATE, "Hmac::update");

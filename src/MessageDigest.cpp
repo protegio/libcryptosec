@@ -111,7 +111,7 @@ void MessageDigest::update(const ByteArray &data)
 	{
 		throw InvalidStateException("MessageDigest::update");
 	}
-	rc = EVP_DigestUpdate(this->ctx, data.getConstDataPointer(), data.size());
+	rc = EVP_DigestUpdate(this->ctx, data.getConstDataPointer(), data.getSize());
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_UPDATE, "MessageDigest::update");
