@@ -1,7 +1,7 @@
 #ifndef ASYMMETRICKEYEXCEPTION_H_
 #define ASYMMETRICKEYEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class AsymmetricKeyException : public LibCryptoSecException
 {
@@ -15,13 +15,13 @@ public:
 		UNAVAILABLE_KEY,
 		INVALID_ASYMMETRIC_KEY,
 	};
-    AsymmetricKeyException(std::string where)
+    AsymmetricKeyException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = AsymmetricKeyException::UNKNOWN;
     	this->details = "";
     }
-    AsymmetricKeyException(AsymmetricKeyException::ErrorCode errorCode, std::string where)
+    AsymmetricKeyException(AsymmetricKeyException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

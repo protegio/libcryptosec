@@ -1,7 +1,7 @@
 #ifndef ENGINEEXCEPTION_H_
 #define ENGINEEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class EngineException : public LibCryptoSecException
 {
@@ -20,13 +20,13 @@ public:
 		SET_COMMAND,
 		LOAD_ENGINE_FAILED,
 	};
-    EngineException(std::string where)
+    EngineException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = EngineException::UNKNOWN;
     	this->details = "";
     }
-    EngineException(EngineException::ErrorCode errorCode, std::string where)
+    EngineException(EngineException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

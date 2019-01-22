@@ -1,7 +1,7 @@
 #ifndef SIGNEREXCEPTION_H_
 #define SIGNEREXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class SignerException : public LibCryptoSecException
 {
@@ -13,12 +13,12 @@ public:
 		VERIFYING_DATA,
 		UNSUPPORTED_ASYMMETRIC_KEY_TYPE,
 	};
-    SignerException(std::string where)
+    SignerException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = SignerException::UNKNOWN;
     }
-    SignerException(SignerException::ErrorCode errorCode, std::string where)
+    SignerException(SignerException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

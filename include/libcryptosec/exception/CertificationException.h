@@ -1,7 +1,7 @@
 #ifndef CERTIFICATIONEXCEPTION_H_
 #define CERTIFICATIONEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class CertificationException : public LibCryptoSecException
 {
@@ -20,12 +20,12 @@ public:
 		UNKNOWN_OID,
 		KNOWN_OID,
 	};
-    CertificationException(std::string where)
+    CertificationException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = CertificationException::UNKNOWN;
     }
-    CertificationException(CertificationException::ErrorCode errorCode, std::string where)
+    CertificationException(CertificationException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

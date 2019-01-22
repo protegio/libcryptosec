@@ -1,7 +1,7 @@
 #ifndef PKCS12EXCEPTION_H_
 #define PKCS12EXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class Pkcs12Exception : public LibCryptoSecException
 {
@@ -17,12 +17,12 @@ public:
 		MAC_VERIFY_FAILURE,
 	};
 
-	Pkcs12Exception(std::string where)
+	Pkcs12Exception(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = Pkcs12Exception::UNKNOWN;
     }
-    Pkcs12Exception(Pkcs12Exception::ErrorCode errorCode, std::string where)
+    Pkcs12Exception(Pkcs12Exception::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

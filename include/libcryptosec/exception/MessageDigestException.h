@@ -1,7 +1,7 @@
 #ifndef MESSAGEDIGESTEXCEPTION_H_
 #define MESSAGEDIGESTEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class MessageDigestException : public LibCryptoSecException
 {
@@ -14,12 +14,12 @@ public:
 		CTX_FINISH,
 		INVALID_ALGORITHM,
 	};
-    MessageDigestException(std::string where)
+    MessageDigestException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = MessageDigestException::UNKNOWN;
     }
-    MessageDigestException(MessageDigestException::ErrorCode errorCode, std::string where)
+    MessageDigestException(MessageDigestException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

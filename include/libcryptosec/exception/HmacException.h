@@ -1,7 +1,7 @@
 #ifndef HMACEXCEPTION_H_
 #define HMACEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class HmacException : public LibCryptoSecException {
 
@@ -14,13 +14,13 @@ public:
 		INVALID_ALGORITHM
 	};
 
-	HmacException(std::string where)
+	HmacException(const std::string& where)
 	{
 		this->where = where;
 		this->errorCode = HmacException::UNKNOWN;
 	}
 
-	HmacException(HmacException::ErrorCode errorCode, std::string where)
+	HmacException(HmacException::ErrorCode errorCode, const std::string& where)
 	{
 		this->where = where;
 		this->errorCode = errorCode;

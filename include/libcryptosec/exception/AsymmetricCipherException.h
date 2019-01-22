@@ -1,7 +1,7 @@
 #ifndef ASYMMETRICCIPHEREXCEPTION_H_
 #define ASYMMETRICCIPHEREXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class AsymmetricCipherException : public LibCryptoSecException
 {
@@ -12,12 +12,12 @@ public:
 		ENCRYPTING_DATA,
 		DECRYPTING_DATA,
 	};
-    AsymmetricCipherException(std::string where)
+    AsymmetricCipherException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = AsymmetricCipherException::UNKNOWN;
     }
-    AsymmetricCipherException(AsymmetricCipherException::ErrorCode errorCode, std::string where)
+    AsymmetricCipherException(AsymmetricCipherException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

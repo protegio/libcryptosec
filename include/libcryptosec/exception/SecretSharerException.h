@@ -1,7 +1,7 @@
 #ifndef SECRETSHAREREXCEPTION_H_
 #define SECRETSHAREREXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class SecretSharerException : public LibCryptoSecException
 {
@@ -13,12 +13,12 @@ public:
 		INVALID_THRESHOLD_VALUE,
 		INVALID_PARTS_VALUE,
 	};
-    SecretSharerException(std::string where)
+    SecretSharerException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = SecretSharerException::UNKNOWN;
     }
-    SecretSharerException(SecretSharerException::ErrorCode errorCode, std::string where)
+    SecretSharerException(SecretSharerException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

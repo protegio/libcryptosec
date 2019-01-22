@@ -1,7 +1,7 @@
 #ifndef PKCS7EXCEPTION_H_
 #define PKCS7EXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class Pkcs7Exception : public LibCryptoSecException
 {
@@ -18,12 +18,12 @@ public:
 		ADDING_SIGNER,
 		ADDING_CERTIFICATE,
 	};
-    Pkcs7Exception(std::string where)
+    Pkcs7Exception(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = Pkcs7Exception::UNKNOWN;
     }
-    Pkcs7Exception(Pkcs7Exception::ErrorCode errorCode, std::string where)
+    Pkcs7Exception(Pkcs7Exception::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

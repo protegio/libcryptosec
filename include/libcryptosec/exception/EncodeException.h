@@ -3,7 +3,7 @@
 
 #include <openssl/err.h>
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class EncodeException : public LibCryptoSecException
 {
@@ -21,12 +21,12 @@ public:
 		BASE64_ENCODE = 8,
 		BASE64_DECODE = 9,
 	};
-	EncodeException(std::string where)
+	EncodeException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = EncodeException::UNKNOWN;
     }
-    EncodeException(EncodeException::ErrorCode errorCode, std::string where)
+    EncodeException(EncodeException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

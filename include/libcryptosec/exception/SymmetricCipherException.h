@@ -1,7 +1,7 @@
 #ifndef SYMMETRICCIPHEREXCEPTION_H_
 #define SYMMETRICCIPHEREXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class SymmetricCipherException : public LibCryptoSecException
 {
@@ -17,12 +17,12 @@ public:
 		INVALID_STATE,
 		CTX_CLEANUP,
 	};
-    SymmetricCipherException(std::string where)
+    SymmetricCipherException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = SymmetricCipherException::UNKNOWN;
     }
-    SymmetricCipherException(SymmetricCipherException::ErrorCode errorCode, std::string where)
+    SymmetricCipherException(SymmetricCipherException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

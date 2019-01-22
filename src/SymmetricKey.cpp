@@ -1,6 +1,7 @@
 #include <libcryptosec/SymmetricKey.h>
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Random.h>
+#include <libcryptosec/exception/SymmetricKeyException.h>
 
 INITIALIZE_ENUM( SymmetricKey::Algorithm, 3,
 	AES_128,
@@ -100,6 +101,7 @@ unsigned int SymmetricKey::getAlgorithmBlockSize(SymmetricKey::Algorithm algorit
 		case SymmetricKey::AES_256:
 			return 16;
 	}
+	throw SymmetricKeyException(SymmetricKeyException::INVALID_ALGORITHM, "SymmetricKey::getAlgorithmBlockSize");
 }
 
 unsigned int SymmetricKey::getAlgorithmIvSize(SymmetricKey::Algorithm algorithm) {
@@ -110,4 +112,5 @@ unsigned int SymmetricKey::getAlgorithmIvSize(SymmetricKey::Algorithm algorithm)
 		case SymmetricKey::AES_256:
 			return 16;
 	}
+	throw SymmetricKeyException(SymmetricKeyException::INVALID_ALGORITHM, "SymmetricKey::getAlgorithmIvSize");
 }

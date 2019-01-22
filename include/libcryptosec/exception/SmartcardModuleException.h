@@ -1,7 +1,7 @@
 #ifndef SMARTCARDMODULEEXCEPTION_H_
 #define SMARTCARDMODULEEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class SmartcardModuleException : public LibCryptoSecException
 {
@@ -19,13 +19,13 @@ public:
 		BLOCKED_PIN = 0x000000A4,
 		ID_NOT_FOUND = 9,
 	};
-	SmartcardModuleException(std::string where)
+	SmartcardModuleException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = SmartcardModuleException::UNKNOWN;
     	this->details = "";
     }
-    SmartcardModuleException(SmartcardModuleException::ErrorCode errorCode, std::string where)
+    SmartcardModuleException(SmartcardModuleException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

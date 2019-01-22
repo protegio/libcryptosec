@@ -2,7 +2,7 @@
 #define BIGINTEGEREXCEPTION_H_
 
 #include <openssl/err.h>
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class BigIntegerException : public LibCryptoSecException
 {

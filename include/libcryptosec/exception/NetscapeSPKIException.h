@@ -1,7 +1,7 @@
 #ifndef NETSCAPESPKIEXCEPTION_H_
 #define NETSCAPESPKIEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class NetscapeSPKIException : public LibCryptoSecException
 {
@@ -13,12 +13,12 @@ public:
 		INVALID_SPKI,
 		SET_NO_VALUE,
 	};
-    NetscapeSPKIException(std::string where)
+    NetscapeSPKIException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = NetscapeSPKIException::UNKNOWN;
     }
-    NetscapeSPKIException(NetscapeSPKIException::ErrorCode errorCode, std::string where)
+    NetscapeSPKIException(NetscapeSPKIException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

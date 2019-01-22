@@ -1,7 +1,7 @@
 #ifndef RANDOMEXCEPTION_H_
 #define RANDOMEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class RandomException : public LibCryptoSecException
 {
@@ -13,12 +13,12 @@ public:
 		NO_IMPLEMENTED_FUNCTION,
 		INTERNAL_ERROR,
 	};
-    RandomException(std::string where)
+    RandomException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = RandomException::UNKNOWN;
     }
-    RandomException(RandomException::ErrorCode errorCode, std::string where)
+    RandomException(RandomException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;

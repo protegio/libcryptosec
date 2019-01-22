@@ -1,12 +1,12 @@
 #ifndef INVALIDSTATEEXCEPTION_H_
 #define INVALIDSTATEEXCEPTION_H_
 
-#include "LibCryptoSecException.h"
+#include <libcryptosec/exception/LibCryptoSecException.h>
 
 class InvalidStateException : public LibCryptoSecException
 {
 public:
-    InvalidStateException(std::string where)
+    InvalidStateException(const std::string& where)
     {
     	this->where = where;
     }
