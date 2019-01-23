@@ -44,7 +44,7 @@ public:
 	std::string getXmlEncoded(std::string tab);
 	virtual std::string toXml(std::string tab = "");
 	std::string getPemEncoded();
-	ByteArray getDerEncoded() const;
+	ByteArray* getDerEncoded() const;
 	MessageDigest::Algorithm getMessageDigestAlgorithm();
 	void setVersion(long version);
 	long getVersion();
@@ -61,7 +61,7 @@ public:
 	std::vector<Extension *> getExtension(Extension::Name extensionName);
 	std::vector<Extension *> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();
-	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const;
+	ByteArray* getFingerPrint(MessageDigest::Algorithm algorithm) const;
 	void sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
 	virtual bool verify();
 	virtual bool isSigned() const throw();

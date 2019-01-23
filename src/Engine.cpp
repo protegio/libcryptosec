@@ -5,7 +5,7 @@ Engine::Engine(ENGINE *engine)
 	this->engine = engine;
 }
 
-Engine::Engine(const Engine &engine)
+Engine::Engine(Engine &engine)
 {
 	this->engine = engine.getEngine();
 	ENGINE_up_ref(this->engine);
@@ -159,7 +159,7 @@ void Engine::removeFromEnginesList()
 {
 }
 
-ENGINE* Engine::getEngine() const
+ENGINE* Engine::getEngine()
 {
 	return this->engine;
 }

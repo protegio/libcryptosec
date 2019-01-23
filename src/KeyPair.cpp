@@ -45,7 +45,7 @@ KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length)
 			this->key = EVP_PKEY_new();
 			EVP_PKEY_assign_DSA(this->key, dsa);
 			break;
-		case AsymmetricKey::ECDSA:
+		case AsymmetricKey::EC:
 			break;
 	}
 	if (!this->key)
@@ -188,7 +188,7 @@ PublicKey* KeyPair::getPublicKey()
 		case AsymmetricKey::DSA:
 			ret = new DSAPublicKey(keyTemp);
 			break;
-		case AsymmetricKey::ECDSA:
+		case AsymmetricKey::EC:
 			ret = new ECDSAPublicKey(keyTemp);
 			break;
 	}
@@ -227,7 +227,7 @@ PrivateKey* KeyPair::getPrivateKey()
 			case AsymmetricKey::DSA:
 				ret = new DSAPrivateKey(this->key);
 				break;
-			case AsymmetricKey::ECDSA:
+			case AsymmetricKey::EC:
 				ret = new ECDSAPrivateKey(this->key);
 				break;
 		}
@@ -365,7 +365,7 @@ AsymmetricKey::Algorithm KeyPair::getAlgorithm()
 			type = AsymmetricKey::DSA;
 			break;
 		case EVP_PKEY_EC:
-			type = AsymmetricKey::ECDSA;
+			type = AsymmetricKey::EC;
 			break;
 //		case EVP_PKEY_DH:
 //			type = AsymmetricKey::DH;

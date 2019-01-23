@@ -1,13 +1,13 @@
 #ifndef PUBLICKEY_H_
 #define PUBLICKEY_H_
 
-#include <openssl/evp.h>
-#include <openssl/pem.h>
+#include <libcryptosec/AsymmetricKey.h>
+
 #include <string>
-#include "AsymmetricKey.h"
-#include "ByteArray.h"
-#include <libcryptosec/exception/EncodeException.h>
-#include "MessageDigest.h"
+
+#include <openssl/evp.h>
+
+class ByteArray;
 
 /**
  * Representa uma chave pública.
@@ -23,25 +23,25 @@ public:
 
 	/**
 	 * Construtor para uso interno recebendo um ponteiro para a estrutura OpenSSL EVP_PKEY.
-	 * @param key ponteiro para a estrutura OpenSSL EVP_PKEY. 
+	 * @param key ponteiro para a estrutura OpenSSL EVP_PKEY.
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	PublicKey(EVP_PKEY *key);
+	PublicKey(EVP_PKEY* key);
 
 	/**
 	 * Construtor recebendo a representação da chave pública no formato DER.
 	 * @param derEncoded chave pública codificada no formato DER.
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do DER.
 	 **/
-	PublicKey(ByteArray &derEncoded);
+	PublicKey(const ByteArray& derEncoded);
 
 	/**
 	 * Construtor recebendo a representação da chave pública no formato PEM.
 	 * @param pemEncoded chave pública codificada no formato PEM.
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do PEM.
 	 **/	
-	PublicKey(std::string &pemEncoded);
+	PublicKey(const std::string& pemEncoded);
 
 	/**
 	 * Destrutor padrão, limpa a estrutura interna EVP_PKEY
@@ -60,12 +60,12 @@ public:
 	 * @return a chave pública codificada em DER.
 	 * @throw EncodeException caso ocorra um erro na codificação da chave.
 	 **/
-	ByteArray getDerEncoded();
+	ByteArray* getDerEncoded();
 
 	/**
 	 * @return hash sha1 da chave. 
 	 */	
-	ByteArray getKeyIdentifier();
+	ByteArray* getKeyIdentifier();
 };
 
 #endif /*PUBLICKEY_H_*/

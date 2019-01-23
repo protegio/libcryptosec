@@ -1,5 +1,6 @@
 #include <libcryptosec/Pkcs12.h>
 
+#include <libcryptosec/exception/AsymmetricKeyException.h>
 
 Pkcs12::Pkcs12(PKCS12* p12)
 {
@@ -76,7 +77,7 @@ PrivateKey* Pkcs12::getPrivKey(std::string password)
 			ret = new DSAPrivateKey(this->privKey->getEvpPkey());
 			break;
 
-		case AsymmetricKey::ECDSA:
+		case AsymmetricKey::EC:
 			ret = new ECDSAPrivateKey(this->privKey->getEvpPkey());
 			break;
 	}

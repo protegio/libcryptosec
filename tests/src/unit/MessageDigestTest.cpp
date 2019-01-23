@@ -1,8 +1,11 @@
 #include <libcryptosec/certificate/CertificateBuilder.h>
 #include <libcryptosec/RSAKeyPair.h>
 #include <libcryptosec/init.h>
-#include <fstream>
+#include <libcryptosec/exception/MessageDigestException.h>
+
 #include <gtest/gtest.h>
+
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -55,6 +58,14 @@ protected:
 
    static const int mdNidList[];
    std::map<MessageDigest::Algorithm, ByteArray> testVector;
+
+   void printTest(MessageDigest::Algorithm algorithm, const ByteArray& data,
+		   const ByteArray& expectedHash, const ByteArray& calculatedHash) {
+	   std::cout << "Algorithm : " << algorithm << std::endl;
+	   std::cout << "Data      : " << data.toHex(':') << std::endl;
+	   std::cout << "Expected  : " << expectedHash.toHex(':') << std::endl;
+	   std::cout << "Calculated: " << calculatedHash.toHex(':') << std::endl;
+   }
 };
 
 const int MessageDigestTest::mdNidList[] = {
@@ -100,11 +111,14 @@ TEST_F(MessageDigestTest, GetMessageDigestByNid) {
  * @brief Testa a função MessageDigest::Algorithm GetMessageDigest(int).
  */
 TEST_F(MessageDigestTest, Digest) {
+	// removes \0
+	ByteArray testByteArray((const unsigned char*) testString.c_str(), testString.size());
 	for(auto algorithm : MessageDigest::AlgorithmList) {
 		if (algorithm != MessageDigest::Algorithm::NO_ALGORITHM) {
 			MessageDigest md(algorithm);
-			auto hash = md.doFinal(testString);
-			EXPECT_TRUE( hash == this->testVector[algorithm] );
+			auto hash = md.doFinal(testByteArray);
+			this->printTest(algorithm, testByteArray, testVector[algorithm], *hash);
+			EXPECT_EQ(*hash, testVector[algorithm]);
 		} else {
 			EXPECT_THROW(MessageDigest::getMessageDigest(algorithm), MessageDigestException);
 		}

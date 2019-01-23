@@ -62,7 +62,7 @@ protected:
 			ASSERT_TRUE(prPem.size() > 0);
 			ASSERT_TRUE(prKey->getSize() > 0);
 			
-			ASSERT_EQ(keypair.getAlgorithm(), AsymmetricKey::ECDSA);
+			ASSERT_EQ(keypair.getAlgorithm(), AsymmetricKey::EC);
 		);
 		//Fixture Teardown
 	}

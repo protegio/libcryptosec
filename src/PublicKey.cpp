@@ -1,67 +1,69 @@
 #include <libcryptosec/PublicKey.h>
 
-PublicKey::PublicKey(EVP_PKEY *key) : AsymmetricKey(key)
+#include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/exception/EncodeException.h>
+
+#include <openssl/pem.h>
+
+PublicKey::PublicKey(EVP_PKEY* evpPkey) : AsymmetricKey(evpPkey)
 {
-	if (key == NULL)
-	{
-		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_ASYMMETRIC_KEY, "AsymmetricKey::AsymmetricKey");
-	}
-	this->key = key;
-	try
-	{
-		this->getAlgorithm();
-	}
-	catch (...)
-	{
-		this->key = NULL;
-		throw;
-	}
 	//TODO: testar se é mesmo uma chave publica
 }
 
-PublicKey::PublicKey(ByteArray &derEncoded) : AsymmetricKey(NULL)
+PublicKey::PublicKey(const ByteArray& derEncoded) : AsymmetricKey()
 {
-	/* DER format support only RSA, DSA and EC. DH isn't supported */
-	BIO *buffer;
+	BIO *buffer = NULL;
+	EVP_PKEY *key = NULL;
+	unsigned int numberOfWrittenBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PublicKey::PublicKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
+
+	numberOfWrittenBytes = BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize());
+
+	if (numberOfWrittenBytes != derEncoded.getSize()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PublicKey::PublicKey");
 	}
-	this->key = d2i_PUBKEY_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->key == NULL)
-	{
+
+	key = d2i_PUBKEY_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
+	if (key == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_DECODE, "PublicKey::PublicKey");
 	}
 	BIO_free(buffer);
+
+	this->setEvpPkey(key);
 }
 
-PublicKey::PublicKey(std::string &pemEncoded) : AsymmetricKey(NULL)
+PublicKey::PublicKey(const std::string& pemEncoded) : AsymmetricKey()
 {
-	BIO *buffer;
+	BIO *buffer = NULL;
+	EVP_PKEY *key = NULL;
+	unsigned int numberOfWrittenBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PublicKey::PublicKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
+
+	numberOfWrittenBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	if (numberOfWrittenBytes != pemEncoded.size()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PublicKey::PublicKey");
 	}
-	this->key = PEM_read_bio_PUBKEY(buffer, NULL, NULL, NULL);
-	if (this->key == NULL)
-	{
+
+	key = PEM_read_bio_PUBKEY(buffer, NULL, NULL, NULL);
+	if (key == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_DECODE, "PublicKey::PublicKey");
 	}
 	BIO_free(buffer);
+
+	this->setEvpPkey(key);
 }
 
 PublicKey::~PublicKey()
@@ -71,64 +73,69 @@ PublicKey::~PublicKey()
 
 std::string PublicKey::getPemEncoded()
 {
-	BIO *buffer;
-	int ndata, wrote;
+	ByteArray *retTemp = NULL;
+	BIO *buffer = NULL;
 	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
+	unsigned char *data = NULL;
+	int ndata, wrote;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PublicKey::getPemEncoded");
 	}
-	wrote = PEM_write_bio_PUBKEY(buffer, this->key);
-	if (!wrote)
-	{
+
+	wrote = PEM_write_bio_PUBKEY(buffer, this->getEvpPkey());
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_ENCODE, "PublicKey::getPemEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "PublicKey::getPemEncoded");
 	}
-	retTemp = new ByteArray(data, ndata);
-	ret = retTemp->toString();
-	delete retTemp;
-	BIO_free(buffer);
+
+	// TODO: Improve this
+	retTemp = new ByteArray(data, ndata);	// Copy buffer's data to a ByteArray
+	BIO_free(buffer);  						// Free buffer
+	ret = retTemp->toString();				// Convert to string
+	delete retTemp;							// Free ByteArray
+
 	return ret;
 }
 
-ByteArray PublicKey::getDerEncoded()
+ByteArray* PublicKey::getDerEncoded()
 {
-	BIO *buffer;
+	ByteArray *ret = NULL;
+	BIO *buffer = NULL;
+	unsigned char *data = NULL;
 	int ndata, wrote;
-	ByteArray ret;
-	unsigned char *data;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PublicKey::getDerEncoded");
 	}
-	wrote = i2d_PUBKEY_bio(buffer, this->key);
-	if (!wrote)
-	{
+
+	wrote = i2d_PUBKEY_bio(buffer, this->evpPkey);
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_ENCODE, "PublicKey::getDerEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "PublicKey::getDerEncoded");
 	}
-	ret = ByteArray(data, ndata);
-	BIO_free(buffer);
+
+	ret = new ByteArray(data, ndata);	// Copy buffer's data to a ByteArray
+	BIO_free(buffer);					// Free buffer
+
 	return ret;
 }
 
-ByteArray PublicKey::getKeyIdentifier()
+ByteArray* PublicKey::getKeyIdentifier()
 {
 	throw std::exception();
 /*  TODO: como transformar a chave em um array de bits?

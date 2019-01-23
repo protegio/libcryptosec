@@ -6,27 +6,34 @@
 class AsymmetricCipherException : public LibCryptoSecException
 {
 public:
+
     enum ErrorCode
 	{
 		UNKNOWN,
 		ENCRYPTING_DATA,
 		DECRYPTING_DATA,
+		INVALID_KEY_ALGORITHM,
 	};
+
     AsymmetricCipherException(const std::string& where)
     {
     	this->where = where;
     	this->errorCode = AsymmetricCipherException::UNKNOWN;
     }
+
     AsymmetricCipherException(AsymmetricCipherException::ErrorCode errorCode, const std::string& where)
     {
     	this->where = where;
     	this->errorCode = errorCode;
     }
+
 	virtual ~AsymmetricCipherException() throw () {}
+
 	virtual std::string getMessage() const
 	{
-		return (AsymmetricCipherException::errorCode2Message(this->errorCode));
+		return AsymmetricCipherException::errorCode2Message(this->errorCode);
 	}
+
     virtual std::string toString() const
     {
     	std::string ret;
@@ -40,10 +47,12 @@ public:
     	}
     	return ret;
     }
+
     virtual AsymmetricCipherException::ErrorCode getErrorCode()
     {
     	return this->errorCode;
     }
+
     static std::string errorCode2Message(AsymmetricCipherException::ErrorCode errorCode)
     {
     	std::string ret;
@@ -58,13 +67,15 @@ public:
     		case AsymmetricCipherException::DECRYPTING_DATA:
     			ret = "Decrypting data";
     			break;
-//    		case ErrorCode:::
-//    			ret = "";
-//    			break;
+    		case ErrorCode::INVALID_KEY_ALGORITHM:
+    			ret = "Invalid key algorithm";
+    			break;
     	}
     	return ret;
     }
+
 protected:
+
 	AsymmetricCipherException::ErrorCode errorCode;
 };
 

@@ -20,9 +20,15 @@ ByteArray* AsymmetricCipher::encrypt(RSAPublicKey &key, const ByteArray &data, A
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
 
+	if (rsaKey == NULL) {
+		throw AsymmetricCipherException(AsymmetricCipherException::INVALID_KEY_ALGORITHM, "AsymmetricCipher::encrypt");
+	}
+
 	rc = RSA_public_encrypt(data.getSize(), data.getConstDataPointer(), ret->getDataPointer(), rsaKey, paddingValue);
-	if (rc == -1 || rc != rsaSize)
+	if (rc == -1 || rc != rsaSize) {
+		delete ret;
 		throw AsymmetricCipherException(AsymmetricCipherException::ENCRYPTING_DATA, "AsymmetricCipher::encrypt");
+	}
 
 	return ret;
 }
@@ -36,9 +42,15 @@ ByteArray* AsymmetricCipher::encrypt(RSAPublicKey &key, const std::string &data,
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
 
+	if (rsaKey == NULL) {
+		throw AsymmetricCipherException(AsymmetricCipherException::INVALID_KEY_ALGORITHM, "AsymmetricCipher::encrypt");
+	}
+
 	rc = RSA_public_encrypt(data.size(), (const unsigned char *) data.c_str(), ret->getDataPointer(), rsaKey, paddingValue);
-	if (rc == -1 || rc != rsaSize)
+	if (rc == -1 || rc != rsaSize) {
+		delete ret;
 		throw AsymmetricCipherException(AsymmetricCipherException::ENCRYPTING_DATA, "AsymmetricCipher::encrypt");
+	}
 
 	return ret;
 }
@@ -48,14 +60,20 @@ ByteArray* AsymmetricCipher::decrypt(RSAPrivateKey &key, const ByteArray &cipher
 	int rc;
 	int paddingValue = AsymmetricCipher::getPadding(padding);
 	int rsaSize = key.getSize();
-	ByteArray *ret = new ByteArray(rsaSize);
+	ByteArray *ret = NULL;
 	EVP_PKEY *evpPkey = key.getEvpPkey();
 	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
 
-	rc = RSA_private_decrypt(ciphered.getSize(), ciphered.getConstDataPointer(), ret->getDataPointer(), rsaKey, paddingValue);
-	if (rc <= 0)
-		throw AsymmetricCipherException(AsymmetricCipherException::DECRYPTING_DATA, "AsymmetricCipher::decrypt");
+	if (rsaKey == NULL) {
+		throw AsymmetricCipherException(AsymmetricCipherException::INVALID_KEY_ALGORITHM, "AsymmetricCipher::decrypt");
+	}
 
+	ret = new ByteArray(rsaSize);
+	rc = RSA_private_decrypt(ciphered.getSize(), ciphered.getConstDataPointer(), ret->getDataPointer(), rsaKey, paddingValue);
+	if (rc <= 0) {
+		delete ret;
+		throw AsymmetricCipherException(AsymmetricCipherException::DECRYPTING_DATA, "AsymmetricCipher::decrypt");
+	}
 	ret->setSize(rc);
 
 	return ret;

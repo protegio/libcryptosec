@@ -22,7 +22,7 @@ ByteArray Signer::sign(PrivateKey &key, ByteArray &hash, MessageDigest::Algorith
 			rc = DSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), ret.getDataPointer(),
 					&signedSize, EVP_PKEY_get0_DSA(key.getEvpPkey()));
 			break;
-		case AsymmetricKey::ECDSA:
+		case AsymmetricKey::EC:
 			rc = ECDSA_sign(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), ret.getDataPointer(),
 					&signedSize, EVP_PKEY_get0_EC_KEY(key.getEvpPkey()));
 			break;
@@ -55,7 +55,7 @@ bool Signer::verify(PublicKey &key, ByteArray &signature, ByteArray &hash, Messa
 			rc = DSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), signature.getDataPointer(),
 					signature.getSize(), EVP_PKEY_get0_DSA(key.getEvpPkey()));
 			break;
-		case AsymmetricKey::ECDSA:
+		case AsymmetricKey::EC:
 			rc = ECDSA_verify(hashAlgorithmId, hash.getDataPointer(), hash.getSize(), signature.getDataPointer(),
 					signature.getSize(), EVP_PKEY_get0_EC_KEY(key.getEvpPkey()));
 			break;

@@ -224,5 +224,5 @@ PrivateKey* ECDSAKeyPair::getPrivateKey() {
 }
 
 AsymmetricKey::Algorithm ECDSAKeyPair::getAlgorithm() {
-	return AsymmetricKey::ECDSA;
+	return AsymmetricKey::EC;
 }

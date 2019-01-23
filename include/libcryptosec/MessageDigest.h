@@ -2,12 +2,13 @@
 #define MESSAGEDIGEST_H_
 
 #include <libcryptosec/Macros.h>
+
 #include <openssl/evp.h>
+
 #include <string>
-#include "ByteArray.h"
-#include "Engine.h"
-#include <libcryptosec/exception/MessageDigestException.h>
-#include <libcryptosec/exception/InvalidStateException.h>
+
+class ByteArray;
+class Engine;
 
 /**
  * @defgroup Util Classes Relacionadas Utilitárias de Criptografia
@@ -81,7 +82,7 @@ public:
 	 * @param engine objeto Engine.
 	 * @throw MessageDigestException caso ocorra erro ao inicializar a estrutura de resumos do OpenSSL. 
 	 */
-	void init(MessageDigest::Algorithm algorithm, Engine &engine);
+	void init(MessageDigest::Algorithm algorithm, Engine& engine);
 
 	/**
 	 * Define o conteúdo de entrada função de resumo.
@@ -89,7 +90,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao atualizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
 	 */
-	void update(const ByteArray &data);
+	void update(const ByteArray& data);
 
 	/**
 	 * Define o conteúdo de entrada função de resumo.
@@ -97,16 +98,38 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao atualizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
 	 */
-	void update(const std::string &data);
-	
+	void update(const std::string& data);
+
+	/**
+	 * @brief Atualiza o conteúdo da função de resumo.
+	 *
+	 * @param data conteúdo para resumo.
+	 *
+	 * @throw MessageDigestException caso ocorra erro ao atualizar o contexto de resumo do OpenSSL.
+	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
+	 */
+	void update(const unsigned char* data, unsigned int size);
+
 	/**
 	 * Realiza resumo criptográfico.
 	 * @return bytes que representam o resumo calculado.
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */
-	ByteArray doFinal();
-	
+	ByteArray* doFinal();
+
+	/**
+	 * @brief Realiza o resumo criptográfico.
+	 *
+	 * @param output Buffer onde será escrito o hash.
+	 * @param size O tamanho do buffer.
+	 *
+	 * @return bytes que representam o resumo calculado.
+	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
+	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo.
+	 */
+	void doFinal(unsigned char* hash, unsigned int* size);
+
 	/**
 	 * Realiza atualização do contexto e faz resumo criptográfico.
 	 * Equivalente a executar MessageDigest::update(ByteArray &data) e, em seguida, MessageDigest::doFinal().
@@ -115,8 +138,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */	
-	ByteArray doFinal(const ByteArray &data);
-
+	ByteArray* doFinal(const ByteArray& data);
 
 	/**
 	 * Realiza atualização do contexto e faz resumo criptográfico.
@@ -126,7 +148,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */	
-	ByteArray doFinal(const std::string &data);
+	ByteArray* doFinal(const std::string& data);
 	
 	/**
 	 * Retorna algoritmo de resumo selecionado.

@@ -1,5 +1,7 @@
 #include <libcryptosec/DSAPublicKey.h>
 
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
 DSAPublicKey::DSAPublicKey(EVP_PKEY *key) : PublicKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();

@@ -2,89 +2,90 @@
 
 PrivateKey::PrivateKey(EVP_PKEY *key) : AsymmetricKey(key)
 {
-	if (key == NULL)
-	{
-		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_ASYMMETRIC_KEY, "AsymmetricKey::AsymmetricKey");
-	}
-	this->key = key;
-	try
-	{
-		this->getAlgorithm();
-	}
-	catch (...)
-	{
-		this->key = NULL;
-		throw;
-	}
-	//TODO: testar se é mesmo uma chave privada
 }
 
-PrivateKey::PrivateKey(ByteArray &derEncoded) : AsymmetricKey(NULL)
+PrivateKey::PrivateKey(const ByteArray &derEncoded) : AsymmetricKey()
 {
 	/* DER format support only RSA, DSA and EC. DH isn't supported */
-	BIO *buffer;
+	EVP_PKEY *key = NULL;
+	BIO *buffer = NULL;
+	unsigned int numberOfWrittenBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::PrivateKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
+
+	numberOfWrittenBytes = BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize());
+	if (numberOfWrittenBytes != derEncoded.getSize()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PrivateKey::PrivateKey");
 	}
-	this->key = d2i_PrivateKey_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->key == NULL)
-	{
+
+	/* TODO: will the second parameter work fine ? */
+	key = d2i_PrivateKey_bio(buffer, NULL);
+	if (key == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_DECODE, "PrivateKey::PrivateKey");
 	}
 	BIO_free(buffer);
+
+	this->setEvpPkey(key);
 }
 
-PrivateKey::PrivateKey(std::string &pemEncoded) : AsymmetricKey(NULL)
+PrivateKey::PrivateKey(const std::string &pemEncoded) : AsymmetricKey()
 {
-	BIO *buffer;
+	EVP_PKEY *key = NULL;
+	BIO *buffer = NULL;
+	unsigned int numberOfWrittenBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::PrivateKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
+
+	numberOfWrittenBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	if (numberOfWrittenBytes != pemEncoded.size()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PrivateKey::PrivateKey");
 	}
-	this->key = PEM_read_bio_PrivateKey(buffer, NULL, NULL, NULL);
-	if (this->key == NULL)
-	{
+
+	key = PEM_read_bio_PrivateKey(buffer, NULL, NULL, NULL);
+	if (key == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_DECODE, "PrivateKey::PrivateKey");
 	}
 	BIO_free(buffer);
+
+	this->setEvpPkey(key);
 }
 
-PrivateKey::PrivateKey(std::string &pemEncoded, ByteArray &passphrase) : AsymmetricKey(NULL)
-{ 
-	BIO *buffer;
+PrivateKey::PrivateKey(const std::string& pemEncoded, const ByteArray& passphrase) : AsymmetricKey()
+{
+	EVP_PKEY *key = NULL;
+	BIO *buffer = NULL;
+	unsigned int numberOfWrittenBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::PrivateKey");
 	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
+
+	numberOfWrittenBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	if (numberOfWrittenBytes != pemEncoded.size()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "PrivateKey::PrivateKey");
 	}
-	this->key = PEM_read_bio_PrivateKey(buffer, NULL, PrivateKey::passphraseCallBack, (void *)&passphrase);
-	if (this->key == NULL)
-	{
+
+	key = PEM_read_bio_PrivateKey(buffer, NULL, PrivateKey::passphraseCallBack, (void *)&passphrase);
+	if (key == NULL) {
 		BIO_free(buffer);
 		/* TODO: how to know if is the passphrase wrong ??? */
 		throw EncodeException(EncodeException::PEM_DECODE, "PrivateKey::PrivateKey");
 	}
 	BIO_free(buffer);
+
+	this->setEvpPkey(key);
 }
 
 PrivateKey::~PrivateKey()
@@ -93,120 +94,122 @@ PrivateKey::~PrivateKey()
 
 std::string PrivateKey::getPemEncoded()
 {
-	BIO *buffer;
-	int ndata, wrote;
+	ByteArray *retTemp = NULL;
+	BIO *buffer = NULL;
 	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
+	unsigned char *data = NULL;
+	int ndata = 0, wrote = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::getPemEncoded");
 	}
-	wrote = PEM_write_bio_PrivateKey(buffer, this->key, NULL, NULL, 0, NULL, NULL);
-	if (!wrote)
-	{
+
+	wrote = PEM_write_bio_PrivateKey(buffer, this->evpPkey, NULL, NULL, 0, NULL, NULL);
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_ENCODE, "PrivateKey::getPemEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "PrivateKey::getPemEncoded");
 	}
+
+	// TODO: improve this
 	retTemp = new ByteArray(data, ndata);
 	ret = retTemp->toString();
 	delete retTemp;
+
 	BIO_free(buffer);
+
 	return ret;
 }
 
-std::string PrivateKey::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::OperationMode mode)
+std::string PrivateKey::getPemEncoded(const SymmetricKey& symmetricKey, SymmetricCipher::OperationMode mode)
 {
-	BIO *buffer;
-	const EVP_CIPHER *cipher;
-	int ndata, wrote;
+	ByteArray *retTemp = NULL;
+	const ByteArray *passphraseData = NULL;
+	BIO *buffer = NULL;
+	const EVP_CIPHER *cipher = NULL;
+	unsigned char *data = NULL;
+	int ndata = 0, wrote = 0;
 	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
-	const ByteArray *passphraseData;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::getPemEncoded");
 	}
-	try
-	{
-		cipher = SymmetricCipher::getCipher(passphrase.getAlgorithm(), mode);
-	}
-	catch (...)
-	{
+
+	try {
+		cipher = SymmetricCipher::getCipher(symmetricKey.getAlgorithm(), mode);
+	} catch (...) {
 		BIO_free(buffer);
 		throw;
 	}
-	passphraseData = passphrase.getEncoded();
-	// TODO: is it ok to pass a ByteArray object here?
-	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0, PrivateKey::passphraseCallBack, (void *) passphraseData);
-	if (!wrote)
-	{
+
+	passphraseData = symmetricKey.getEncoded();
+	wrote = PEM_write_bio_PrivateKey(buffer, this->evpPkey, cipher, NULL, 0,
+			PrivateKey::passphraseCallBack, (void *) passphraseData);
+
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_ENCODE, "PrivateKey::getPemEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "PrivateKey::getPemEncoded");
 	}
+
+	// TODO: improve this
 	retTemp = new ByteArray(data, ndata);
 	ret = retTemp->toString();
 	delete retTemp;
+
 	BIO_free(buffer);
+
 	return ret;
 }
 
-ByteArray PrivateKey::getDerEncoded()
+ByteArray* PrivateKey::getDerEncoded()
 {
-	BIO *buffer;
-	int ndata, wrote;
-	ByteArray ret;
-	unsigned char *data;
+	ByteArray *ret = NULL;
+	BIO *buffer = NULL;
+	int ndata = 0, wrote = 0;
+	unsigned char *data = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PrivateKey::getDerEncoded");
 	}
-	wrote = i2d_PrivateKey_bio(buffer, this->key);
-	if (!wrote)
-	{
+
+	wrote = i2d_PrivateKey_bio(buffer, this->evpPkey);
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_ENCODE, "PrivateKey::getDerEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "PrivateKey::getDerEncoded");
 	}
-	ret = ByteArray(data, ndata);
-	BIO_free(buffer);
-	return ret;
-}
 
-bool PrivateKey::operator==(PrivateKey& priv) throw()
-{
-	return EVP_PKEY_cmp(this->getEvpPkey(), priv.getEvpPkey()) == 0;
+	ret = new ByteArray(data, ndata);
+	BIO_free(buffer);
+
+	return ret;
 }
 
 int PrivateKey::passphraseCallBack(char *buf, int size, int rwflag, void *u)
 {
     ByteArray* passphrase = (ByteArray*) u;
     int length = passphrase->getSize();
-    if (length > 0)
-    {
-        if (length > size)
-        {
+    if (length > 0) {
+        if (length > size) {
             length = size;
         }
         memcpy(buf, passphrase->getDataPointer(), length);

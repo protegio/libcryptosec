@@ -44,7 +44,7 @@ public:
 	Certificate(const Certificate& cert);
 	virtual ~Certificate();
 	std::string getPemEncoded() const;
-	ByteArray getDerEncoded() const;
+	ByteArray* getDerEncoded() const;
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
@@ -66,7 +66,7 @@ public:
 	std::vector<Extension *> getExtension(Extension::Name extensionName);
 	std::vector<Extension *> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();
-	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const;
+	ByteArray* getFingerPrint(MessageDigest::Algorithm algorithm) const;
 	bool verify(PublicKey &publicKey);
 	X509* getX509() const;
 	/**

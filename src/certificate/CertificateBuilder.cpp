@@ -1120,7 +1120,7 @@ void CertificateBuilder::includeEcdsaParameters() {
 	PublicKey* publicKey = this->getPublicKey();
 
 	if(publicKey) {
-		if(publicKey->getAlgorithm() == AsymmetricKey::ECDSA && this->isIncludeEcdsaParameters()) {
+		if(publicKey->getAlgorithm() == AsymmetricKey::EC && this->isIncludeEcdsaParameters()) {
 			EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY(publicKey->getEvpPkey());
 			EC_KEY_set_asn1_flag(ec_key, 0);
 		}

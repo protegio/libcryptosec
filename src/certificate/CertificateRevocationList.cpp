@@ -1,5 +1,7 @@
 #include <libcryptosec/certificate/CertificateRevocationList.h>
 
+#include <libcryptosec/exception/EncodeException.h>
+
 CertificateRevocationList::CertificateRevocationList(X509_CRL *crl)
 {
 	this->crl = crl;

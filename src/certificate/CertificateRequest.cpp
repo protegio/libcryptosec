@@ -194,11 +194,11 @@ std::string CertificateRequest::getPemEncoded()
 	return ret;
 }
 
-ByteArray CertificateRequest::getDerEncoded() const
+ByteArray* CertificateRequest::getDerEncoded() const
 {
 	BIO *buffer;
 	int ndata, wrote;
-	ByteArray ret;
+	ByteArray *ret;
 	unsigned char *data;
 	buffer = BIO_new(BIO_s_mem());
 	if (buffer == NULL)
@@ -217,7 +217,7 @@ ByteArray CertificateRequest::getDerEncoded() const
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRequest::getDerEncoded");
 	}
-	ret = ByteArray(data, ndata);
+	ret = new ByteArray(data, ndata);
 	BIO_free(buffer);
 	return ret;
 }
@@ -626,13 +626,13 @@ std::vector<Extension *> CertificateRequest::getUnknownExtensions()
 	return ret;
 }
 
-ByteArray CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm) const
+ByteArray* CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm) const
 {
-	ByteArray ret, derEncoded;
-	MessageDigest messageDigest;
+	ByteArray *ret = NULL, *derEncoded = NULL;
+	MessageDigest messageDigest(algorithm);
+
 	derEncoded = this->getDerEncoded();
-	messageDigest.init(algorithm);
-	ret = messageDigest.doFinal(derEncoded);
+	ret = messageDigest.doFinal(*derEncoded);
 	return ret;
 }
 

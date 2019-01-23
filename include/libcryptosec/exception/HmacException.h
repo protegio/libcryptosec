@@ -57,19 +57,19 @@ public:
     	std::string ret;
     	switch (errorCode)
     	{
-    		case MessageDigestException::UNKNOWN:
+    		case HmacException::UNKNOWN:
     			ret = "Unknown error";
     			break;
-    		case MessageDigestException::INVALID_ALGORITHM:
+    		case HmacException::INVALID_ALGORITHM:
     			ret = "Invalid message digest algorithm";
     			break;
-    		case MessageDigestException::CTX_INIT:
+    		case HmacException::CTX_INIT:
     			ret = "Creating hmac context";
     			break;
-    		case MessageDigestException::CTX_UPDATE:
+    		case HmacException::CTX_UPDATE:
     			ret = "Updating hmac context";
     			break;
-    		case MessageDigestException::CTX_FINISH:
+    		case HmacException::CTX_FINISH:
     			ret = "Finishing hmac context";
     			break;
     	}

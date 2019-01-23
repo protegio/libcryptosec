@@ -1,36 +1,34 @@
 #include <libcryptosec/ECDSAPrivateKey.h>
 
-ECDSAPrivateKey::ECDSAPrivateKey(EVP_PKEY *key) : PrivateKey(key)
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+ECDSAPrivateKey::ECDSAPrivateKey(EVP_PKEY* key) : PrivateKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPrivateKey::ECDSAPrivateKey");
 	}
 }
 
-ECDSAPrivateKey::ECDSAPrivateKey(ByteArray &derEncoded) : PrivateKey(derEncoded)
+ECDSAPrivateKey::ECDSAPrivateKey(const ByteArray& derEncoded) : PrivateKey(derEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPrivateKey::ECDSAPrivateKey");
 	}
 }
-ECDSAPrivateKey::ECDSAPrivateKey(std::string &pemEncoded) : PrivateKey(pemEncoded)
+ECDSAPrivateKey::ECDSAPrivateKey(const std::string& pemEncoded) : PrivateKey(pemEncoded)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPrivateKey::ECDSAPrivateKey");
 	}
 }
 
-ECDSAPrivateKey::ECDSAPrivateKey(std::string &pemEncoded, ByteArray &passphrase) : PrivateKey (pemEncoded, passphrase)
+ECDSAPrivateKey::ECDSAPrivateKey(const std::string& pemEncoded, const ByteArray& passphrase) : PrivateKey (pemEncoded, passphrase)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPrivateKey::ECDSAPrivateKey");
 	}
 }

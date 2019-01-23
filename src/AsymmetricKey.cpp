@@ -1,19 +1,46 @@
 #include <libcryptosec/AsymmetricKey.h>
 
-AsymmetricKey::AsymmetricKey(EVP_PKEY *key)
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+#include <openssl/bio.h>
+
+AsymmetricKey::AsymmetricKey() {
+	this->evpPkey = NULL;
+}
+
+AsymmetricKey::AsymmetricKey(EVP_PKEY *evpPkey)
 {
-	this->key = key;
+	this->evpPkey = NULL;
+	this->setEvpPkey(evpPkey);
 }
 
 AsymmetricKey::~AsymmetricKey()
 {
-	EVP_PKEY_free(key);
+	EVP_PKEY_free(this->evpPkey);
+}
+
+void AsymmetricKey::setEvpPkey(EVP_PKEY* evpPkey) {
+
+	if (evpPkey == NULL) {
+		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE,
+				"AsymmetricKey::AsymmetricKey");
+	}
+
+	if (this->evpPkey != NULL) {
+		EVP_PKEY_free(this->evpPkey);
+	}
+
+	this->evpPkey = evpPkey;
+
+	// Checks if it's a asymmetric key and throws an exception otherwise
+	this->getAlgorithm();
 }
 
 AsymmetricKey::Algorithm AsymmetricKey::getAlgorithm()
 {
 	AsymmetricKey::Algorithm type;
-	switch (EVP_PKEY_base_id(this->key))
+	switch (EVP_PKEY_base_id(this->evpPkey))
 	{
 		case EVP_PKEY_RSA: /* TODO: confirmar porque tem estes dois tipos */
 		case EVP_PKEY_RSA2:
@@ -27,33 +54,18 @@ AsymmetricKey::Algorithm AsymmetricKey::getAlgorithm()
 			type = AsymmetricKey::DSA;
 			break;
 		case EVP_PKEY_EC:
-			type = AsymmetricKey::ECDSA;
+			type = AsymmetricKey::EC;
 			break;
-//		case EVP_PKEY_DH:
-//			type = AsymmetricKey::DH;
-//			break;
-//		case EVP_PKEY_EC:
-//			type = AsymmetricKey::EC;
-//			break;
 		default:
-			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "There is no support for this type: "
-					+ std::string(OBJ_nid2sn(EVP_PKEY_id(this->key))), "AsymmetricKey::getAlgorithm");
+			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "AsymmetricKey::getAlgorithm");
 	}
 	return type;
 }
 
 int AsymmetricKey::getSize()
 {
-	int ret;
-	if (this->key == NULL)
-	{
-		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "AsymmetricKey::getSize");
-	}
-	/* TODO: this function will br right only for RSA, DSA and EC. The others algorithms (DH) must be used 
-	 * individual functions */
-	ret = EVP_PKEY_size(this->key);
-	if (ret == 0)
-	{
+	int ret = EVP_PKEY_size(this->evpPkey);
+	if (ret == 0) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "AsymmetricKey::getSize");
 	}
 	return ret;
@@ -61,32 +73,22 @@ int AsymmetricKey::getSize()
 
 int AsymmetricKey::getSizeBits()
 {
-	int ret;
-	if (this->key == NULL)
-	{
-		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "AsymmetricKey::getSizeBits");
-	}
-	/* TODO: this function will br right only for RSA, DSA and EC. The others algorithms (DH) must be used 
-	 * individual functions */
-	ret = EVP_PKEY_bits(this->key);
-	if (ret == 0)
-	{
-		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "There is no support for this type: "
-				+ std::string(OBJ_nid2sn(EVP_PKEY_id(this->key))), "AsymmetricKey::getSizeBits");
+	int ret = EVP_PKEY_bits(this->evpPkey);
+	if (ret == 0) {
+		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "AsymmetricKey::getSizeBits");
 	}
 	return ret;
 }
 
 EVP_PKEY* AsymmetricKey::getEvpPkey()
 {
-	return this->key;
+	return this->evpPkey;
 }
 
-//void AsymmetricKey::setEvpPkey(EVP_PKEY *key)
-//{
-//	if (this->key)
-//	{
-//		EVP_PKEY_free(key);
-//	}
-//	this->key = key;
-//}
+bool AsymmetricKey::operator==(AsymmetricKey& key) throw()
+{
+	return EVP_PKEY_cmp(this->evpPkey, key.evpPkey) == 0;
+}
+
+
+

@@ -1,11 +1,17 @@
 #ifndef RSAPUBLICKEY_H_
 #define RSAPUBLICKEY_H_
 
-#include "PublicKey.h"
+#include <libcryptosec/PublicKey.h>
+
+#include <string>
+
+class ByteArray;
 
 /**
- * Representa uma chave pública RSA.
+ * @brief Representa uma chave pública RSA.
+ *
  * Para a criação de chaves assimetricas a classe KeyPair deve ser consultada.
+ *
  * @see KeyPair
  * @ingroup AsymmetricKeys
  **/
@@ -16,34 +22,39 @@ class RSAPublicKey : public PublicKey
 public:
 
 	/**
-	 * Construtor para uso interno recebendo um ponteiro para a estrutura OpenSSL EVP_PKEY.
-	 * @param key ponteiro para a estrutura OpenSSL EVP_PKEY. 
-	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
+	 * @brief Construtor para uso interno recebendo um ponteiro para a estrutura OpenSSL EVP_PKEY.
+	 *
+	 * @param key Ponteiro para a estrutura OpenSSL EVP_PKEY.
+	 *
+	 * @throw AsymmetricKeyException Caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	RSAPublicKey(EVP_PKEY *key);
+	RSAPublicKey(EVP_PKEY* key);
 	
 	/**
-	 * Construtor recebendo a representação da chave pública no formato DER.
-	 * @param derEncoded chave pública codificada no formato DER.
-	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do DER.
-	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
+	 * @brief Construtor recebendo a representação da chave pública no formato DER.
+	 *
+	 * @param derEncoded Chave pública codificada no formato DER.
+	 *
+	 * @throw EncodeException Caso tenha ocorrido um erro com a decodificação do DER.
+	 * @throw AsymmetricKeyException Caso ocorra um erro na criação da chave.
 	 **/
 	RSAPublicKey(ByteArray &derEncoded);
 	
 	/**
-	 * Construtor recebendo a representação da chave pública no formato PEM.
-	 * @param pemEncoded chave pública codificada no formato PEM.
-	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do PEM.
-	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
+	 * @brief Construtor recebendo a representação da chave pública no formato PEM.
+	 *
+	 * @param pemEncoded Chave pública codificada no formato PEM.
+	 *
+	 * @throw EncodeException Caso tenha ocorrido um erro com a decodificação do PEM.
+	 * @throw AsymmetricKeyException Caso ocorra um erro na criação da chave.
 	 **/			
 	RSAPublicKey(std::string &pemEncoded);
 	
 	/**
-	 * Destrutor padrão, limpa a estrutura interna EVP_PKEY
+	 * @brief Destrutor padrão, limpa a estrutura interna EVP_PKEY.
 	 **/		
 	virtual ~RSAPublicKey();
-	
 };
 
 #endif /*RSAPUBLICKEY_H_*/

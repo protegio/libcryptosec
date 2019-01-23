@@ -1,19 +1,11 @@
 #ifndef ASYMMETRICKEY_H_
 #define ASYMMETRICKEY_H_
 
-/* openssl includes */
-#include <openssl/bio.h>
 #include <openssl/evp.h>
 
-/* c++ library includes */
 #include <string>
 
-/* local includes */
-#include "ByteArray.h"
-
-/* exception icbludes */
-#include <libcryptosec/exception/AsymmetricKeyException.h>
-
+class ByteArray;
 
 /**
  * @defgroup AsymmetricKeys Classes relacionadas ao uso de chaves assimétricas.
@@ -46,18 +38,15 @@ public:
 	 **/		 
 	enum Algorithm 
 	{
-		RSA, /*!< A chave é do tipo RSA */
-		DSA, /*!< A chave é do tipo DSA */
-		ECDSA, /*!< A chave é do tipo ECDSA */
-//		DH,
-//		EC,
+		RSA,	/*!< A chave é do tipo RSA */
+		DSA,	/*!< A chave é do tipo DSA */
+		EC,		/*!< A chave é do tipo ECDSA */
 	};
 
 	/**
 	 * @enum Curve
-	 **/
-	/**
-	 *  Curvas Elipticas suportadas (= NID)
+	 *
+	 * Curvas Elipticas suportadas (= NID)
 	 **/
 	enum Curve
 	{
@@ -126,87 +115,120 @@ public:
 		BRAINPOOL_P512T1 = 934,
 	};
 
+	/**
+	 * @brief Construtor de inicializaão da estrutura OpenSSL EVP_PKEY.
+	 *
+	 * Esse construtor deve ser usando apenas internamente. Para construir uma chave
+	 * assimétrica nova deve ser utilizada a classe KeyPair.
+	 *
+	 * @param evpPkey O ponteiro para a estrutura OpenSSL EVP_PKEY.
+	 * @throw AsymmetricKeyException Caso a estrutura EVP_PKEY não seja uma estrutura
+	 * 	OpenSSL válida ou ocorra algum problema na sua carga.
+	 */
+	AsymmetricKey(EVP_PKEY* evpPkey);
 
 	/**
-	 * Construtor padrão recebendo um ponteiro para a estrutura OpenSSL EVP_PKEY.
-	 * Esse construtor deve ser usando apenas internamente, para construir uma chave
-	 * assimétrica nova deve ser utilizada a classe KeyPair.
-	 * @param key ponteiro para a estrutura OpenSSL EVP_PKEY
-	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
-	 * OpenSSL válida ou ocorra algum problema na sua carga.
+	 * @brief Carrega uma chave assimétrica a partir da sua equivalente codificada em DER.
+	 *
+	 * Esse construtor deve ser implementado pelas subclasses.
+	 *
+	 * @param encoded A chave assimétrica no formato DER.
 	 */
-	AsymmetricKey(EVP_PKEY *key);
-			
-	/**
-	 * Carrega uma chave assimétrica a partir da sua equivalente codificada em DER.
-	 * Esse método é reimplementado pelas subclasses. 
-	 * @param encoded a chave assimétrica no formato DER.
-	 */
-	AsymmetricKey(ByteArray &encoded);
+	AsymmetricKey(const ByteArray& encoded);
 	
 	/**
-	 * Carrega uma chave assimétrica a partir da sua equivalente codificada em PEM.
-	 * Esse método é reimplementado pelas subclasses. 
-	 * @param encoded a chave assimétrica no formato PEM.
+	 * @brief Carrega uma chave assimétrica a partir da sua equivalente codificada em PEM.
+	 *
+	 * Esse construtor deve ser implementado pelas subclasses.
+	 *
+	 * @param encoded A chave assimétrica no formato PEM.
 	 */
-	AsymmetricKey(std::string &encoded);
+	AsymmetricKey(const std::string& encoded);
 	
 	/**
-	 * Destrutor padrão. Limpa a estrutura interna EVP_PKEY
+	 * @brief Destrutor padrão.
+	 *
+	 * Desaloca a estrutura interna EVP_PKEY
 	 */
 	virtual ~AsymmetricKey();
 
 	/**
-	 * Retorna uma representação da chave codificada em DER.
-	 * Esse método é abstrato e implementado pelas subclasses. 
-	 * @return chave assimétrica no formato DER.
+	 * @brief Retorna a estrutura OpenSSL interna.
+	 *
+	 * @return Um ponteiro para a estrutura OpenSSL interna à classe AsymmetricKey.
 	 */
-	virtual ByteArray getDerEncoded() = 0;
+	EVP_PKEY* getEvpPkey();
 
 	/**
-	 * Retorna uma representação da chave codificada em PEM.
-	 * Esse método é abstrato e implementado pelas subclasses. 
-	 * @return chave assimétrica no formato PEM.
-	 */
-	virtual std::string getPemEncoded() = 0;
-	
-	/**
-	 * Retorna o algoritmo assimétrico que deve ser usado com a chave atual.
-	 * @return tipo do algoritmo simetrico para essa chave.
-	 * @throw AsymmetricKeyException caso o tipo de chave não tenha sido reconhecido.
+	 * @brief Retorna o algoritmo assimétrico que deve ser usado com a chave atual.
+	 *
+	 * @return O tipo do algoritmo simetrico para essa chave.
+	 * @throw AsymmetricKeyException Caso o tipo de chave não tenha sido reconhecido.
 	 * @see AsymmetricKey::Algorithm
 	 */
 	AsymmetricKey::Algorithm getAlgorithm();
 			
 	/**
-	 * Retorna o tamanho da chave em bytes.
-	 * @return tamanho da chave em bytes.
-	 * @throw AsymmetricKeyException se o tipo de chave não for suportado ou caso um
+	 * @brief Retorna o tamanho da chave em bytes.
+	 *
+	 * @return O tamanho da chave em bytes.
+	 * @throw AsymmetricKeyException Se o tipo de chave não for suportado ou caso um
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
 	int getSize();
 	
 	/**
-	 * Retorna o tamanho da chave em bits.
-	 * @return tamanho da chave em bits.
-	 * @throw AsymmetricKeyException se o tipo de chave não for suportado ou caso um
+	 * @brief Retorna o tamanho da chave em bits.
+	 *
+	 * @return Tamanho da chave em bits.
+	 * @throw AsymmetricKeyException Se o tipo de chave não for suportado ou caso um
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
 	int getSizeBits();
 	
 	/**
-	 * Uso interno. Retorna a estrutura OpenSSL interna.
-	 * @return um ponteiro para a estrutura OpenSSL interna à classe AsymmetricKey.
+	 * @brief Verifica se a chave é igual à passada como argumento.
 	 */
-	EVP_PKEY* getEvpPkey();
+	bool operator==(AsymmetricKey& key) throw();
+
+	/**
+	 * @brief Retorna uma representação da chave codificada em DER.
+	 *
+	 * @return A chave assimétrica no formato DER.
+	 */
+	virtual ByteArray* getDerEncoded() = 0;
+
+	/**
+	 * @brief Retorna uma representação da chave codificada em PEM.
+	 *
+	 * @return A chave assimétrica no formato PEM.
+	 */
+	virtual std::string getPemEncoded() = 0;
+
+protected:
 	
+	/**
+	 * @brief Construtor padrão;
+	 *
+	 * Inicializa a estrutura EVP_PKEY como NULL.
+	 */
+	AsymmetricKey();
+
+	/**
+	 * @brief Define a estrutura EVP_PKEY.
+	 *
+	 * Essa função desaloca a referência anterior.
+	 *
+	 * @param evpPkey A estrutura EVP_PKEY.
+	 */
+	void setEvpPkey(EVP_PKEY* evpPkey);
+
 protected:
 
 	/**
 	 * Ponteiro para a estrutura interna OpenSSL EVP_PKEY.
 	 */
-	EVP_PKEY *key;
-	
+	EVP_PKEY *evpPkey;
 };
 
 #endif /*ASYMMETRICKEY_H_*/

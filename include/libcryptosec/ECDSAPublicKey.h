@@ -1,12 +1,17 @@
 #ifndef ECDSAPUBLICKEY_H_
 #define ECDSAPUBLICKEY_H_
 
-#include "ByteArray.h"
-#include "PublicKey.h"
+#include <libcryptosec/PublicKey.h>
+
+#include <string>
+
+class ByteArray;
 
 /**
- * Representa uma chave pública ECDSA.
+ * @brief Representa uma chave pública ECDSA.
+ *
  * Para a criação de chaves assimetricas a classe KeyPair deve ser consultada.
+ *
  * @see KeyPair
  * @ingroup AsymmetricKeys
  **/
@@ -22,7 +27,7 @@ public:
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	ECDSAPublicKey(EVP_PKEY *key);
+	ECDSAPublicKey(EVP_PKEY* key);
 
 	/**
 	 * Construtor recebendo a representação da chave pública no formato DER.
@@ -30,7 +35,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do DER.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 **/
-	ECDSAPublicKey(ByteArray &derEncoded);
+	ECDSAPublicKey(const ByteArray& derEncoded);
 
 	/**
 	 * Construtor recebendo a representação da chave pública no formato PEM.
@@ -38,7 +43,7 @@ public:
 	 * @throw EncodeException caso tenha ocorrido um erro com a decodificação do PEM.
 	 * @throw AsymmetricKeyException caso ocorra um erro na criação da chave.
 	 **/
-	ECDSAPublicKey(std::string &pemEncoded);
+	ECDSAPublicKey(const std::string& pemEncoded);
 	
 	/**
 	 * Destrutor padrão, limpa a estrutura interna EVP_PKEY

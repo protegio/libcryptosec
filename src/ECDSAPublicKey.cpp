@@ -1,30 +1,30 @@
 #include <libcryptosec/ECDSAPublicKey.h>
 
-ECDSAPublicKey::ECDSAPublicKey(EVP_PKEY *key) : PublicKey(key)
+#include <libcryptosec/AsymmetricKey.h>
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+ECDSAPublicKey::ECDSAPublicKey(EVP_PKEY* evpPkey) : PublicKey(evpPkey)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPublicKey::ECDSAPublicKey");
 	}
 }
 
-ECDSAPublicKey::ECDSAPublicKey(ByteArray &derEncoded) : PublicKey(derEncoded)
+ECDSAPublicKey::ECDSAPublicKey(const ByteArray& derEncoded) : PublicKey(derEncoded)
 {
 	AsymmetricKey::Algorithm algorithm;
 	algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPublicKey::ECDSAPublicKey");
 	}
 }
 
-ECDSAPublicKey::ECDSAPublicKey(std::string &pemEncoded) : PublicKey(pemEncoded)
+ECDSAPublicKey::ECDSAPublicKey(const std::string& pemEncoded) : PublicKey(pemEncoded)
 {
 	AsymmetricKey::Algorithm algorithm;
 	algorithm = this->getAlgorithm();
-	if (algorithm != AsymmetricKey::ECDSA)
-	{
+	if (algorithm != AsymmetricKey::EC) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "ECDSAPublicKey::ECDSAPublicKey");
 	}
 }

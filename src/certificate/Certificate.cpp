@@ -349,11 +349,11 @@ std::string Certificate::getPemEncoded() const
 	return ret;
 }
 
-ByteArray Certificate::getDerEncoded() const
+ByteArray* Certificate::getDerEncoded() const
 {
 	BIO *buffer;
 	int ndata, wrote;
-	ByteArray ret;
+	ByteArray *ret;
 	unsigned char *data;
 	buffer = BIO_new(BIO_s_mem());
 	if (buffer == NULL)
@@ -372,7 +372,7 @@ ByteArray Certificate::getDerEncoded() const
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "Certificate::getDerEncoded");
 	}
-	ret = ByteArray(data, ndata);
+	ret = new ByteArray(data, ndata);
 	BIO_free(buffer);
 	return ret;
 }
@@ -656,13 +656,13 @@ std::vector<Extension *> Certificate::getUnknownExtensions()
 	return ret;
 }
 
-ByteArray Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
+ByteArray* Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
 {
-	ByteArray ret, derEncoded;
-	MessageDigest messageDigest;
+	ByteArray *ret = NULL, *derEncoded = NULL;
+	MessageDigest messageDigest(algorithm);
+
 	derEncoded = this->getDerEncoded();
-	messageDigest.init(algorithm);
-	ret = messageDigest.doFinal(derEncoded);
+	ret = messageDigest.doFinal(*derEncoded);
 	return ret;
 }
 
@@ -680,10 +680,12 @@ X509* Certificate::getX509() const
 
 CertificateRequest Certificate::getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm)
 {
-	X509_REQ* req = NULL;
-	req = X509_to_X509_REQ(this->cert, privateKey.getEvpPkey(), MessageDigest::getMessageDigest(algorithm));
-	if (!req)
-	{
+	X509_REQ *req = NULL;
+	const EVP_MD *md = NULL;
+
+	md = MessageDigest::getMessageDigest(algorithm);
+	req = X509_to_X509_REQ(this->cert, privateKey.getEvpPkey(), md);
+	if (!req) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getNewCertificateRequest");
 	}
 	return CertificateRequest(req);

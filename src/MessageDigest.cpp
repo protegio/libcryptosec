@@ -1,5 +1,10 @@
 #include <libcryptosec/MessageDigest.h>
 
+#include <libcryptosec/Engine.h>
+
+#include <libcryptosec/exception/MessageDigestException.h>
+#include <libcryptosec/exception/InvalidStateException.h>
+
  #include <openssl/crypto.h>
 
 INITIALIZE_ENUM( MessageDigest::Algorithm, 10,
@@ -125,39 +130,43 @@ void MessageDigest::update(const std::string &data)
 	this->update(content);
 }
 
-ByteArray MessageDigest::doFinal()
+ByteArray* MessageDigest::doFinal()
 {
-	unsigned char *digest;
-	unsigned int ndigest;
-	int rc;
-	if (this->state == MessageDigest::NO_INIT || this->state == MessageDigest::INIT)
-	{
-		throw InvalidStateException("MessageDigest::doFinal");
-	}
-	digest = (unsigned char *)calloc(EVP_MAX_MD_SIZE + 1, sizeof(unsigned char));
-	rc = EVP_DigestFinal_ex(this->ctx, digest, &ndigest);
-	EVP_MD_CTX_reset(this->ctx);
-	this->state = MessageDigest::NO_INIT;
-	if (!rc)
-	{
-		free(digest);
-		throw MessageDigestException(MessageDigestException::CTX_FINISH, "MessageDigest::doFinal");
-	}
-	ByteArray ret(digest, ndigest);
-	free(digest);
+	ByteArray* ret = new ByteArray(EVP_MAX_MD_SIZE);
+	unsigned int size = 0;
+
+	this->doFinal(ret->getDataPointer(), &size);
+	ret->setSize(size);
+
 	return ret;
 }
 
-ByteArray MessageDigest::doFinal(const ByteArray &data)
+ByteArray* MessageDigest::doFinal(const ByteArray &data)
 {
 	this->update(data);
 	return this->doFinal();
 }
 
-ByteArray MessageDigest::doFinal(const std::string &data)
+ByteArray* MessageDigest::doFinal(const std::string &data)
 {
 	this->update(data);
 	return this->doFinal();
+}
+
+void MessageDigest::doFinal(unsigned char* hash, unsigned int* size) {
+	unsigned int ndigest = 0;
+	int rc = 0;
+
+	if (this->state == MessageDigest::NO_INIT || this->state == MessageDigest::INIT) {
+		throw InvalidStateException("MessageDigest::doFinal");
+	}
+
+	rc = EVP_DigestFinal_ex(this->ctx, hash, size);
+	EVP_MD_CTX_reset(this->ctx);
+	this->state = MessageDigest::NO_INIT;
+	if (!rc) {
+		throw MessageDigestException(MessageDigestException::CTX_FINISH, "MessageDigest::doFinal");
+	}
 }
 
 MessageDigest::Algorithm MessageDigest::getAlgorithm()
