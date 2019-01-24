@@ -34,7 +34,7 @@ public:
 	 * @param algorithm algoritmo de resumo.
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	Hmac(std::string key, MessageDigest::Algorithm algorithm);
+	Hmac(const std::string& key, MessageDigest::Algorithm algorithm);
 
 	/**
 	 * Construtor.
@@ -43,17 +43,7 @@ public:
 	 * @param algorithm algoritmo de resumo.
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	Hmac(ByteArray key, MessageDigest::Algorithm algorithm);
-
-	/**
-	 * Construtor.
-	 * Constroi um objeto Hmac.
-	 * @param key chave secreta.
-	 * @param algorithm algoritmo de resumo.
-	 * @param engine objeto Engine.
-	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
-	 */
-	Hmac(std::string key, MessageDigest::Algorithm algorithm, Engine &engine);
+	Hmac(const ByteArray& key, MessageDigest::Algorithm algorithm);
 
 	/**
 	 * Construtor.
@@ -63,7 +53,17 @@ public:
 	 * @param engine objeto Engine.
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	Hmac(ByteArray key, MessageDigest::Algorithm algorithm, Engine &engine);
+	Hmac(const std::string& key, MessageDigest::Algorithm algorithm, Engine &engine);
+
+	/**
+	 * Construtor.
+	 * Constroi um objeto Hmac.
+	 * @param key chave secreta.
+	 * @param algorithm algoritmo de resumo.
+	 * @param engine objeto Engine.
+	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
+	 */
+	Hmac(const ByteArray& key, MessageDigest::Algorithm algorithm, Engine &engine);
 
 	/**
 	 * Destrutor.
@@ -71,38 +71,53 @@ public:
 	virtual ~Hmac();
 
 	/**
-	 * Inicializar a estrutura do hmac.
+	 * Inicializar a operação do hmac.
 	 * @param key chave secreta.
 	 * @param algorithm algoritmo de resumo.
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	void init(ByteArray &key, MessageDigest::Algorithm algorithm);
+	void init(const ByteArray &key, MessageDigest::Algorithm algorithm);
 
 	/**
-	 * Inicializar a estrutura do hmac.
+	 * Inicializar a operação do hmac.
 	 * @param key chave secreta.
 	 * @param algorithm algoritmo de resumo.
 	 * @param engine objeto Engine.
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	void init(ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engine);
+	void init(const ByteArray &key, MessageDigest::Algorithm algorithm, Engine &engine);
 
 	/**
-	 * Inicializar a estrutura do hmac.
+	 * Inicializar a operação do hmac.
+	 *
 	 * @param key chave secreta.
 	 * @param algorithm algoritmo de resumo.
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	void init(std::string key, MessageDigest::Algorithm algorithm);
+	void init(const std::string& key, MessageDigest::Algorithm algorithm);
 
 	/**
-	 * Inicializar a estrutura do hmac.
+	 * @brief Inicializar a operação do hmac.
+	 *
 	 * @param key chave secreta.
 	 * @param algorithm algoritmo de resumo.
 	 * @param engine objeto Engine.
+	 *
 	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
 	 */
-	void init(std::string key, MessageDigest::Algorithm algorithm, Engine &engine);
+	void init(const std::string& key, MessageDigest::Algorithm algorithm, Engine &engine);
+
+	/**
+	 * Inicializar a operação do hmac.
+	 *
+	 * @param key O ponteiro para a chave secreta.
+	 * @param size O tamanho em bytes da chave.
+	 * @param algorithm O algoritmo de resumo.
+	 * @param engine A engine OpenSSL.
+	 *
+	 * @throw HmacException caso ocorra erro ao inicializar a estrutura do hmac do OpenSSL.
+	 */
+	void init(const unsigned char* key, unsigned int size, MessageDigest::Algorithm algorithm, Engine* engine = NULL);
 
 	/**
 	 * Atualizar/concatenar o conteúdo de entrada do hmac.
@@ -110,15 +125,19 @@ public:
 	 * @throw HmacException caso ocorra erro ao atualizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente.
 	 */
-	void update(ByteArray &data);
+	void update(const ByteArray& data);
 
 	/**
-	 * Atualizar/concatenar o conteúdo de entrada do hmac.
+	 * @brief Atualizar/concatenar o conteúdo de entrada do hmac.
+	 *
+	 * Essa função inclui o terminador nulo (\0) da string no cálculo do hmac.
+	 *
 	 * @param data conteúdo para geração do hmac.
+	 *
 	 * @throw HmacException caso ocorra erro ao atualizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente.
 	 */
-	void update(std::string data);
+	void update(const std::string& data);
 
 	/**
 	 * Atualizar/concatenar o conteúdo de entrada do hmac.
@@ -126,7 +145,7 @@ public:
 	 * @throw HmacException caso ocorra erro ao atualizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente.
 	 */
-	void update(std::vector<std::string> &data);
+	void update(const std::vector<std::string>& data);
 
 	/**
 	 * Atualizar/concatenar o conteúdo de entrada do hmac.
@@ -134,7 +153,15 @@ public:
 	 * @throw HmacException caso ocorra erro ao atualizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente.
 	 */
-	void update(std::vector<ByteArray> &data);
+	void update(const std::vector<ByteArray>& data);
+
+	/**
+	 * Atualizar/concatenar o conteúdo de entrada do hmac.
+	 * @param data conteúdo para geração do hmac.
+	 * @throw HmacException caso ocorra erro ao atualizar o contexto do hmac do OpenSSL.
+	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente.
+	 */
+	void update(const unsigned char* data, unsigned int size);
 
 	/**
 	 * Gerar o hmac
@@ -143,7 +170,7 @@ public:
 	 * @throw HmacException caso ocorra erro ao finalizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do hmac.
 	 */
-	ByteArray doFinal(ByteArray &data);
+	ByteArray* doFinal(const ByteArray& data);
 
 	/**
 	 * Gerar o hmac
@@ -152,7 +179,7 @@ public:
 	 * @throw HmacException caso ocorra erro ao finalizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do hmac.
 	 */
-	ByteArray doFinal(std::string data);
+	ByteArray* doFinal(const std::string& data);
 
 	/**
 	 * Gerar o hmac
@@ -160,7 +187,19 @@ public:
 	 * @throw HmacException caso ocorra erro ao finalizar o contexto do hmac do OpenSSL.
 	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do hmac.
 	 */
-	ByteArray doFinal();
+	ByteArray* doFinal();
+
+	/**
+	 * Gerar o hmac
+	 *
+	 * @param hmac Buffer para escrever o hmac.
+	 * @param size Tamanho do buffer.
+	 *
+	 * @return bytes que representam o hmac.
+	 * @throw HmacException caso ocorra erro ao finalizar o contexto do hmac do OpenSSL.
+	 * @throw InvalidStateException caso o objeto Hmac não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do hmac.
+	 */
+	void doFinal(unsigned char* hmac, unsigned int* size);
 
 protected:
 	/**

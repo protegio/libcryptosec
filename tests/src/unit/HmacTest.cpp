@@ -34,25 +34,27 @@ protected:
 /*
  * Inicialização das variáveis utilizadas nos testes.
  */
-ByteArray HmacTest::emptyKey = ByteArray(new unsigned char[0], 0);
-const char stringKey30bytes[] = "XthisIsMyFavoriteKeyOf30bytesX";
-ByteArray HmacTest::key30bytes = ByteArray(stringKey30bytes);
-const char stringKey63bytes[] = "MyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKey123";
-ByteArray HmacTest::key63bytes = ByteArray(stringKey63bytes);
-const char stringKey64bytes[] = "Key123Key456Key789Key123Key456Key789Key123Key456Key789Key123Key4";
-ByteArray HmacTest::key64bytes = ByteArray(stringKey64bytes);
-const char stringKey128bytes[] = "AbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGh";
-ByteArray HmacTest::key128bytes = ByteArray(stringKey128bytes);
-const char stringKey129bytes[] = "AbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGh"
+ByteArray HmacTest::emptyKey(new unsigned char[0], 0);
+const unsigned char stringKey30bytes[] = "XthisIsMyFavoriteKeyOf30bytesX";
+ByteArray HmacTest::key30bytes(stringKey30bytes, sizeof(stringKey30bytes) - 1);
+const unsigned char stringKey63bytes[] = "MyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKeyMyKey123";
+ByteArray HmacTest::key63bytes(stringKey63bytes, sizeof(stringKey63bytes) - 1);
+const unsigned char stringKey64bytes[] = "Key123Key456Key789Key123Key456Key789Key123Key456Key789Key123Key4";
+ByteArray HmacTest::key64bytes(stringKey64bytes, sizeof(stringKey64bytes) - 1);
+const unsigned char stringKey128bytes[] = "AbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGh";
+ByteArray HmacTest::key128bytes(stringKey128bytes, sizeof(stringKey128bytes) - 1);
+const unsigned char stringKey129bytes[] = "AbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGh"
 								"AbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGhAbCdEfGh1";
-ByteArray HmacTest::key129bytes = ByteArray(stringKey129bytes);
-const char stringKey150bytes[] = "keyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEY"
+ByteArray HmacTest::key129bytes(stringKey129bytes, sizeof(stringKey129bytes) - 1);
+const unsigned char stringKey150bytes[] = "keyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEY"
 		"keyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEYkeyKEY";
-ByteArray HmacTest::key150bytes = ByteArray(stringKey150bytes);
-unsigned char HmacTest::hexKey[10] = {0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12};
-ByteArray HmacTest::hexKey40bytes = ByteArray(&hexKey[0], 10);
-const char plainText[] = "plainText";
-ByteArray HmacTest::pText(plainText);
+ByteArray HmacTest::key150bytes(stringKey150bytes, sizeof(stringKey150bytes) - 1);
+
+unsigned char HmacTest::hexKey[] = {0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12};
+ByteArray HmacTest::hexKey40bytes(hexKey, sizeof(hexKey));
+
+const unsigned char plainText[] = "plainText";
+ByteArray HmacTest::pText(plainText, sizeof(plainText) - 1);
 std::vector<ByteArray> HmacTest::plainTexts = std::vector<ByteArray>(30, pText);
 
 /**
@@ -61,7 +63,7 @@ std::vector<ByteArray> HmacTest::plainTexts = std::vector<ByteArray>(30, pText);
 TEST_F(HmacTest, HmacSha256_key30bytes) {
 	hmac->init(HmacTest::key30bytes, MessageDigest::SHA256);
 	EXPECT_STRCASEEQ("47460fd58266a86d9fe2e9c902ca0c97c58306d3de53fc0596c2df7f251e4d2d",
-					hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+					hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -70,7 +72,7 @@ TEST_F(HmacTest, HmacSha256_key30bytes) {
 TEST_F(HmacTest, HmacSha256_key64bytes) {
 	hmac->init(HmacTest::key64bytes, MessageDigest::SHA256);
 	EXPECT_STRCASEEQ("ff6d20b3d45b6c01fe8d07f155be6e94401ebb348fbaf51af8f3d4505d805306",
-			hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+			hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -79,7 +81,7 @@ TEST_F(HmacTest, HmacSha256_key64bytes) {
 TEST_F(HmacTest, HmacSha256_key150bytes) {
 	hmac->init(HmacTest::key150bytes, MessageDigest::SHA256);
 	EXPECT_STRCASEEQ("9d448d43be3fde104ca6041fa33a3fd5874cabdb6d37fff8e6d6886529f222cd",
-			hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+			hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -89,7 +91,7 @@ TEST_F(HmacTest, HmacSha512_key30bytes) {
 	hmac->init(HmacTest::key63bytes, MessageDigest::SHA512);
 	EXPECT_STRCASEEQ("60cf29ec2d024968219034b3843bb3f01bca73a1b03e84ab92ab4d12da9b71aa"
 					 "fe156c48a1439d4fa25bd230d4b0b05591a7aedfe99b5f2a96ecacce6996ee6a",
-					 hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+					 hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -99,7 +101,7 @@ TEST_F(HmacTest, HmacSha512_key64bytes) {
 	hmac->init(HmacTest::key128bytes, MessageDigest::SHA512);
 	EXPECT_STRCASEEQ("eeea8e1889a1ae943f8995de5eaffcefdb35a45d6fb27f8e1c14bc7d5c88cd5e"
 					 "35b9c96014d521afddbb479b0a1f9581a64e8f42dd5614deeca147aba6451bf8",
-					 hmac->doFinal(plainTexts[0]).toHex().c_str());
+					 hmac->doFinal(plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -109,17 +111,17 @@ TEST_F(HmacTest, HmacSha512_key150bytes) {
 	hmac->init(HmacTest::key129bytes, MessageDigest::SHA512);
 	EXPECT_STRCASEEQ("c50e6385aa695a38309e5a6910137e52d53f82b96288de04455cf5ac4fd68567"
 					 "9ca604f0405e8f4d0c24327bca3dbb9dd2ba6d14a5ca2a7234892f359c0830bc",
-					 hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+					 hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 }
 
 /**
  * @brief Testa geração do Hmac com algoritmo sha1 e chave binária.
  */
-TEST_F(HmacTest, HmacSha1_keyHex10bytes){
+TEST_F(HmacTest, HmacSha1_keyHex40bytes){
 	hmac->init(HmacTest::hexKey40bytes, MessageDigest::SHA1);
 
 	EXPECT_STRCASEEQ("C64E6D7457686AE0D25F2B9E5E6FF727C3FDB472",
-			hmac->doFinal("Teste").toHex().c_str());
+			hmac->doFinal(ByteArray((const unsigned char*) "Teste", sizeof("Teste") - 1))->toHex().c_str());
 }
 
 /**
@@ -130,7 +132,7 @@ TEST_F(HmacTest, HmacSha512Stress_key150bytes) {
 		hmac->init(HmacTest::key129bytes, MessageDigest::SHA512);
 		ASSERT_STRCASEEQ("c50e6385aa695a38309e5a6910137e52d53f82b96288de04455cf5ac4fd68567"
 						 "9ca604f0405e8f4d0c24327bca3dbb9dd2ba6d14a5ca2a7234892f359c0830bc",
-						 hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+						 hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 	}
 }
 
@@ -141,7 +143,7 @@ TEST_F(HmacTest, HmacSha256FromVector_key63bytes) {
 	hmac->init(HmacTest::key63bytes, MessageDigest::SHA256);
 	hmac->update(HmacTest::plainTexts);
 	EXPECT_STRCASEEQ("d98759ff86c0b1b5aa39f6454acbc3a8f3c2fddd97856890d5150aac565eb44b",
-			hmac->doFinal().toHex().c_str());
+			hmac->doFinal()->toHex().c_str());
 }
 
 /**
@@ -150,7 +152,7 @@ TEST_F(HmacTest, HmacSha256FromVector_key63bytes) {
 TEST_F(HmacTest, HmacMd5_emptyKey) {
 	hmac->init(HmacTest::emptyKey, MessageDigest::MD5);
 	EXPECT_STRCASEEQ("0d371a986922b57b2247ec55f4b9bea4",
-			hmac->doFinal(HmacTest::plainTexts[0]).toHex().c_str());
+			hmac->doFinal(HmacTest::plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -159,7 +161,7 @@ TEST_F(HmacTest, HmacMd5_emptyKey) {
 TEST_F(HmacTest, HmacSha256FromEmptyText_key150bytes) {
 	hmac->init(HmacTest::key150bytes, MessageDigest::SHA256);
 	EXPECT_STRCASEEQ("0dc9c8bb5048d5219ad0f621387b1bb4a4c06e8c0fe22b24bc1dcce2a1b61677",
-			hmac->doFinal("").toHex().c_str());
+			hmac->doFinal(ByteArray((const unsigned char*)"", 0))->toHex().c_str());
 }
 
 /**
@@ -181,7 +183,7 @@ TEST_F(HmacTest, HmacSha1FromBinaryFile_key63bytes) {
 		ByteArray b(memblock, length);
 		delete[] memblock;
 		EXPECT_STRCASEEQ("2dce9d5c64b7879fb52656953ae128a1eb2cd148",
-				hmac->doFinal(b).toHex().c_str());
+				hmac->doFinal(b)->toHex().c_str());
 
 	}else{
 		FAIL();
@@ -199,7 +201,7 @@ TEST_F(HmacTest, HmacNoInitializationAndDoFinal) {
  * @brief Testa geração do Hmac com texto vazio, sem chave, sem inicialização e através do .doUpdate().
  */
 TEST_F(HmacTest, HmacNoInitializationAndUpdate) {
-	EXPECT_THROW(hmac->update(""), InvalidStateException);
+	EXPECT_THROW(hmac->update(std::string("")), InvalidStateException);
 }
 
 /**
@@ -209,7 +211,7 @@ TEST_F(HmacTest, HmacInitializationTwice) {
 	hmac->init(HmacTest::key30bytes, MessageDigest::SHA256);
 	hmac->init(HmacTest::key64bytes, MessageDigest::SHA256);
 	EXPECT_STRCASEEQ("ff6d20b3d45b6c01fe8d07f155be6e94401ebb348fbaf51af8f3d4505d805306",
-			hmac->doFinal(plainTexts[0]).toHex().c_str());
+			hmac->doFinal(plainTexts[0])->toHex().c_str());
 }
 
 /**
@@ -225,6 +227,6 @@ TEST_F(HmacTest, HmacNoUpdateAndDoFinal) {
  */
 TEST_F(HmacTest, HmacDoFinalTwice) {
 	hmac->init(HmacTest::key30bytes, MessageDigest::SHA256);
-	hmac->doFinal("");
-	EXPECT_THROW(hmac->doFinal(), InvalidStateException);
+	hmac->doFinal(std::string(std::string("")));
+	EXPECT_THROW(hmac->doFinal(std::string("")), InvalidStateException);
 }
