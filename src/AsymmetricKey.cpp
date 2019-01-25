@@ -5,19 +5,30 @@
 
 #include <openssl/bio.h>
 
-AsymmetricKey::AsymmetricKey() {
-	this->evpPkey = NULL;
+AsymmetricKey::AsymmetricKey()
+	: evpPkey(NULL)
+{
 }
 
 AsymmetricKey::AsymmetricKey(EVP_PKEY *evpPkey)
+	: evpPkey(evpPkey)
 {
-	this->evpPkey = NULL;
-	this->setEvpPkey(evpPkey);
+	if (evpPkey == NULL) {
+		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "AsymmetricKey::AsymmetricKey");
+	}
+
+	this->evpPkey = evpPkey;
+	EVP_PKEY_up_ref(this->evpPkey);
+
+	// Checks if it's a asymmetric key and throws an exception otherwise
+	this->getAlgorithm();
 }
 
 AsymmetricKey::~AsymmetricKey()
 {
-	EVP_PKEY_free(this->evpPkey);
+	if (this->evpPkey) {
+		EVP_PKEY_free(this->evpPkey);
+	}
 }
 
 void AsymmetricKey::setEvpPkey(EVP_PKEY* evpPkey) {
@@ -32,6 +43,7 @@ void AsymmetricKey::setEvpPkey(EVP_PKEY* evpPkey) {
 	}
 
 	this->evpPkey = evpPkey;
+	EVP_PKEY_up_ref(evpPkey);
 
 	// Checks if it's a asymmetric key and throws an exception otherwise
 	this->getAlgorithm();

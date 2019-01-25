@@ -1,4 +1,8 @@
 #include <libcryptosec/certificate/CertificateBuilder.h>
+#include <libcryptosec/certificate/CertificateRequest.h>
+#include <libcryptosec/certificate/Certificate.h>
+#include <libcryptosec/certificate/RDNSequence.h>
+
 #include <libcryptosec/RSAKeyPair.h>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -132,8 +136,8 @@ protected:
      * @param expectedCodification codificação esperada.
      * @param cert certificado exportado.
      */
-    void testStringCodificaton(int expectedCodification, Certificate* cert) {
-    	X509_NAME* after = X509_get_subject_name(cert->getX509());
+    void testStringCodificaton(int expectedCodification, Certificate& cert) {
+    	X509_NAME* after = X509_get_subject_name(cert.getX509());
     	for (int i = 0; i < X509_NAME_entry_count(after); i++) {
     		X509_NAME_ENTRY* entry = X509_NAME_get_entry(after, i);
     		if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {
@@ -466,7 +470,7 @@ TEST_F(CertificateBuilderTest, EncodingTest_ExportedCertificatePrintableCodifica
 	initializeCertRequestAndBuilder(FULL_PRINTABLE);
 	certBuilder->alterSubject(rdn);
 	RSAKeyPair key = RSAKeyPair(4096);
-	Certificate* cert = certBuilder->sign(*key.getPrivateKey(), MessageDigest::SHA512);
+	Certificate cert = certBuilder->sign(*key.getPrivateKey(), MessageDigest::SHA512);
 	testStringCodificaton(V_ASN1_PRINTABLESTRING, cert);
 }
 
@@ -477,7 +481,7 @@ TEST_F(CertificateBuilderTest, EncodingTest_ExportedCertificateUTF8Codification)
 	initializeCertRequestAndBuilder(FULL_UTF8);
 	certBuilder->alterSubject(rdn);
 	RSAKeyPair key = RSAKeyPair(4096);
-	Certificate* cert = certBuilder->sign(*key.getPrivateKey(), MessageDigest::SHA512);
+	Certificate cert = certBuilder->sign(*key.getPrivateKey(), MessageDigest::SHA512);
 	testStringCodificaton(V_ASN1_UTF8STRING, cert);
 }
 
@@ -488,8 +492,8 @@ TEST_F(CertificateBuilderTest, EncodingTest_ExportedCertificateStringValues) {
 	initializeCertRequestAndBuilder(FULL_PRINTABLE);
 	certBuilder->alterSubject(rdn);
 	RSAKeyPair key = RSAKeyPair(4096);
-	Certificate* cert = certBuilder->sign(*key.getPrivateKey(), MessageDigest::SHA512);
-	testStringValues(cert->getSubject());
+	Certificate cert = certBuilder->sign(*key.getPrivateKey(), MessageDigest::SHA512);
+	testStringValues(cert.getSubject());
 }
 
 /*!

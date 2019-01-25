@@ -20,7 +20,7 @@ public:
 	std::string getOid();
 	int getNid() const;
 	std::string getName();
-	ASN1_OBJECT* getObjectIdentifier() const;
+	const ASN1_OBJECT* getObjectIdentifier() const;
 	ObjectIdentifier& operator =(const ObjectIdentifier& value);
 protected:
 	ASN1_OBJECT *asn1Object;

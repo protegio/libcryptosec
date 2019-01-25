@@ -39,9 +39,12 @@ class Certificate
 {
 public:
 	Certificate(X509 *cert);
+	Certificate(const X509* cert);
 	Certificate(std::string pemEncoded);
 	Certificate(ByteArray &derEncoded);
 	Certificate(const Certificate& cert);
+	Certificate(Certificate&& cert);
+
 	virtual ~Certificate();
 	std::string getPemEncoded() const;
 	ByteArray* getDerEncoded() const;
@@ -76,7 +79,8 @@ public:
 	 * @throws CertificationException error on conversion of x509 to x509 req
 	 */
 	CertificateRequest getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm);
-	Certificate& operator =(const Certificate& value);
+	Certificate& operator=(const Certificate& value);
+	Certificate& operator=(Certificate&& value);
 	bool operator ==(const Certificate& value);
 	bool operator !=(const Certificate& value);
 protected:

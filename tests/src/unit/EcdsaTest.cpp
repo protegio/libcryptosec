@@ -81,15 +81,14 @@ protected:
 			certBuilder->setPublicKey(*pubKey);
 			certBuilder->includeEcdsaParameters();
 
-			Certificate *cert = certBuilder->sign(*prKey, algorithm);
-			std::string pem = cert->getPemEncoded();
+			Certificate cert = certBuilder->sign(*prKey, algorithm);
+			std::string pem = cert.getPemEncoded();
 
 			//Result Verification
 			ASSERT_TRUE(pem.size() > 0);
-			ASSERT_TRUE(cert->verify(*pubKey));
+			ASSERT_TRUE(cert.verify(*pubKey));
 
 			//Fixture Teardown
-			delete(cert);
 			delete(certBuilder);
 		);
 	}

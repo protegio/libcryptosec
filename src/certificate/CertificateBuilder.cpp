@@ -1,107 +1,144 @@
 #include <libcryptosec/certificate/CertificateBuilder.h>
 
+#include <libcryptosec/certificate/Certificate.h>
+#include <libcryptosec/certificate/CertificateRequest.h>
+#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/ExtensionFactory.h>
+#include <libcryptosec/certificate/KeyUsageExtension.h>
+#include <libcryptosec/certificate/ExtendedKeyUsageExtension.h>
+#include <libcryptosec/certificate/BasicConstraintsExtension.h>
+#include <libcryptosec/certificate/CRLDistributionPointsExtension.h>
+#include <libcryptosec/certificate/IssuerAlternativeNameExtension.h>
+#include <libcryptosec/certificate/SubjectAlternativeNameExtension.h>
+#include <libcryptosec/certificate/SubjectInformationAccessExtension.h>
+#include <libcryptosec/certificate/AuthorityKeyIdentifierExtension.h>
+#include <libcryptosec/certificate/SubjectKeyIdentifierExtension.h>
+#include <libcryptosec/certificate/CertificatePoliciesExtension.h>
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/PrivateKey.h>
+#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/DateTime.h>
+#include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/ByteArray.h>
+
 CertificateBuilder::CertificateBuilder()
+	: cert(X509_new()), includeECDSAParameters(false)
 {
 	DateTime dateTime;
-	this->cert = X509_new();
 	this->setNotBefore(dateTime);
 	this->setNotAfter(dateTime);
-	this->setIncludeEcdsaParameters(false);
 }
 
-CertificateBuilder::CertificateBuilder(std::string pemEncoded)
+CertificateBuilder::CertificateBuilder(const std::string& pemEncoded)
+	: includeECDSAParameters(false)
 {
-	this->setIncludeEcdsaParameters(false);
-	BIO *buffer;
+	BIO *buffer = NULL;
+	unsigned int numberOfBytesWritten = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateBuilder::CertificateBuilder");
 	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
+
+	numberOfBytesWritten = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	if (numberOfBytesWritten != pemEncoded.size()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateBuilder::CertificateBuilder");
 	}
+
 	this->cert = PEM_read_bio_X509(buffer, NULL, NULL, NULL);
-	if (this->cert == NULL)
-	{
+	if (this->cert == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_DECODE, "CertificateBuilder::CertificateBuilder");
 	}
+
 	BIO_free(buffer);
 }
 
-CertificateBuilder::CertificateBuilder(ByteArray &derEncoded)
+CertificateBuilder::CertificateBuilder(const ByteArray& derEncoded)
+	: includeECDSAParameters(false)
 {
-	this->setIncludeEcdsaParameters(false);
-	BIO *buffer;
+	BIO *buffer = 0;
+	unsigned int numberOfBytesWritten = 0;
+
+	this->includeECDSAParameters = false;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateBuilder::CertificateBuilder");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
+
+	numberOfBytesWritten = BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize());
+	if (numberOfBytesWritten != derEncoded.getSize()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateBuilder::CertificateBuilder");
 	}
+
 	this->cert = d2i_X509_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->cert == NULL)
-	{
+	if (this->cert == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_DECODE, "CertificateBuilder::CertificateBuilder");
 	}
+
 	BIO_free(buffer);
 }
 
-CertificateBuilder::CertificateBuilder(CertificateRequest &request)
+CertificateBuilder::CertificateBuilder(const CertificateRequest& request)
+	: includeECDSAParameters(false)
 {
-	this->setIncludeEcdsaParameters(false);
-	RDNSequence subject;
 	PublicKey *publicKey = NULL;
-	std::vector<Extension *> extensions;
-	unsigned int i;
 	DateTime dateTime;
+	std::vector<Extension*> extensions;
+	unsigned int i;
+
+	this->includeECDSAParameters = false;
 
 	this->cert = X509_new();
+
 	this->setNotBefore(dateTime);
 	this->setNotAfter(dateTime);
 
 	this->setSubject(request.getX509Req());
-	try
-	{
+
+	try {
 		publicKey = request.getPublicKey();
 		this->setPublicKey(*publicKey);
-	}
-	catch (CertificationException &ex)
-	{
-	}
-	try
-	{
+
 		extensions = request.getExtensions();
-		for (i=0;i<extensions.size();i++)
-		{
+		for (i=0;i<extensions.size();i++) {
 			this->addExtension(*extensions.at(i));
 		}
+	} catch (CertificationException &ex) {
 	}
-	catch (CertificationException &ex)
-	{
-	}
-	if (publicKey)
-	{
+
+	if (publicKey) {
 		delete publicKey;
 	}
-//	for (i=0;i<extensions.size();i++) //todo Para algumas extensoes como AuthorityInformationAccess, em alguns casos
-//	{										 o delete nao esta funcionando adequadamente
-//		delete extensions.at(i);
-//	}
+
+	// TODO: Para algumas extensoes como AuthorityInformationAccess, em alguns casos
+	// o delete nao esta funcionando adequadamente
+	for (i = 0; i < extensions.size(); i++) {
+		delete extensions.at(i);
+	}
 }
 
 CertificateBuilder::CertificateBuilder(const CertificateBuilder& cert)
+	: includeECDSAParameters(false)
 {
-	this->cert = X509_dup(cert.getX509());
-	this->setIncludeEcdsaParameters(cert.isIncludeEcdsaParameters());
+	// TODO: is this cast ok?
+	this->cert = X509_dup((X509*) cert.getX509());
+	if (this->cert == 0) {
+		throw CertificationException(CertificationException::INVALID_CERTIFICATE,
+				"CertificateBuilder::CertificateBuilder");
+	}
+}
+
+CertificateBuilder::CertificateBuilder(CertificateBuilder&& builder)
+	: cert(builder.cert), includeECDSAParameters(builder.includeECDSAParameters)
+{
+	builder.cert = nullptr;
 }
 
 CertificateBuilder::~CertificateBuilder()
@@ -110,12 +147,46 @@ CertificateBuilder::~CertificateBuilder()
 	this->cert = NULL;
 }
 
+CertificateBuilder& CertificateBuilder::operator=(const CertificateBuilder& builder)
+{
+	if (&builder == this) {
+		return *this;
+	}
+
+	if (this->cert) {
+		X509_free(this->cert);
+	}
+
+	// TODO: Is this cast safe?
+    this->cert = X509_dup((X509*) builder.getX509());
+    this->includeECDSAParameters = builder.includeECDSAParameters;
+
+    return *this;
+}
+
+// Move assignment
+// Transfer ownership of a.m_ptr to m_ptr
+CertificateBuilder& CertificateBuilder::operator=(CertificateBuilder&& builder)
+{
+	if (&builder == this)
+		return *this;
+
+	if (this->cert) {
+		X509_free(this->cert);
+	}
+
+	this->cert = builder.cert;
+	builder.cert = nullptr;
+
+	return *this;
+}
+
 std::string CertificateBuilder::getXmlEncoded()
 {
 	return this->getXmlEncoded("");
 }
 
-std::string CertificateBuilder::getXmlEncoded(std::string tab)
+std::string CertificateBuilder::getXmlEncoded(const std::string& tab)
 {
 	std::string ret, string;
 	ByteArray data;
@@ -243,7 +314,7 @@ std::string CertificateBuilder::getXmlEncoded(std::string tab)
 	return ret;
 }
 
-std::string CertificateBuilder::toXml(std::string tab)
+std::string CertificateBuilder::toXml(const std::string& tab)
 {
 	std::string ret, string;
 	ByteArray data;
@@ -399,128 +470,135 @@ std::string CertificateBuilder::getPemEncoded()
 
 ByteArray CertificateBuilder::getDerEncoded()
 {
-	BIO *buffer;
-	int ndata, wrote;
-	ByteArray ret;
-	unsigned char *data;
+	BIO *buffer = NULL;
+	unsigned char *data = NULL;
+	int ndata = 0, wrote = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateBuilder::getDerEncoded");
 	}
+
 	wrote = i2d_X509_bio(buffer, this->cert);
-	if (!wrote)
-	{
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_ENCODE, "CertificateBuilder::getDerEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "CertificateBuilder::getDerEncoded");
 	}
-	ret = ByteArray(data, ndata);
+
+	ByteArray ret(data, ndata);
 	BIO_free(buffer);
 	return ret;
 }
 
 void CertificateBuilder::setSerialNumber(long serial)
 {
-	ASN1_INTEGER_set(X509_get_serialNumber(this->cert), serial);
+	ASN1_INTEGER* serialNumber = X509_get_serialNumber(this->cert);
+	ASN1_INTEGER_set(serialNumber, serial);
 }
 
-void CertificateBuilder::setSerialNumber(BigInteger serial)
+void CertificateBuilder::setSerialNumber(const BigInteger& serial)
 {
-	X509_set_serialNumber(this->cert, serial.getASN1Value());
+	ASN1_INTEGER* asn1Integer = serial.getASN1Value();
+	X509_set_serialNumber(this->cert, asn1Integer);
+	delete asn1Integer;
 }
 
 long CertificateBuilder::getSerialNumber()
 {
-	ASN1_INTEGER *asn1Int;
-	long ret;
+	ASN1_INTEGER *asn1Int = 0;
+	long ret = 0;
+
 	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
 	asn1Int = X509_get_serialNumber(this->cert);
-	if (asn1Int == NULL)
-	{
+	if (asn1Int == NULL) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getSerialNumber");
 	}
-	if (asn1Int->data == NULL)
-	{
+
+	if (asn1Int->data == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::getSerialNumber");
 	}
+
 	ret = ASN1_INTEGER_get(asn1Int);
-	if (ret < 0L)
-	{
+	if (ret < 0L) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::getSerialNumber");
 	}
+
 	return ret;
 }
 
 BigInteger CertificateBuilder::getSerialNumberBigInt()
 {
-	ASN1_INTEGER *asn1Int;
+	ASN1_INTEGER *asn1Int = NULL;
+
 	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
 	asn1Int = X509_get_serialNumber(this->cert);
-	if (asn1Int == NULL)
-	{
+	if (asn1Int == NULL) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getSerialNumber");
 	}
-	if (asn1Int->data == NULL)
-	{
+
+	if (asn1Int->data == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::getSerialNumber");
 	}
+
 	return BigInteger(asn1Int);
 }
 
 MessageDigest::Algorithm CertificateBuilder::getMessageDigestAlgorithm()
 {
 	MessageDigest::Algorithm ret;
-	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
+	int signatureNid = X509_get_signature_nid(this->cert);
+	// getMessageDigest throws if signatureNid == NID_undef
+	ret = MessageDigest::getMessageDigest(signatureNid);
 	return ret;
 }
 
-void CertificateBuilder::setPublicKey(PublicKey &publicKey)
+void CertificateBuilder::setPublicKey(PublicKey& publicKey)
 {
-	X509_set_pubkey(this->cert, publicKey.getEvpPkey());
+	int rc = 0;
+	rc = X509_set_pubkey(this->cert, publicKey.getEvpPkey());
+	if (rc == 0) {
+		throw CertificationException(CertificationException::INVALID_PUBLIC_KEY, "CertificateBuilder::setPublicKey");
+	}
 }
 
-PublicKey* CertificateBuilder::getPublicKey()
+PublicKey CertificateBuilder::getPublicKey()
 {
-	EVP_PKEY *key;
-	PublicKey *ret;
+	EVP_PKEY *key = NULL;
+
 	key = X509_get_pubkey(this->cert);
-	if (key == NULL)
-	{
+	if (key == NULL) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getPublicKey");
 	}
-	try
-	{
-		ret = new PublicKey(key);
-	}
-	catch (...)
-	{
+
+	try {
+		PublicKey ret(key);
+		return ret;
+	} catch (...) {
 		EVP_PKEY_free(key);
 		throw;
 	}
-	return ret;
 }
 
 ByteArray CertificateBuilder::getPublicKeyInfo()
 {
-	ByteArray ret;
-	unsigned int size;
-	ASN1_BIT_STRING *pubKeyBits;
-	if (!X509_get_pubkey(this->cert))
-	{
+	ASN1_BIT_STRING *pubKeyBits = NULL;
+	unsigned int size = 0;
+
+	if (!X509_get_pubkey(this->cert)) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getPublicKeyInfo");
 	}
+
 	pubKeyBits = X509_get0_pubkey_bitstr(this->cert);
-	ret = ByteArray(EVP_MAX_MD_SIZE);
+	ByteArray ret(EVP_MAX_MD_SIZE);
 
 	// TODO: sempre sha1?
 	EVP_Digest(pubKeyBits->data, pubKeyBits->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
-	ret = ByteArray(ret.getDataPointer(), size);
 	return ret;
 }
 
@@ -532,52 +610,53 @@ void CertificateBuilder::setVersion(long version)
 long CertificateBuilder::getVersion()
 {
 	long ret;
-	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
-	if (this->cert == NULL)
-	{
+
+	if (this->cert == NULL) {
 		throw CertificationException(CertificationException::INVALID_CERTIFICATE, "CertificateBuilder::getVersion");
 	}
+
+	// TODO: future or alternative versions of x509 will fail here
 	ret = X509_get_version(this->cert);
-	if (ret < 0 || ret > 2)
-	{
+	if (ret < 0 || ret > 2) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateBuilder::getVersion");
 	}
+
 	return ret;
 }
 
-void CertificateBuilder::setNotBefore(DateTime &dateTime)
+void CertificateBuilder::setNotBefore(const DateTime &dateTime)
 {
-	ASN1_TIME *asn1Time;
+	ASN1_TIME *asn1Time = NULL;
 	asn1Time = dateTime.getAsn1Time();
-	X509_set_notBefore(this->cert, asn1Time);
+	X509_set1_notBefore(this->cert, asn1Time);
 	ASN1_TIME_free(asn1Time);
 }
 
 DateTime CertificateBuilder::getNotBefore()
 {
-	ASN1_TIME *asn1Time;
-	asn1Time = X509_get_notBefore(this->cert);
-	return DateTime(asn1Time);
+	const ASN1_TIME *asn1Time = NULL;
+	asn1Time = X509_get0_notBefore(this->cert);
+	return DateTime(asn1Time); // TODO: o constutor copia asn1Time?
 }
 
-void CertificateBuilder::setNotAfter(DateTime &dateTime)
+void CertificateBuilder::setNotAfter(const DateTime &dateTime)
 {
-	ASN1_TIME *asn1Time;
+	ASN1_TIME *asn1Time = NULL;
 	asn1Time = dateTime.getAsn1Time();
-	X509_set_notAfter(this->cert, asn1Time);
+	X509_set1_notAfter(this->cert, asn1Time);
 	ASN1_TIME_free(asn1Time);
 }
 
 DateTime CertificateBuilder::getNotAfter()
 {
-	ASN1_TIME *asn1Time;
-	asn1Time = X509_get_notAfter(this->cert);
-	return DateTime(asn1Time);
+	const ASN1_TIME *asn1Time = 0;
+	asn1Time = X509_get0_notAfter(this->cert);
+	return DateTime(asn1Time); // TODO: o constutor copia asn1Time?
 }
 
-void CertificateBuilder::setIssuer(RDNSequence &name)
+void CertificateBuilder::setIssuer(const RDNSequence &name)
 {
-	X509_NAME *issuer;
+	X509_NAME *issuer = NULL;
 	issuer = name.getX509Name();
 	X509_set_issuer_name(this->cert, issuer);
 	X509_NAME_free(issuer);
@@ -585,32 +664,32 @@ void CertificateBuilder::setIssuer(RDNSequence &name)
 
 void CertificateBuilder::setIssuer(X509* issuer)
 {
-	int rc;
+	int rc = 0;
 	X509_NAME *name = X509_get_subject_name(issuer);
-	rc = X509_set_issuer_name(this->cert, X509_NAME_dup(name));
-	if (!rc)
-	{
+	rc = X509_set_issuer_name(this->cert, name);
+	if (!rc) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::setIssuer");
 	}
 }
 
-RDNSequence CertificateBuilder::getIssuer()
+RDNSequence CertificateBuilder::getIssuer() const
 {
-	return RDNSequence(X509_get_issuer_name(this->cert));
+	X509_NAME *name = X509_get_issuer_name(this->cert);
+	return RDNSequence(name); // TODO name é copiado?
 }
 
-void CertificateBuilder::alterSubject(RDNSequence &name)
+void CertificateBuilder::alterSubject(const RDNSequence& name)
 {
 	X509_NAME *subject = X509_get_subject_name(this->cert);
-	if(subject == NULL)
-	{
+	if(subject == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
+
 	X509_NAME *subjectName = X509_NAME_new();
-	if(subjectName == NULL)
-	{
+	if(subjectName == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
+
 	std::vector<std::pair<ObjectIdentifier, std::string> > entries = name.getEntries();
 	X509_NAME_ENTRY *newEntry;
 
@@ -729,131 +808,103 @@ void CertificateBuilder::alterSubject(RDNSequence &name)
 	name = RDNSequence(subject);*/
 }
 
-void CertificateBuilder::setSubject(RDNSequence &name)
+void CertificateBuilder::setSubject(const RDNSequence &name)
 {
-	X509_NAME *subject;
+	X509_NAME *subject = NULL;
+	int rc = 0;
+
 	subject = name.getX509Name();
-	X509_set_subject_name(this->cert, subject);
+	rc = X509_set_subject_name(this->cert, subject);
 	X509_NAME_free(subject);
+	if (rc == 0) {
+		throw CertificationException(CertificationException::INVALID_RDN_SEQUENCE,
+				"CertificateBuilder::setSubject");
+	}
 }
 
 void CertificateBuilder::setSubject(X509_REQ* req)
 {
-	int rc;
-	X509_NAME *name = X509_REQ_get_subject_name(req);
-	rc = X509_set_subject_name(this->cert, X509_NAME_dup(name));
-	if (!rc)
-	{
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::setSubject");
+	X509_NAME *name = NULL;
+	int rc = 0;
+
+	name = X509_REQ_get_subject_name(req);
+	if(name == NULL) {
+		throw CertificationException(CertificationException::INVALID_RDN_SEQUENCE, "CertificateBuilder::setSubject");
+	}
+
+	rc = X509_set_subject_name(this->cert, name);
+	if (!rc) {
+		throw CertificationException(CertificationException::INVALID_RDN_SEQUENCE, "CertificateBuilder::setSubject");
 	}
 }
 
 RDNSequence CertificateBuilder::getSubject()
 {
-	return RDNSequence(X509_get_subject_name(this->cert));
+	X509_NAME *name = NULL;
+	name = X509_get_subject_name(this->cert);
+	return RDNSequence(name);
 }
 
-void CertificateBuilder::addExtension(Extension &extension)
+void CertificateBuilder::addExtension(const Extension& extension)
 {
-	X509_EXTENSION *ext;
-	int rc;
+	X509_EXTENSION *ext = NULL;
+	int rc = 0;
+
 	ext = extension.getX509Extension();
 	rc = X509_add_ext(this->cert, ext, -1);
-	if (!rc)
-	{
+	if (!rc) {
 		throw CertificationException(CertificationException::ADDING_EXTENSION, "CertificateBuilder::addExtension");
 	}
 }
 
-void CertificateBuilder::addExtensions(std::vector<Extension *> &extensions)
+void CertificateBuilder::addExtensions(const std::vector<Extension *>& extensions)
 {
-	X509_EXTENSION *ext;
-	int rc;
-	unsigned int i;
-	for (i=0;i<extensions.size();i++)
+	X509_EXTENSION *x509Ext = NULL;
+	int rc = 0;
+
+	for (auto ext : extensions)
 	{
-		ext = extensions.at(i)->getX509Extension();
-		rc = X509_add_ext(this->cert, ext, -1);
-		if (!rc)
-		{
+		x509Ext = ext->getX509Extension();
+		rc = X509_add_ext(this->cert, x509Ext, -1);
+		if (!rc) {
 			throw CertificationException(CertificationException::ADDING_EXTENSION, "CertificateBuilder::addExtension");
 		}
+		X509_EXTENSION_free(x509Ext);
 	}
 }
 
-void CertificateBuilder::replaceExtension(Extension &extension)
+void CertificateBuilder::replaceExtension(const Extension &extension)
 {
-	int position;
-	X509_EXTENSION *ext;
-	position = X509_get_ext_by_OBJ(this->cert, extension.getObjectIdentifier().getObjectIdentifier(), -1);
-	if (position >= 0)
-	{
+	int position = 0, rc = 0;
+	X509_EXTENSION *ext = NULL;
+	ObjectIdentifier oid = extension.getObjectIdentifier();
+
+	position = X509_get_ext_by_OBJ(this->cert, oid.getObjectIdentifier(), -1);
+	if (position >= 0) {
 		ext = extension.getX509Extension();
-		if(X509_add_ext(this->cert, ext, position) == 0)
-		{
+		rc = X509_add_ext(this->cert, ext, position);
+		if(rc == 0) {
 			throw CertificationException(CertificationException::ADDING_EXTENSION, "CertificateBuilder::replaceExtension");
 		}
-
 		ext = X509_delete_ext(this->cert, position + 1);
 		X509_EXTENSION_free(ext);
-	}
-	else //a extensao nao esta presente, adiciona no topo da pilha
-	{
+	} else {  // a extensao nao esta presente, adiciona no topo da pilha
 		this->addExtension(extension);
 	}
 }
 
 std::vector<Extension*> CertificateBuilder::getExtension(Extension::Name extensionName)
 {
-	int next, i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
+	Extension *oneExt = NULL;
+	X509_EXTENSION *ext = NULL;
+	std::vector<Extension*> ret;
+	int next = 0, i = 0;
+
 	next = X509_get_ext_count(this->cert);
-	for (i=0;i<next;i++)
-	{
+	for (i = 0; i < next; i++) {
 		ext = X509_get_ext(this->cert, i);
-		if (Extension::getName(ext) == extensionName)
-		{
-			switch (Extension::getName(ext))
-			{
-				case Extension::KEY_USAGE:
-						oneExt = new KeyUsageExtension(ext);
-					break;
-				case Extension::EXTENDED_KEY_USAGE:
-					oneExt = new ExtendedKeyUsageExtension(ext);
-					break;
-				case Extension::AUTHORITY_KEY_IDENTIFIER:
-					oneExt = new AuthorityKeyIdentifierExtension(ext);
-					break;
-				case Extension::CRL_DISTRIBUTION_POINTS:
-					oneExt = new CRLDistributionPointsExtension(ext);
-					break;
-				case Extension::AUTHORITY_INFORMATION_ACCESS:
-					oneExt = new AuthorityInformationAccessExtension(ext);
-					break;
-				case Extension::BASIC_CONSTRAINTS:
-					oneExt = new BasicConstraintsExtension(ext);
-					break;
-				case Extension::CERTIFICATE_POLICIES:
-					oneExt = new CertificatePoliciesExtension(ext);
-					break;
-				case Extension::ISSUER_ALTERNATIVE_NAME:
-					oneExt = new IssuerAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_ALTERNATIVE_NAME:
-					oneExt = new SubjectAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_INFORMATION_ACCESS:
-					oneExt = new SubjectInformationAccessExtension(ext);
-					break;
-				case Extension::SUBJECT_KEY_IDENTIFIER:
-					oneExt = new SubjectKeyIdentifierExtension(ext);
-					break;
-				default:
-					oneExt = new Extension(ext);
-					break;
-			}
+		if (Extension::getName(ext) == extensionName) {
+			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 		}
 	}
@@ -862,70 +913,31 @@ std::vector<Extension*> CertificateBuilder::getExtension(Extension::Name extensi
 
 std::vector<Extension*> CertificateBuilder::getExtensions()
 {
-	int next, i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
+	Extension *oneExt = NULL;
+	X509_EXTENSION *ext = NULL;
+	std::vector<Extension*> ret;
+	int next = 0, i = 0;
+
 	next = X509_get_ext_count(this->cert);
-	for (i=0;i<next;i++)
-	{
+	for (i = 0; i < next; i++) {
 		ext = X509_get_ext(this->cert, i);
-		switch (Extension::getName(ext))
-		{
-			case Extension::KEY_USAGE:
-				oneExt = new KeyUsageExtension(ext);
-				break;
-			case Extension::EXTENDED_KEY_USAGE:
-				oneExt = new ExtendedKeyUsageExtension(ext);
-				break;
-			case Extension::AUTHORITY_KEY_IDENTIFIER:
-				oneExt = new AuthorityKeyIdentifierExtension(ext);
-				break;
-			case Extension::CRL_DISTRIBUTION_POINTS:
-				oneExt = new CRLDistributionPointsExtension(ext);
-				break;
-			case Extension::AUTHORITY_INFORMATION_ACCESS:
-				oneExt = new AuthorityInformationAccessExtension(ext);
-				break;
-			case Extension::BASIC_CONSTRAINTS:
-				oneExt = new BasicConstraintsExtension(ext);
-				break;
-			case Extension::CERTIFICATE_POLICIES:
-				oneExt = new CertificatePoliciesExtension(ext);
-				break;
-			case Extension::ISSUER_ALTERNATIVE_NAME:
-				oneExt = new IssuerAlternativeNameExtension(ext);
-				break;
-			case Extension::SUBJECT_ALTERNATIVE_NAME:
-				oneExt = new SubjectAlternativeNameExtension(ext);
-				break;
-			case Extension::SUBJECT_INFORMATION_ACCESS:
-				oneExt = new SubjectInformationAccessExtension(ext);
-				break;
-			case Extension::SUBJECT_KEY_IDENTIFIER:
-				oneExt = new SubjectKeyIdentifierExtension(ext);
-				break;
-			default:
-				oneExt = new Extension(ext);
-				break;
-		}
+		oneExt = ExtensionFactory::getExtension(ext);
 		ret.push_back(oneExt);
 	}
 	return ret;
 }
 
-std::vector<Extension *> CertificateBuilder::getUnknownExtensions()
+std::vector<Extension*> CertificateBuilder::getUnknownExtensions()
 {
-	int next, i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
+	Extension *oneExt = NULL;
+	X509_EXTENSION *ext = NULL;
+	std::vector<Extension*> ret;
+	int next = 0, i = 0;
+
 	next = X509_get_ext_count(this->cert);
-	for (i=0;i<next;i++)
-	{
+	for (i = 0; i < next; i++) {
 		ext = X509_get_ext(this->cert, i);
-		switch (Extension::getName(ext))
-		{
+		switch (Extension::getName(ext)) {
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
@@ -934,178 +946,77 @@ std::vector<Extension *> CertificateBuilder::getUnknownExtensions()
 				break;
 		}
 	}
+
 	return ret;
 }
 
-std::vector<Extension *> CertificateBuilder::removeExtension(Extension::Name extensionName)
+std::vector<Extension*> CertificateBuilder::removeExtension(Extension::Name extensionName)
 {
-	int i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
+	Extension *oneExt = NULL;
+	X509_EXTENSION *ext = NULL;
+	std::vector<Extension*> ret;
+	int i = 0;
 
-	i = 0;
-	while(i < X509_get_ext_count(this->cert))
-	{
+	while(i < X509_get_ext_count(this->cert)) {
 		ext = X509_get_ext(this->cert, i);
-
-		if (Extension::getName(ext) == extensionName)
-		{
-			switch (Extension::getName(ext))
-			{
-				case Extension::KEY_USAGE:
-					oneExt = new KeyUsageExtension(ext);
-					break;
-				case Extension::EXTENDED_KEY_USAGE:
-					oneExt = new ExtendedKeyUsageExtension(ext);
-					break;
-				case Extension::AUTHORITY_KEY_IDENTIFIER:
-					oneExt = new AuthorityKeyIdentifierExtension(ext);
-					break;
-				case Extension::CRL_DISTRIBUTION_POINTS:
-					oneExt = new CRLDistributionPointsExtension(ext);
-					break;
-				case Extension::AUTHORITY_INFORMATION_ACCESS:
-					oneExt = new AuthorityInformationAccessExtension(ext);
-					break;
-				case Extension::BASIC_CONSTRAINTS:
-					oneExt = new BasicConstraintsExtension(ext);
-					break;
-				case Extension::CERTIFICATE_POLICIES:
-					oneExt = new CertificatePoliciesExtension(ext);
-					break;
-				case Extension::ISSUER_ALTERNATIVE_NAME:
-					oneExt = new IssuerAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_ALTERNATIVE_NAME:
-					oneExt = new SubjectAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_INFORMATION_ACCESS:
-					oneExt = new SubjectInformationAccessExtension(ext);
-					break;
-				case Extension::SUBJECT_KEY_IDENTIFIER:
-					oneExt = new SubjectKeyIdentifierExtension(ext);
-					break;
-				default:
-					oneExt = new Extension(ext);
-					break;
-			}
+		if (Extension::getName(ext) == extensionName) {
+			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 			ext = X509_delete_ext(this->cert, i);
 			X509_EXTENSION_free(ext);
-			//nao incrementa i pois um elemento do array foi removido
-		}
-		else
-		{
+			// nao incrementa i pois um elemento do array foi removido
+		} else {
 			i++;
 		}
 	}
+
 	return ret;
 
 }
 
-std::vector<Extension *> CertificateBuilder::removeExtension(ObjectIdentifier extOID)
+std::vector<Extension*> CertificateBuilder::removeExtension(const ObjectIdentifier& extOID)
 {
-	int i;
-	X509_EXTENSION *ext = NULL;
-	std::vector<Extension *> ret;
 	Extension *oneExt = NULL;
 	ASN1_OBJECT* obj = NULL;
+	X509_EXTENSION *ext = NULL;
+	std::vector<Extension *> ret;
+	int i = 0;
 
-	i = 0;
-	while(i < X509_get_ext_count(this->cert))
-	{
+	while(i < X509_get_ext_count(this->cert)) {
 		ext = X509_get_ext(this->cert, i);
 		obj = X509_EXTENSION_get_object(ext);
 
-		if (OBJ_cmp(obj, extOID.getObjectIdentifier()) == 0)
-		{
-			switch (Extension::getName(ext))
-			{
-				case Extension::KEY_USAGE:
-					oneExt = new KeyUsageExtension(ext);
-					break;
-				case Extension::EXTENDED_KEY_USAGE:
-					oneExt = new ExtendedKeyUsageExtension(ext);
-					break;
-				case Extension::AUTHORITY_KEY_IDENTIFIER:
-					oneExt = new AuthorityKeyIdentifierExtension(ext);
-					break;
-				case Extension::CRL_DISTRIBUTION_POINTS:
-					oneExt = new CRLDistributionPointsExtension(ext);
-					break;
-				case Extension::AUTHORITY_INFORMATION_ACCESS:
-					oneExt = new AuthorityInformationAccessExtension(ext);
-					break;
-				case Extension::BASIC_CONSTRAINTS:
-					oneExt = new BasicConstraintsExtension(ext);
-					break;
-				case Extension::CERTIFICATE_POLICIES:
-					oneExt = new CertificatePoliciesExtension(ext);
-					break;
-				case Extension::ISSUER_ALTERNATIVE_NAME:
-					oneExt = new IssuerAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_ALTERNATIVE_NAME:
-					oneExt = new SubjectAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_INFORMATION_ACCESS:
-					oneExt = new SubjectInformationAccessExtension(ext);
-					break;
-				case Extension::SUBJECT_KEY_IDENTIFIER:
-					oneExt = new SubjectKeyIdentifierExtension(ext);
-					break;
-				default:
-					oneExt = new Extension(ext);
-					break;
-			}
+		if (OBJ_cmp(obj, extOID.getObjectIdentifier()) == 0) {
+			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 			ext = X509_delete_ext(this->cert, i);
 			X509_EXTENSION_free(ext);
-			//nao incrementa i pois um elemento do array foi removido
-		}
-		else
-		{
+			// nao incrementa i pois um elemento do array foi removido
+		} else {
 			i++;
 		}
 	}
 	return ret;
 }
 
-Certificate* CertificateBuilder::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
+Certificate CertificateBuilder::sign(PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
 {
-	PublicKey *pub;
-	Certificate *ret;
+	PublicKey pub = this->getPublicKey();
 	DateTime dateTime;
 	int rc;
-	pub = this->getPublicKey();
-	delete pub;
-	rc = X509_sign(this->cert, privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
-	if (!rc)
-	{
+
+	rc = X509_sign(this->cert, privateKey.getEvpPkey(),
+			MessageDigest::getMessageDigest(messageDigestAlgorithm));
+	if (!rc) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::sign");
 	}
-	ret = new Certificate(this->cert);
-	this->cert = X509_new();
-	this->setNotBefore(dateTime);
-	this->setNotAfter(dateTime);
-	return ret;
+
+	return Certificate((const X509*) this->cert);
 }
 
-X509* CertificateBuilder::getX509() const
+const X509* CertificateBuilder::getX509() const
 {
 	return this->cert;
-}
-
-CertificateBuilder& CertificateBuilder::operator =(const CertificateBuilder& value)
-{
-	if (this->cert)
-	{
-		X509_free(this->cert);
-	}
-    this->cert = X509_dup(value.getX509());
-    this->setIncludeEcdsaParameters(value.isIncludeEcdsaParameters());
-    return (*this);
 }
 
 bool CertificateBuilder::isIncludeEcdsaParameters() const {
@@ -1117,34 +1028,27 @@ void CertificateBuilder::setIncludeEcdsaParameters(bool includeEcdsaParameters) 
 }
 
 void CertificateBuilder::includeEcdsaParameters() {
-	PublicKey* publicKey = this->getPublicKey();
+	PublicKey publicKey = this->getPublicKey();
 
-	if(publicKey) {
-		if(publicKey->getAlgorithm() == AsymmetricKey::EC && this->isIncludeEcdsaParameters()) {
-			EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY(publicKey->getEvpPkey());
-			EC_KEY_set_asn1_flag(ec_key, 0);
-		}
-
-		this->setPublicKey(*publicKey);
-		delete publicKey;
+	if(publicKey.getAlgorithm() == AsymmetricKey::EC && this->isIncludeEcdsaParameters()) {
+		EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY(publicKey.getEvpPkey());
+		EC_KEY_set_asn1_flag(ec_key, 0);
 	}
+	this->setPublicKey(publicKey);
 }
 
-int CertificateBuilder::getCodification(RDNSequence& name){
+int CertificateBuilder::getCodification(const RDNSequence& name){
 	int entryType = MBSTRING_ASC;
 	X509_NAME *subject = X509_get_subject_name(this->cert);
-	if(subject == NULL)
-	{
+	if(subject == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
 
 	std::vector<std::pair<ObjectIdentifier, std::string> > entries = name.getEntries();
 
-	for(std::vector<std::pair<ObjectIdentifier, std::string> >::iterator entry = entries.begin(); entry != entries.end(); entry++)
-	{
-		int position = X509_NAME_get_index_by_NID(subject, entry->first.getNid(), -1);
-		if(position != -1 && entry->first.getNid() != NID_countryName)
-		{
+	for(auto entry : entries) {
+		int position = X509_NAME_get_index_by_NID(subject, entry.first.getNid(), -1);
+		if(position != -1 && entry.first.getNid() != NID_countryName) {
 			X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
 			ASN1_OBJECT* obj = X509_NAME_ENTRY_get_object(oldEntry);
 			entryType = OBJ_obj2nid(obj);

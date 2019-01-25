@@ -5,6 +5,10 @@ Certificate::Certificate(X509 *cert)
 	this->cert = cert;
 }
 
+Certificate::Certificate(const X509* cert) {
+	this->cert = X509_dup((X509*) cert);
+}
+
 Certificate::Certificate(std::string pemEncoded)
 {
 	BIO *buffer;
@@ -52,6 +56,12 @@ Certificate::Certificate(ByteArray &derEncoded)
 Certificate::Certificate(const Certificate& cert)
 {
 	this->cert = X509_dup(cert.getX509());
+}
+
+Certificate::Certificate(Certificate&& cert)
+	: cert(cert.cert)
+{
+	cert.cert = nullptr;
 }
 
 Certificate::~Certificate()
@@ -691,14 +701,33 @@ CertificateRequest Certificate::getNewCertificateRequest(PrivateKey &privateKey,
 	return CertificateRequest(req);
 }
 
-Certificate& Certificate::operator =(const Certificate& value)
+Certificate& Certificate::operator=(const Certificate& value)
 {
-	if (this->cert)
-	{
+	if (&value == this) {
+		return *this;
+	}
+
+	if (this->cert) {
 		X509_free(this->cert);
 	}
-    this->cert = X509_dup(value.getX509());
-    return (*this);
+
+	this->cert = X509_dup(value.getX509());
+    return *this;
+}
+
+Certificate& Certificate::operator=(Certificate&& value) {
+	if (&value == this) {
+		return *this;
+	}
+
+	if (this->cert) {
+		X509_free(this->cert);
+	}
+
+	this->cert = value.cert;
+	value.cert = nullptr;
+
+    return *this;
 }
 
 bool Certificate::operator ==(const Certificate& value)

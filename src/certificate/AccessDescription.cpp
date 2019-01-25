@@ -15,7 +15,7 @@ AccessDescription::AccessDescription(ACCESS_DESCRIPTION *accessDescription) {
 ACCESS_DESCRIPTION* AccessDescription::getAccessDescription() {
 	ACCESS_DESCRIPTION* accessDescription = ACCESS_DESCRIPTION_new();
 
-	accessDescription->method = accessMethod.getObjectIdentifier();
+	accessDescription->method = OBJ_dup(accessMethod.getObjectIdentifier());
 	accessDescription->location = accessLocation.getGeneralName();
 
 	return accessDescription;

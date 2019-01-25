@@ -98,7 +98,7 @@ void Extension::setCritical(bool critical)
 	this->critical = critical;
 }
 
-X509_EXTENSION* Extension::getX509Extension()
+X509_EXTENSION* Extension::getX509Extension() const
 {
 	X509_EXTENSION *ret;
 	ByteArray data;

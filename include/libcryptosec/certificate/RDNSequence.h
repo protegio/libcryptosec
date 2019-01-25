@@ -51,7 +51,7 @@ public:
 	std::vector<std::string> getEntries(RDNSequence::EntryType type);
 	std::vector<std::pair<ObjectIdentifier, std::string> > getUnknownEntries();
 	std::vector<std::pair<ObjectIdentifier, std::string> > getEntries() const;
-	X509_NAME* getX509Name();
+	X509_NAME* getX509Name() const;
 	RDNSequence& operator =(const RDNSequence& value);
 protected:
 //	std::map<EntryType, std::vector<std::string> > entries;

@@ -1,71 +1,68 @@
 #ifndef CERTIFICATEBUILDER_H_
 #define CERTIFICATEBUILDER_H_
 
+#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/MessageDigest.h>
+
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 
 #include <vector>
 #include <string>
 
-#include <libcryptosec/ByteArray.h>
-#include <libcryptosec/DateTime.h>
-#include <libcryptosec/MessageDigest.h>
-#include <libcryptosec/PrivateKey.h>
-#include <libcryptosec/PublicKey.h>
-
-#include "Certificate.h"
-#include "CertificateRequest.h"
-#include "Extension.h"
-#include "KeyUsageExtension.h"
-#include "ExtendedKeyUsageExtension.h"
-#include "BasicConstraintsExtension.h"
-#include "CRLDistributionPointsExtension.h"
-#include "IssuerAlternativeNameExtension.h"
-#include "SubjectAlternativeNameExtension.h"
-#include "SubjectInformationAccessExtension.h"
-#include "AuthorityKeyIdentifierExtension.h"
-#include "SubjectKeyIdentifierExtension.h"
-#include "CertificatePoliciesExtension.h"
-
-#include <libcryptosec/exception/AsymmetricKeyException.h>
-#include <libcryptosec/exception/CertificationException.h>
-#include <libcryptosec/exception/EncodeException.h>
+class BigInteger;
+class ByteArray;
+class Certificate;
+class CertificateRequest;
+class DateTime;
+class Extension;
+class PublicKey;
+class PrivateKey;
+class RDNSequence;
 
 class CertificateBuilder
 {
 public:
 	CertificateBuilder();
-	CertificateBuilder(std::string pemEncoded);
-	CertificateBuilder(ByteArray &derEncoded);
-	CertificateBuilder(CertificateRequest &request);
+	CertificateBuilder(const std::string& pemEncoded);
+	CertificateBuilder(const ByteArray& derEncoded);
+	CertificateBuilder(const CertificateRequest& request);
 	CertificateBuilder(const CertificateBuilder& cert);
+	CertificateBuilder(CertificateBuilder&& cert);
+
 	virtual ~CertificateBuilder();
+
+	CertificateBuilder& operator=(const CertificateBuilder& value);
+	CertificateBuilder& operator=(CertificateBuilder&& builder);
+
 	std::string getPemEncoded();
 	ByteArray getDerEncoded();
+
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
 	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	virtual std::string toXml(std::string tab = "");
+	std::string getXmlEncoded(const std::string& tab);
+	virtual std::string toXml(const std::string& tab = "");
+
 	void setSerialNumber(long serial);
-	/**
-	 * Definir serial à partir de BigInteger, para seriais maiores do que um "long".
-	 */
-	void setSerialNumber(BigInteger serial);
+	void setSerialNumber(const BigInteger& serial);
 	long getSerialNumber();
 	BigInteger getSerialNumberBigInt();
+
 	MessageDigest::Algorithm getMessageDigestAlgorithm();
-	void setPublicKey(PublicKey &publicKey);
-	PublicKey* getPublicKey();
+	void setPublicKey(PublicKey& publicKey);
+	PublicKey getPublicKey();
 	ByteArray getPublicKeyInfo();
+
 	void setVersion(long version);
 	long getVersion();
-	void setNotBefore(DateTime &dateTime);
+
+	void setNotBefore(const DateTime& dateTime);
 	DateTime getNotBefore();
-	void setNotAfter(DateTime &dateTime);
+	void setNotAfter(const DateTime& dateTime);
 	DateTime getNotAfter();
 
 	/**
@@ -74,7 +71,7 @@ public:
 	 *
 	 * @param name issuer
 	 */
-	void setIssuer(RDNSequence &name);
+	void setIssuer(const RDNSequence& name);
 
 	/**
 	 * Define o campo "issuer" a partir de um X509, respeitando o
@@ -84,7 +81,7 @@ public:
 	 */
 	void setIssuer(X509* issuer);
 
-	RDNSequence getIssuer();
+	RDNSequence getIssuer() const;
 
 	/**
 	 * Altera o campo "subject" a partir de um RDNSequence, respeitando a
@@ -92,7 +89,7 @@ public:
 	 *
 	 * @param name subject
 	 */
-	void alterSubject(RDNSequence &name);
+	void alterSubject(const RDNSequence& name);
 
 	/**
 	 * Define o campo "subject" a partir de um RDNSequence, utilizando a
@@ -100,7 +97,7 @@ public:
 	 *
 	 * @param name subject
 	 */
-	void setSubject(RDNSequence &name);
+	void setSubject(const RDNSequence& name);
 
 	/**
 	 * Define o campo "subject" a partir de um X509_REQ, respeitando a
@@ -110,27 +107,26 @@ public:
 	 */
 	void setSubject(X509_REQ* req);
 	RDNSequence getSubject();
-	void addExtension(Extension &extension);
-	void addExtensions(std::vector<Extension *> &extensions);
-	void replaceExtension(Extension &extension);
-	std::vector<Extension *> removeExtension(Extension::Name extensionName);
-	std::vector<Extension *> removeExtension(ObjectIdentifier extOID);
+	void addExtension(const Extension& extension);
+	void addExtensions(const std::vector<Extension*>& extensions);
+	void replaceExtension(const Extension& extension);
+	std::vector<Extension*> removeExtension(Extension::Name extensionName);
+	std::vector<Extension*> removeExtension(const ObjectIdentifier& extOID);
 	std::vector<Extension*> getExtension(Extension::Name extensionName);
 	std::vector<Extension*> getExtensions();
-	std::vector<Extension *> getUnknownExtensions();
-	Certificate* sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
-	X509* getX509() const;
-	CertificateBuilder& operator =(const CertificateBuilder& value);
+	std::vector<Extension*> getUnknownExtensions();
+	Certificate sign(PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
+	const X509* getX509() const;
 	bool isIncludeEcdsaParameters() const;
 	void setIncludeEcdsaParameters(bool includeEcdsaParameters);
 	void includeEcdsaParameters();
 
 protected:
-	X509 *cert;
+	X509* cert;
 	bool includeECDSAParameters;
 
 private:
-	int getCodification(RDNSequence& name);
+	int getCodification(const RDNSequence& name);
 
 
 };

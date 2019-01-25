@@ -3,8 +3,6 @@
 
 #include <libcryptosec/Macros.h>
 
-#include <openssl/evp.h>
-
 #include <string>
 
 class ByteArray;

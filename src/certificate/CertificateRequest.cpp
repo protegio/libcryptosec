@@ -244,8 +244,9 @@ void CertificateRequest::setPublicKey(PublicKey &publicKey)
 	X509_REQ_set_pubkey(this->req, publicKey.getEvpPkey());
 }
 
-PublicKey* CertificateRequest::getPublicKey()
+PublicKey* CertificateRequest::getPublicKey() const
 {
+	// TODO check if function const modifier is ok
 	EVP_PKEY *key;
 	PublicKey *ret;
 	key = X509_REQ_get_pubkey(this->req);
@@ -483,7 +484,7 @@ std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name ext
 
 std::vector<Extension *> CertificateRequest::removeExtension(ObjectIdentifier extOID)
 {
-	ASN1_OBJECT* obj = extOID.getObjectIdentifier(); //nao desalocar!
+	const ASN1_OBJECT* obj = extOID.getObjectIdentifier();
 	int nid = OBJ_obj2nid(obj);
 	return this->removeExtension(Extension::getName(nid));
 }
@@ -546,8 +547,9 @@ std::vector<Extension *> CertificateRequest::getExtension(Extension::Name extens
 	return ret;
 }
 
-std::vector<Extension*> CertificateRequest::getExtensions()
+std::vector<Extension*> CertificateRequest::getExtensions() const
 {
+	// TODO: check if function const modifier is ok
 	int i;
 	X509_EXTENSION *ext;
 	std::vector<Extension *> ret;

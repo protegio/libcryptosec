@@ -73,7 +73,7 @@ std::string ObjectIdentifier::getName()
 	return ret;
 }
 
-ASN1_OBJECT* ObjectIdentifier::getObjectIdentifier() const
+const ASN1_OBJECT* ObjectIdentifier::getObjectIdentifier() const
 {
 	return this->asn1Object;
 }

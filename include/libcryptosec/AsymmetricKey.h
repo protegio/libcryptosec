@@ -116,14 +116,11 @@ public:
 	};
 
 	/**
-	 * @brief Construtor de inicializaão da estrutura OpenSSL EVP_PKEY.
+	 * @brief Construtor de inicializaão da estrutura EVP_PKEY.
 	 *
-	 * Esse construtor deve ser usando apenas internamente. Para construir uma chave
-	 * assimétrica nova deve ser utilizada a classe KeyPair.
-	 *
-	 * @param evpPkey O ponteiro para a estrutura OpenSSL EVP_PKEY.
+	 * @param evpPkey O ponteiro para a estrutura EVP_PKEY.
 	 * @throw AsymmetricKeyException Caso a estrutura EVP_PKEY não seja uma estrutura
-	 * 	OpenSSL válida ou ocorra algum problema na sua carga.
+	 * 		válida ou ocorra algum problema na sua carga.
 	 */
 	AsymmetricKey(EVP_PKEY* evpPkey);
 
@@ -135,7 +132,7 @@ public:
 	 * @param encoded A chave assimétrica no formato DER.
 	 */
 	AsymmetricKey(const ByteArray& encoded);
-	
+
 	/**
 	 * @brief Carrega uma chave assimétrica a partir da sua equivalente codificada em PEM.
 	 *

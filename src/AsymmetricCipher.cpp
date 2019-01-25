@@ -5,6 +5,8 @@
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/exception/AsymmetricCipherException.h>
 
+#include <openssl/evp.h>
+
 INITIALIZE_ENUM( AsymmetricCipher::Padding, 3,
 	NO_PADDING,
 	PKCS1,

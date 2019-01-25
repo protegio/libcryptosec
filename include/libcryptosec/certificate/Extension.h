@@ -52,7 +52,7 @@ public:
 	std::string getBase64Value();
 	void setCritical(bool critical);
 	bool isCritical() const;
-	virtual X509_EXTENSION* getX509Extension();
+	virtual X509_EXTENSION* getX509Extension() const;
 	static Extension::Name getName(int nid);
 	static Extension::Name getName(X509_EXTENSION *ext);
 protected:

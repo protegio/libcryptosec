@@ -12,6 +12,8 @@ public:
 		INVALID_CERTIFICATE,
 		INVALID_CRL,
 		INVALID_EXTENSION,
+		INVALID_RDN_SEQUENCE,
+		INVALID_PUBLIC_KEY,
 		SET_NO_VALUE,
 		INTERNAL_ERROR,
 		UNSUPPORTED_ASYMMETRIC_KEY_TYPE,
@@ -65,6 +67,12 @@ public:
     			break;
     		case CertificationException::INVALID_CRL:
     			ret = "Invalid CRL object";
+    			break;
+    		case CertificationException::INVALID_RDN_SEQUENCE:
+    			ret = "Invalid RDN Sequence";
+    			break;
+    		case CertificationException::INVALID_PUBLIC_KEY:
+    			ret = "Invalid public key";
     			break;
     		case CertificationException::INVALID_EXTENSION:
     			ret = "Invalid extension";

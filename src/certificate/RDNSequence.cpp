@@ -216,7 +216,7 @@ std::vector<std::pair<ObjectIdentifier, std::string> > RDNSequence::getEntries()
 	return this->newEntries;
 }
 
-X509_NAME* RDNSequence::getX509Name()
+X509_NAME* RDNSequence::getX509Name() const
 {
 //	unsigned int j;
 	X509_NAME *ret;
@@ -227,17 +227,15 @@ X509_NAME* RDNSequence::getX509Name()
 	
 //	std::vector<std::pair<std::string, std::string> >::iterator iterUnknown;
 
-	std::vector<std::pair<ObjectIdentifier, std::string> >::iterator iterEntries;
-	
 	ret = X509_NAME_new();
 	
-	for (iterEntries = this->newEntries.begin();iterEntries != this->newEntries.end();iterEntries++)
+	for (auto iterEntries : this->newEntries)
 	{
 //		printf("Num: %s - %s\n", RDNSequence::getNameId(RDNSequence::id2Type(iterEntries->first.getNid())).c_str(), iterEntries->second.c_str());
 		entry = X509_NAME_ENTRY_new();
-		X509_NAME_ENTRY_set_object(entry, iterEntries->first.getObjectIdentifier());
-		data = iterEntries->second;
-		X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *)data.c_str(), data.length());
+		X509_NAME_ENTRY_set_object(entry, iterEntries.first.getObjectIdentifier());
+		data = iterEntries.second;
+		X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *) data.c_str(), data.length());
 		X509_NAME_add_entry(ret, entry, -1, 0);
 		X509_NAME_ENTRY_free(entry);
 		

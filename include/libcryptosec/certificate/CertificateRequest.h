@@ -49,7 +49,7 @@ public:
 	void setVersion(long version);
 	long getVersion();
 	void setPublicKey(PublicKey &publicKey);
-	PublicKey* getPublicKey();
+	PublicKey* getPublicKey() const;
 	ByteArray getPublicKeyInfo();
 	void setSubject(RDNSequence &name);
 	RDNSequence getSubject();
@@ -59,7 +59,7 @@ public:
 	std::vector<Extension *> removeExtension(Extension::Name extensionName);
 	std::vector<Extension *> removeExtension(ObjectIdentifier extOID);
 	std::vector<Extension *> getExtension(Extension::Name extensionName);
-	std::vector<Extension *> getExtensions();
+	std::vector<Extension *> getExtensions() const;
 	std::vector<Extension *> getUnknownExtensions();
 	ByteArray* getFingerPrint(MessageDigest::Algorithm algorithm) const;
 	void sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
