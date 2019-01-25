@@ -3,65 +3,71 @@
 
 #include <openssl/rand.h>
 
-ByteArray::ByteArray()
+ByteArray::ByteArray() :
+		size(0),
+		originalSize(0),
+		m_data(nullptr)
 {
-    this->m_data = NULL;
-    this->size = 0;
-    this->originalSize = 0;
 }
 
-ByteArray::ByteArray(unsigned int size)
+ByteArray::ByteArray(unsigned int size) :
+		size(size),
+		originalSize(size),
+		m_data(new unsigned char[size + 1])
 {
-    this->size = size;
-    this->originalSize = size;
-    this->m_data = new unsigned char[size + 1];
     memset(this->m_data, 0, this->size + 1);
+    this->m_data[size] = '\0';
 }
 
-ByteArray::ByteArray(const unsigned char* data, unsigned int size)
+ByteArray::ByteArray(const unsigned char* data, unsigned int size) :
+		size(size),
+		originalSize(size),
+		m_data(new unsigned char[size + 1])
 {
-    this->size = size;
-    this->originalSize = size;
-    this->m_data = new unsigned char[size + 1];
     memcpy(this->m_data, data, size);
     this->m_data[size] = '\0';
 }
 
-ByteArray::ByteArray(std::ostringstream *buffer)
+ByteArray::ByteArray(std::ostringstream *buffer) :
+		ByteArray(buffer->str())
 {
-	std::string data = buffer->str();
-	this->size = data.size() + 1;
-	this->originalSize = this->size;
-    this->m_data = new unsigned char[size + 1];
-    memcpy(this->m_data, (const unsigned char *) data.c_str(), this->size);
-    this->m_data[size] = '\0';
 }
 
-ByteArray::ByteArray(const std::string& data)
+ByteArray::ByteArray(const std::string& data) :
+		size(data.size() + 1),
+		originalSize(size),
+		m_data(new unsigned char[size + 1])
 {
-	this->size = data.size() + 1;
-	this->originalSize = this->size;
-    this->m_data = new unsigned char[this->size + 1];
     memcpy(this->m_data, data.c_str(), this->size);
     this->m_data[this->size] = '\0';
 }
 
-ByteArray::ByteArray(const char *data)
+ByteArray::ByteArray(const char *data) :
+		size(strlen(data) + 1),
+		originalSize(size),
+		m_data(new unsigned char[size + 1])
 {
-	this->size = strlen(data) + 1;
-	this->originalSize = this->size;
-    this->m_data = new unsigned char[this->size + 1];
     memcpy(this->m_data, data, size);
     this->m_data[this->size] = '\0';
 }
 
-ByteArray::ByteArray(const ByteArray& value)
+ByteArray::ByteArray(const ByteArray& value) :
+		size(value.size),
+		originalSize(value.originalSize),
+		m_data(new unsigned char[value.originalSize + 1])
 {
-    this->size = value.size;
-    this->originalSize = value.originalSize;
-    this->m_data = new unsigned char[this->originalSize + 1];
     memcpy(this->m_data, value.m_data, this->originalSize);
     this->m_data[this->originalSize] = '\0';
+}
+
+ByteArray::ByteArray(ByteArray&& value) :
+		size(std::move(value.size)),
+		originalSize(std::move(value.originalSize)),
+		m_data(std::move(value.m_data))
+{
+	value.size = 0;
+	value.originalSize = 0;
+	value.m_data = nullptr;
 }
 
 ByteArray::~ByteArray()
@@ -69,8 +75,12 @@ ByteArray::~ByteArray()
     delete[] this->m_data;
 }
 
-ByteArray& ByteArray::operator =(const ByteArray& value)
+ByteArray& ByteArray::operator=(const ByteArray& value)
 {
+	if (&value == this) {
+		return *this;
+	}
+
     if(this->m_data) {
     	delete[] this->m_data;
     }
@@ -81,10 +91,26 @@ ByteArray& ByteArray::operator =(const ByteArray& value)
     memcpy(this->m_data, value.m_data, this->originalSize);
     this->m_data[this->originalSize] = '\0';
 
-    return (*this);
+    return *this;
 }
 
-bool operator ==(const ByteArray& left, const ByteArray& right)
+ByteArray& ByteArray::operator=(ByteArray&& value)
+{
+	if (&value == this) {
+		return *this;
+	}
+
+    this->size = value.size;
+    this->originalSize = value.originalSize;
+    this->m_data = value.m_data;
+	value.size = 0;
+	value.originalSize = 0;
+	value.m_data = nullptr;
+
+    return *this;
+}
+
+bool operator==(const ByteArray& left, const ByteArray& right)
 {
 	// TODO: we should consider using a constant time method
 	int cmp_result = 0;

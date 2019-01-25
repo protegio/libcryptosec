@@ -5,6 +5,7 @@
 #include <libcryptosec/init.h>
 
 #include <iostream>
+#include <map>
 
 const std::string testString = "The quick brown fox jumps over the lazy dog";
 const unsigned int sizes[] = { 1024, 2048, 4096 };

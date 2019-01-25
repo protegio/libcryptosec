@@ -5,6 +5,7 @@
 #include <libcryptosec/Random.h>
 
 #include <iostream>
+#include <map>
 
 const std::string testString = "The quick brown fox jumps over the lazy dog";
 const unsigned int sizes[] = { 128, 256 };

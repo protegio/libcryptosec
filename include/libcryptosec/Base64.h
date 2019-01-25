@@ -1,11 +1,9 @@
 #ifndef BASE64_H_
 #define BASE64_H_
 
-/* c++ library includes */
 #include <string>
 
-/* local includes */
-#include "ByteArray.h"
+class ByteArray;
 
 /**
  * @ingroup Util
@@ -18,19 +16,22 @@
 class Base64
 {
 public:
+
 	/**
 	 * encode data (readable/unreadable) to base64 format
 	 * @data data to be encoded
 	 * @return encoded data 
 	 */
-	static std::string encode(ByteArray &data);
+	static std::string encode(const ByteArray& data);
+
 	/**
 	 * decode base64 format data to data (readable/unreadable)
 	 * @data data to be decoded
 	 * @return decoded data
 	 */
-	static ByteArray decode(std::string &data);
+	static ByteArray decode(const std::string& data);
 private:
+
 	/**
 	 * internal use. It Represents possible values to base64 format. 
 	 */

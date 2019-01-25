@@ -106,7 +106,8 @@ protected:
      * @return número correspondente à codificação.
      */
     int getReqCodification() {
-    	X509_NAME* name = X509_get_subject_name(certBuilder->getX509());
+    	// TODO: is this cast ok?
+    	X509_NAME* name = X509_get_subject_name((X509*) certBuilder->getX509());
     	for (int i = 0; i < X509_NAME_entry_count(name); i++) {
     		X509_NAME_ENTRY* entry = X509_NAME_get_entry(name, i);
     		if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {
@@ -121,7 +122,8 @@ protected:
      * @param expectedCodification codificação esperada.
      */
     void testStringCodificaton(int expectedCodification) {
-        X509_NAME* after = X509_get_subject_name(certBuilder->getX509());
+    	// TODO: is this cast ok?
+        X509_NAME* after = X509_get_subject_name((X509*) certBuilder->getX509());
         for (int i = 0; i < X509_NAME_entry_count(after); i++) {
             X509_NAME_ENTRY* entry = X509_NAME_get_entry(after, i);
             if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {

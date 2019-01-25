@@ -184,7 +184,7 @@ std::string DateTime::getXmlEncoded(std::string tab) const
 
 ASN1_TIME* DateTime::getAsn1Time() const
 {
-	BigInteger limit("2524608000");// segundos para 01/01/2050 00:00:00 Zulu
+	BigInteger limit("2524608000"); // segundos para 01/01/2050 00:00:00 Zulu
 	ASN1_TIME* ret = NULL;
 	
 	if(this->seconds < limit)

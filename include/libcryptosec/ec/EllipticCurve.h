@@ -23,59 +23,102 @@ public:
 	 * Cria uma curva elíptica a partir da descrição de seus parâmetros codificados em DER.
 	 * @param encoded parâmetros de curva o formato DER.
 	 */
-	EllipticCurve(ByteArray &encoded);
+	EllipticCurve(const ByteArray& encoded);
 
 	/**
 	 * Cria uma curva elíptica a partir da descrição de seus parâmetros codificados em PEM.
 	 * @param encoded parâmetros de curva o formato PEM.
 	 */
-	EllipticCurve(std::string &encoded);
+	EllipticCurve(const std::string& encoded);
+
+	/**
+	 * @brief Construtor de cópia.
+	 *
+	 * @param value A curva elíptica a ser copiada.
+	 */
+	EllipticCurve(const EllipticCurve& c);
+
+	/**
+	 * @brief Construtor para mover.
+	 *
+	 * @param value A curva elíptica a ser movida.
+	 */
+	EllipticCurve(EllipticCurve&& c);
 
 	~EllipticCurve();
 
-	const BIGNUM * BN_a() const throw();
+	/**
+	 * @brief Operador de atribuição baseado em cópia.
+	 *
+	 * @param c A curva elíptica a ser copiada.
+	 */
+	EllipticCurve& operator=(const EllipticCurve& c);
 
-	const BIGNUM * BN_b() const throw();
+	/**
+	 * @brief Operador de atribuição baseado em move.
+	 *
+	 * @param c A curva elíptica a ser movida.
+	 */
+	EllipticCurve& operator=(EllipticCurve&& c);
 
-	const BIGNUM * BN_p() const throw();
+	const BIGNUM* BN_a() const;
 
-	const BIGNUM * BN_x() const throw();
+	const BIGNUM* BN_b() const;
 
-	const BIGNUM * BN_y() const throw();
+	const BIGNUM* BN_p() const;
 
-	const BIGNUM * BN_order() const throw();
+	const BIGNUM* BN_x() const;
 
-	const BIGNUM * BN_cofactor() const throw();
+	const BIGNUM* BN_y() const;
+
+	const BIGNUM* BN_order() const;
+
+	const BIGNUM* BN_cofactor() const;
 
 	/*
 	 * Getters and setters. Setter com Hex disponível para simplificação
 	 * de código (caso mais comum).
 	 */
 	const BigInteger getA() const;
-	void setA(const BigInteger a);
-	void setA(const std::string hex);
+	void setA(const BigInteger& a);
+	void setA(const std::string& hex);
+	void setA(const char* hex);
+
 	const BigInteger getB() const;
-	void setB(const BigInteger b);
-	void setB(const std::string hex);
+	void setB(const BigInteger& b);
+	void setB(const std::string& hex);
+	void setB(const char* hex);
+
 	const BigInteger getCofactor() const;
-	void setCofactor(const BigInteger cofactor);
-	void setCofactor(const std::string hex);
+	void setCofactor(const BigInteger& cofactor);
+	void setCofactor(const std::string& hex);
+	void setCofactor(const char* hex);
+
 	const std::string getName() const;
-	void setName(const std::string name);
+	void setName(const std::string& name);
+
 	const std::string getOid() const;
-	void setOid(const std::string oid);
+	void setOid(const std::string& oid);
+
 	const BigInteger getOrder() const;
-	void setOrder(const BigInteger order);
-	void setOrder(const std::string hex);
+	void setOrder(const BigInteger& order);
+	void setOrder(const std::string& hex);
+	void setOrder(const char* hex);
+
 	const BigInteger getP() const;
-	void setP(const BigInteger p);
-	void setP(const std::string hex);
+	void setP(const BigInteger& p);
+	void setP(const std::string& hex);
+	void setP(const char* hex);
+
 	const BigInteger getX() const;
-	void setX(const BigInteger x);
-	void setX(const std::string hex);
+	void setX(const BigInteger& x);
+	void setX(const std::string& hex);
+	void setX(const char* hex);
+
 	const BigInteger getY() const;
-	void setY(const BigInteger y);
-	void setY(const std::string hex);
+	void setY(const BigInteger& y);
+	void setY(const std::string& hex);
+	void setY(const char* hex);
 
 protected:
 	std::string oid, name;

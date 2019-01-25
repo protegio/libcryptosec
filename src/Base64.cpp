@@ -1,19 +1,21 @@
 #include <libcryptosec/Base64.h>
 
+#include <libcryptosec/ByteArray.h>
+
 const std::string Base64::base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-std::string Base64::encode(ByteArray &data)
+std::string Base64::encode(const ByteArray& data)
 {
 	std::string ret;
 	int i = 0;
 	int j = 0;
 	int in_len;
-	unsigned char *bytes_to_encode;
+	const unsigned char *bytes_to_encode;
 	unsigned char char_array_3[3];
 	unsigned char char_array_4[4];
 	
 	in_len = data.getSize();
-	bytes_to_encode = data.getDataPointer();
+	bytes_to_encode = data.getConstDataPointer();
 	
 	while (in_len--)
 	{
@@ -50,7 +52,7 @@ std::string Base64::encode(ByteArray &data)
 	return ret;
 }
 
-ByteArray Base64::decode(std::string &data)
+ByteArray Base64::decode(const std::string& data)
 {
 	int in_len = data.size();
 	int i = 0;
@@ -58,9 +60,7 @@ ByteArray Base64::decode(std::string &data)
 	int counter = 0;
 	int in_ = 0;
 	unsigned char char_array_4[4], char_array_3[3];
-	ByteArray ret, *temp;
-
-	temp = new ByteArray(in_len);
+	ByteArray ret(in_len);
 
 	while (in_len-- && ( data[in_] != '=') 
   		&& (isalnum(data[in_]) || (data[in_] == '+') || (data[in_] == '/')))
@@ -78,7 +78,7 @@ ByteArray Base64::decode(std::string &data)
 
 			for (i = 0; (i < 3); i++)
 			{
-				(temp->getDataPointer())[counter] = char_array_3[i];
+				(ret.getDataPointer())[counter] = char_array_3[i];
 				counter++;
 			}
 			i = 0;
@@ -99,11 +99,9 @@ ByteArray Base64::decode(std::string &data)
 
 		for (j = 0; (j < i - 1); j++)
 		{
-			(temp->getDataPointer())[counter] = char_array_3[j];
+			(ret.getDataPointer())[counter] = char_array_3[j];
 			counter++;
 		}
 	}
-	ret = ByteArray(temp->getDataPointer(), counter);
-	delete temp;
 	return ret;
 }

@@ -69,7 +69,7 @@ public:
 	ByteArray(const char *str);
 
 	/**
-	 * @brief Contrói um ByteArray a partir de outro ByteArray.
+	 * @brief Constrói um ByteArray a partir de outro ByteArray.
 	 * 
 	 * O conteúdo do ByteArray é copiado.
 	 *
@@ -78,10 +78,38 @@ public:
     ByteArray(const ByteArray& value);
 
 	/**
+	 * @brief Constrói um ByteArray a partir de outro ByteArray.
+	 *
+	 * O conteúdo do ByteArray é movido.
+	 *
+	 * @param value	O ByteArray de origem.
+	 */
+    ByteArray(ByteArray&& value);
+
+	/**
 	 * @brief Destrutor.
 	 */
 	virtual ~ByteArray();
-    
+
+    /**
+     * @brief Faz uma cópia do ByteArray passado.
+     *
+     * @param value	O ByteArray a ser copiado.
+     *
+     * @return O ByteArray resultante da cópia.
+     */
+    ByteArray& operator=(const ByteArray& value);
+
+
+    /**
+     * @brief Move o conteúdo de um ByteArray para outro.
+     *
+     * @param value	O ByteArray a ser movido.
+     *
+     * @return O novo ByteArray.
+     */
+    ByteArray& operator=(ByteArray&& value);
+
     /**
      * @brief Lê o byte da posição desejada.
      * 
@@ -100,17 +128,8 @@ public:
      * @return A referência para o byte da posição.
      * @throw std::out_of_bound Se a posição ultrapassar o tamanho do ByteArray.
      */
-    unsigned char& operator [](unsigned int pos);
+    unsigned char& operator[](unsigned int pos);
 
-    /**
-     * @brief Faz uma cópia do ByteArray passado.
-     * 
-     * @param value	O ByteArray a ser copiado.
-     *
-     * @return O ByteArray resultante da cópia.
-     */
-    ByteArray& operator =(const ByteArray& value);
-    
     /**
      * @brief Compara dois ByteArray e retorna true se forem iguais, false caso contrário.
      * 
@@ -119,7 +138,7 @@ public:
      *
      * @return True se forem iguais, false caso contrário.
      */
-    friend bool operator ==(const ByteArray& left, const ByteArray& right);
+    friend bool operator==(const ByteArray& left, const ByteArray& right);
     
     /**
      * @brief Compara dois ByteArray e retorna true se forem diferentes, false caso contrário.
@@ -129,7 +148,7 @@ public:
      *
      * @return True se forem diferentes, false caso contrário.
      */
-    friend bool operator !=(const ByteArray& left, const ByteArray& right);
+    friend bool operator!=(const ByteArray& left, const ByteArray& right);
 
     /**
      * @brief Executa a operação lógica xor entre dois ByteArray.
@@ -144,7 +163,7 @@ public:
      *
      * @return O ByteArray resultante da operação xor.
      */
-    friend ByteArray& operator xor(const ByteArray& left, const ByteArray& right);
+    friend ByteArray& operatorxor(const ByteArray& left, const ByteArray& right);
 
     /**
      * @brief Copia os dados do array de bytes \p from.
@@ -238,9 +257,9 @@ public:
     virtual void burn(bool useRandomBytes = false);
 
 private:
-    unsigned char* m_data;
     unsigned int size;
     unsigned int originalSize;
+    unsigned char* m_data;
 };
 
 #endif /*BYTEARRAY_H_*/

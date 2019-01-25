@@ -1,83 +1,140 @@
 #include <libcryptosec/BigInteger.h>
 
-BigInteger::BigInteger()
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/exception/BigIntegerException.h>
+
+#include <openssl/asn1t.h>
+#include <openssl/ossl_typ.h>
+
+#include <time.h>
+#include <stdlib.h>
+
+BigInteger::BigInteger() :
+		bigInt(BN_new())
 {
-	if(!(this->bigInt = BN_new()))
-	{
+	if(this->bigInt) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
-	
+
 	BigInteger::setValue(0);
 }
 
-BigInteger::BigInteger(BIGNUM const* bn)
+BigInteger::BigInteger(BIGNUM const* bn) :
+		bigInt(BN_dup(bn))
 {
-	if(!(this->bigInt = BN_dup(bn)))
-	{
+	if(this->bigInt) {
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
 	}
 	
 }
 
-BigInteger::BigInteger(long val)
+BigInteger::BigInteger(long val) :
+		bigInt(BN_new())
+
 {
-	if(!(this->bigInt = BN_new()))
-	{
+	if(this->bigInt) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
-	
+
 	BigInteger::setValue(val);
 }
 
-BigInteger::BigInteger(const ASN1_INTEGER* val)
+BigInteger::BigInteger(const ASN1_INTEGER* val) :
+		bigInt(BN_new())
 {
-	if(!(this->bigInt = BN_new()))
-	{
+	if(this->bigInt) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
-	if(!(ASN1_INTEGER_to_BN(val, this->bigInt)))
-	{
+	BIGNUM *rc = ASN1_INTEGER_to_BN(val, this->bigInt);
+	if(!rc) {
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
 	}
 }
 
-BigInteger::BigInteger(ByteArray& b)
+BigInteger::BigInteger(const ByteArray& b) :
+		bigInt(BN_new())
 {
-	if(!(this->bigInt = BN_new()))
-	{
+	if(!this->bigInt) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
-	if(!(BN_mpi2bn(b.getDataPointer(), b.getSize(), this->bigInt)))
-	{
+	BIGNUM *rc = BN_mpi2bn(b.getConstDataPointer(), b.getSize(), this->bigInt);
+	if(!rc) {
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
 	}
 }
 
-BigInteger::BigInteger(BigInteger const& b)
+BigInteger::BigInteger(const std::string& dec):
+		bigInt(BN_new())
 {
-	if(!(this->bigInt = BN_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-	
-	*this = b;
-}
-
-BigInteger::BigInteger(std::string dec)
-{
-	if(!(this->bigInt = BN_new()))
-	{
+	if(!this->bigInt) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
 	BigInteger::setDecValue(dec);
 }
 
+BigInteger::BigInteger(const char* dec) :
+		bigInt(BN_new())
+{
+	if(!this->bigInt) {
+		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
+	}
+
+	BigInteger::setDecValue(dec);
+}
+
+BigInteger::BigInteger(const BigInteger& b) :
+		bigInt(BN_dup(b.bigInt))
+{
+	if(!this->bigInt) {
+		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
+	}
+}
+
+BigInteger::BigInteger(BigInteger&& b) :
+		bigInt(std::move(b.bigInt))
+{
+	b.bigInt = nullptr;
+}
+
 BigInteger::~BigInteger()
 {
-	BN_clear_free(this->bigInt);
+	if (this->bigInt)
+		BN_clear_free(this->bigInt);
+}
+
+BigInteger& BigInteger::operator=(long c)
+{
+	this->setValue(c);
+	return *this;
+}
+
+BigInteger& BigInteger::operator=(const BigInteger& c)
+{
+	if (&c == this) {
+		return *this;
+	}
+
+	BIGNUM *rc = BN_copy(this->bigInt, c.getBIGNUM());
+	if(rc == NULL) {
+		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::operator=");
+	}
+
+	return *this;
+}
+
+BigInteger& BigInteger::operator=(BigInteger&& c)
+{
+	if (&c == this) {
+		return *this;
+	}
+
+	this->bigInt = c.bigInt;
+	c.bigInt = nullptr;
+
+	return *this;
 }
 
 void BigInteger::setValue(const long val)
@@ -104,7 +161,7 @@ void BigInteger::setValue(const long val)
 	}
 }
 
-void BigInteger::setNegative(const bool neg) throw()
+void BigInteger::setNegative(const bool neg)
 {
 	if(neg)
 	{
@@ -154,34 +211,23 @@ ASN1_INTEGER* BigInteger::getASN1Value() const
 	return ret;
 }
 
-ByteArray* BigInteger::getBinValue() const
+ByteArray BigInteger::getBinValue() const
 {
-	unsigned char* data;
-	int len;
-	ByteArray* ret = new ByteArray();
-	
-	if(!ret)
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::getBinValue");
-	}
-	
-	len = BN_bn2mpi(this->bigInt, NULL);
-	data = new unsigned char[len];
-	
+	int len = BN_bn2mpi(this->bigInt, NULL);
+
 	/* consegue-se dignosticar algo retorno de BN_bn2mpi? pelo que olhei no codigo ele nunca retorna algo <= 0*/
-	BN_bn2mpi(this->bigInt, data);
-	
-	ret->setDataPointer(data, len);
-	
+	ByteArray ret(len);
+	BN_bn2mpi(this->bigInt, ret.getDataPointer());
+
 	return ret;
 }
 
-BIGNUM const* BigInteger::getBIGNUM() const throw()
+const BIGNUM * BigInteger::getBIGNUM() const
 {
 	return this->bigInt;
 }
 
-bool BigInteger::isNegative() const throw()
+bool BigInteger::isNegative() const
 {
 	bool ret = false;
 	
@@ -193,7 +239,7 @@ bool BigInteger::isNegative() const throw()
 	return ret;
 }
 
-std::string BigInteger::toHex() const throw()
+std::string BigInteger::toHex() const
 {
 	std::string ret;
 	char* str; 
@@ -205,7 +251,7 @@ std::string BigInteger::toHex() const throw()
 	return ret;
 }
 
-std::string BigInteger::toDec() const throw()
+std::string BigInteger::toDec() const
 {
 	std::string ret;
 	char* str; 
@@ -257,28 +303,35 @@ void BigInteger::setRandValue(int numBits)
 	
 }
 
-int BigInteger::size() const throw()
+int BigInteger::size() const
 {
 	return BN_num_bits(this->bigInt);
 }
 
-void BigInteger::setHexValue(std::string hex)
+void BigInteger::setHexValue(const std::string& hex)
 {
-	if(!(BN_hex2bn(&this->bigInt, hex.c_str())))
-	{
+	this->setHexValue(hex.c_str());
+}
+
+void BigInteger::setHexValue(const char* hex)
+{
+	if(!(BN_hex2bn(&this->bigInt, hex))) {
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::setHexValue");
 	}
 }
 
-void BigInteger::setDecValue(std::string dec)
+void BigInteger::setDecValue(const std::string& dec)
 {
-	if(!(BN_dec2bn(&this->bigInt, dec.c_str())))
-	{
+	this->setDecValue(dec.c_str());
+}
+
+void BigInteger::setDecValue(const char* dec) {
+	if(!(BN_dec2bn(&this->bigInt, dec))) {
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::setDecValue");
 	}
 }
 
-BigInteger& BigInteger::add(BigInteger const& a)
+BigInteger& BigInteger::add(const BigInteger& a)
 {
 	if(!(BN_add(this->bigInt, this->bigInt, a.getBIGNUM())))
 	{
@@ -287,10 +340,9 @@ BigInteger& BigInteger::add(BigInteger const& a)
 	return *this;
 }
 
-BigInteger& BigInteger::add(long const a)
+BigInteger& BigInteger::add(long a)
 {
 	BigInteger b(a);
-	
 	return this->add(b);
 }
 
@@ -351,7 +403,7 @@ BigInteger BigInteger::operator*(BigInteger const& a) const
 	return tmp.mul(a);
 }
 
-BigInteger BigInteger::operator*(long const c) const
+BigInteger BigInteger::operator*(long c) const
 {
 	BigInteger tmp1(*this);
 	BigInteger tmp2(c);
@@ -412,7 +464,7 @@ BigInteger BigInteger::operator/(BigInteger const& a) const
 	return tmp.div(a);
 }
 
-BigInteger BigInteger::operator/(long const c) const
+BigInteger BigInteger::operator/(long c) const
 {
 	BigInteger a(*this);
 	BigInteger b(c);
@@ -467,144 +519,128 @@ BigInteger BigInteger::operator%(BigInteger const& a) const
 	return tmp.mod(a);
 }
 
-BigInteger BigInteger::operator%(long const c) const
+BigInteger BigInteger::operator%(long c) const
 {
 	BigInteger tmp(*this);
 	return tmp.mod(c);
 }
 
-int BigInteger::compare(BigInteger const& a) const throw()
+int BigInteger::compare(BigInteger const& a) const
 {
 	return BN_cmp(this->getBIGNUM(), a.getBIGNUM());
 }
 
-BigInteger BigInteger::operator+(BigInteger const& c) const
+BigInteger BigInteger::operator+(const BigInteger& c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.add(c);
 }
 
-BigInteger BigInteger::operator+(long const c) const
+BigInteger BigInteger::operator+(long c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.add(c);
 }
 
-BigInteger& BigInteger::operator+=(BigInteger const& c)
+BigInteger& BigInteger::operator+=(const BigInteger& c)
 {
 	return this->add(c);
 }
 
-BigInteger& BigInteger::operator+=(long const c)
+BigInteger& BigInteger::operator+=(long c)
 {
 	BigInteger tmp(c);
 	return this->add(tmp);
 }
 
-BigInteger BigInteger::operator-(BigInteger const& c) const
+BigInteger BigInteger::operator-(const BigInteger& c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.sub(c);
 }
 
-BigInteger BigInteger::operator-(long const c) const
+BigInteger BigInteger::operator-(long c) const
 {
 	BigInteger ret;
 	ret.add(*this);
 	return ret.sub(c);
 }
 
-BigInteger& BigInteger::operator=(BigInteger const& c)
-{
-	if(!(BN_copy(this->bigInt, c.getBIGNUM())))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::operator=");
-	}
-	
-	return *this;
-}
-
-BigInteger& BigInteger::operator=(long const c)
-{
-	this->setValue(c);	
-	return *this;
-}
-
-bool BigInteger::operator==(BigInteger const& c) const throw()
+bool BigInteger::operator==(const BigInteger& c) const
 {
 	return this->compare(c) == 0;
 }
 
-bool BigInteger::operator==(long const c) const
+bool BigInteger::operator==(long c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) == 0;
 }
 
-bool BigInteger::operator!=(BigInteger const& c) const throw()
+bool BigInteger::operator!=(const BigInteger& c) const
 {
 	return this->compare(c) != 0;
 }
 
-bool BigInteger::operator!=(long const c) const
+bool BigInteger::operator!=(long c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) != 0;
 }
 
-bool BigInteger::operator>(BigInteger const& c) const throw()
+bool BigInteger::operator>(const BigInteger& c) const
 {
 	return this->compare(c) == 1;
 }
 
-bool BigInteger::operator>(long const c) const
+bool BigInteger::operator>(long c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) == 1;
 }
 
-bool BigInteger::operator>=(BigInteger const& c) const throw()
+bool BigInteger::operator>=(const BigInteger& c) const
 {
 	return (this->compare(c) >= 0);
 }
 
-bool BigInteger::operator>=(long const c) const
+bool BigInteger::operator>=(long c) const
 {
 	BigInteger tmp(c);
 	return (*this >= tmp);
 }
 
-bool BigInteger::operator<(BigInteger const& c) const throw()
+bool BigInteger::operator<(const BigInteger& c) const
 {
 	return this->compare(c) == -1;
 }
 
-bool BigInteger::operator<(long const c) const
+bool BigInteger::operator<(long c) const
 {
 	BigInteger tmp(c);
 	return this->compare(tmp) == -1;
 }
 
-bool BigInteger::operator<=(BigInteger const& c) const throw()
+bool BigInteger::operator<=(const BigInteger& c) const
 {
 	return (this->compare(c) <= 0);
 }
 
-bool BigInteger::operator<=(long const c) const
+bool BigInteger::operator<=(long c) const
 {
 	BigInteger tmp(c);
 	return (*this <= tmp);
 }
 
-bool BigInteger::operator!() const throw()
+bool BigInteger::operator!() const
 {
 	return ((*this) == 0);
 }
 
-bool BigInteger::operator||(BigInteger const& c) const throw()
+bool BigInteger::operator||(const BigInteger& c) const
 {
 	bool a = !((*this) == 0);
 	bool b = !(c == 0);
@@ -612,7 +648,7 @@ bool BigInteger::operator||(BigInteger const& c) const throw()
 	return a || b;
 }
 
-bool BigInteger::operator||(long const c) const
+bool BigInteger::operator||(long c) const
 {
 	bool a = !((*this) == 0);
 	bool b = c != 0;
@@ -620,7 +656,7 @@ bool BigInteger::operator||(long const c) const
 	return a || b;
 }
 
-bool BigInteger::operator&&(BigInteger const& c) const throw()
+bool BigInteger::operator&&(const BigInteger& c) const
 {
 	bool a = !((*this) == 0);
 	bool b = !(c == 0);
@@ -628,7 +664,7 @@ bool BigInteger::operator&&(BigInteger const& c) const throw()
 	return a && b;
 }
 
-bool BigInteger::operator&&(long const c) const
+bool BigInteger::operator&&(long c) const
 {
 	bool a = !((*this) == 0);
 	bool b = c != 0;
@@ -636,12 +672,12 @@ bool BigInteger::operator&&(long const c) const
 	return a && b;
 }
 
-BigInteger operator+(long const c, BigInteger const& d)
+BigInteger operator+(long c, const BigInteger& d)
 {
 	return d + c;
 }
 
-BigInteger operator-(long const c, BigInteger const& d)
+BigInteger operator-(long c, const BigInteger& d)
 {
 	BigInteger tmp(c);
 	return tmp - d;
