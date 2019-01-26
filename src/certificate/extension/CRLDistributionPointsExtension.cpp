@@ -1,6 +1,7 @@
-#include <libcryptosec/certificate/CRLDistributionPointsExtension.h>
+#include <libcryptosec/certificate/extension/CRLDistributionPointsExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 CRLDistributionPointsExtension::CRLDistributionPointsExtension() : Extension()
 {

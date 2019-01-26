@@ -1,4 +1,6 @@
-#include <libcryptosec/certificate/CertificatePoliciesExtension.h>
+#include <libcryptosec/certificate/extension/CertificatePoliciesExtension.h>
+
+#include <libcryptosec/exception/CertificationException.h>
 
 CertificatePoliciesExtension::CertificatePoliciesExtension() : Extension()
 {

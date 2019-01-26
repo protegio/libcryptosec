@@ -1,7 +1,7 @@
 #ifndef CRLNUMBEREXTENSION_H_
 #define CRLNUMBEREXTENSION_H_
 
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
 #include <libcryptosec/BigInteger.h>
 

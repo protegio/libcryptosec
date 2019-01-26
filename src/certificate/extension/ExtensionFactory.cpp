@@ -1,17 +1,17 @@
-#include <libcryptosec/certificate/ExtensionFactory.h>
+#include <libcryptosec/certificate/extension/ExtensionFactory.h>
 
-#include <libcryptosec/certificate/Extension.h>
-#include <libcryptosec/certificate/KeyUsageExtension.h>
-#include <libcryptosec/certificate/ExtendedKeyUsageExtension.h>
-#include <libcryptosec/certificate/AuthorityKeyIdentifierExtension.h>
-#include <libcryptosec/certificate/CRLDistributionPointsExtension.h>
-#include <libcryptosec/certificate/AuthorityInformationAccessExtension.h>
-#include <libcryptosec/certificate/BasicConstraintsExtension.h>
-#include <libcryptosec/certificate/CertificatePoliciesExtension.h>
-#include <libcryptosec/certificate/IssuerAlternativeNameExtension.h>
-#include <libcryptosec/certificate/SubjectAlternativeNameExtension.h>
-#include <libcryptosec/certificate/SubjectInformationAccessExtension.h>
-#include <libcryptosec/certificate/SubjectKeyIdentifierExtension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
+#include <libcryptosec/certificate/extension/KeyUsageExtension.h>
+#include <libcryptosec/certificate/extension/ExtendedKeyUsageExtension.h>
+#include <libcryptosec/certificate/extension/AuthorityKeyIdentifierExtension.h>
+#include <libcryptosec/certificate/extension/CRLDistributionPointsExtension.h>
+#include <libcryptosec/certificate/extension/AuthorityInformationAccessExtension.h>
+#include <libcryptosec/certificate/extension/BasicConstraintsExtension.h>
+#include <libcryptosec/certificate/extension/CertificatePoliciesExtension.h>
+#include <libcryptosec/certificate/extension/IssuerAlternativeNameExtension.h>
+#include <libcryptosec/certificate/extension/SubjectAlternativeNameExtension.h>
+#include <libcryptosec/certificate/extension/SubjectInformationAccessExtension.h>
+#include <libcryptosec/certificate/extension/SubjectKeyIdentifierExtension.h>
 
 ExtensionFactory::~ExtensionFactory() {
 }

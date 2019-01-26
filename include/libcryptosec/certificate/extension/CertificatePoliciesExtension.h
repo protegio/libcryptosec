@@ -1,16 +1,9 @@
 #ifndef CERTIFICATEPOLICIESEXTENSION_H_
 #define CERTIFICATEPOLICIESEXTENSION_H_
 
-#include <openssl/asn1.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
-#include <vector>
-
-#include "Extension.h"
-#include "PolicyInformation.h"
-
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/PolicyInformation.h>
 
 class CertificatePoliciesExtension : public Extension
 {

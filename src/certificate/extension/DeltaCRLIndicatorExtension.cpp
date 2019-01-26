@@ -1,4 +1,4 @@
-#include <libcryptosec/certificate/DeltaCRLIndicatorExtension.h>
+#include <libcryptosec/certificate/extension/DeltaCRLIndicatorExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 #include <libcryptosec/exception/CertificationException.h>

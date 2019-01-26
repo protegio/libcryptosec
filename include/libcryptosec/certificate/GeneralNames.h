@@ -19,12 +19,11 @@ public:
 	GeneralNames(GENERAL_NAMES *generalNames);
 //	GeneralNames(const GeneralNames& gns);
 	virtual ~GeneralNames();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void addGeneralName(GeneralName &generalName);
 	std::vector<GeneralName> getGeneralNames() const;
 	int getNumberOfEntries() const;
-	GENERAL_NAMES* getInternalGeneralNames();
+	GENERAL_NAMES* getInternalGeneralNames() const;
 	GeneralNames& operator=(const GeneralNames& value);
 protected:
 	std::vector<GeneralName> generalNames;

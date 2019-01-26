@@ -1,14 +1,9 @@
 #ifndef ISSUERALTERNATIVENAMEEXTENSION_H_
 #define ISSUERALTERNATIVENAMEEXTENSION_H_
 
-#include <openssl/asn1.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
-#include "Extension.h"
-#include "GeneralNames.h"
-
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/GeneralNames.h>
 
 class IssuerAlternativeNameExtension : public Extension
 {

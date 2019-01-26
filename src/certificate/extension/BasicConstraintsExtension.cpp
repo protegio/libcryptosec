@@ -1,4 +1,4 @@
-#include <libcryptosec/certificate/BasicConstraintsExtension.h>
+#include <libcryptosec/certificate/extension/BasicConstraintsExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 #include <libcryptosec/exception/CertificationException.h>

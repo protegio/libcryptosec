@@ -1,4 +1,4 @@
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 #include <libcryptosec/Base64.h>
@@ -12,7 +12,7 @@ Extension::Extension() :
 }
 
 Extension::Extension(const X509_EXTENSION *ext) :
-		// TODO: esse cast do argumento é ok?
+		// TODO: esse cast do X509_EXTENSION é ok?
 		objectIdentifier((const ASN1_OBJECT*) X509_EXTENSION_get_object((X509_EXTENSION*) ext)),
 		critical(X509_EXTENSION_get_critical(ext) ? true : false)
 {
@@ -69,7 +69,7 @@ std::string Extension::toXml(const std::string& tab) const
 	return ret;
 }
 
-ObjectIdentifier Extension::getObjectIdentifier() const
+const ObjectIdentifier& Extension::getObjectIdentifier() const
 {
 	return this->objectIdentifier;
 }
@@ -84,7 +84,7 @@ Extension::Name Extension::getTypeName() const
 	return Extension::getName(this->objectIdentifier.getNid());
 }
 
-ByteArray Extension::getValue() const
+const ByteArray& Extension::getValue() const
 {
 	return this->value; 
 }
@@ -106,17 +106,37 @@ void Extension::setCritical(bool critical)
 
 X509_EXTENSION* Extension::getX509Extension() const
 {
-	X509_EXTENSION *ret;
-	ByteArray data;
-	ret = X509_EXTENSION_new();
+	int rc = 0;
+
+	X509_EXTENSION *ret = X509_EXTENSION_new();
+	if (ret == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
 
 	ASN1_OCTET_STRING* value = ASN1_OCTET_STRING_new();
-	data = this->value;
-	ASN1_OCTET_STRING_set(value, data.getDataPointer(), this->value.getSize());
+	if (value == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
 
-	X509_EXTENSION_set_data(ret, value);
-	X509_EXTENSION_set_object(ret, this->objectIdentifier.getObjectIdentifier());
-	X509_EXTENSION_set_critical(ret, this->critical ? 1 : 0);
+	rc = ASN1_OCTET_STRING_set(value, this->value.getConstDataPointer(), this->value.getSize());
+	if (rc == 0) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	rc = X509_EXTENSION_set_data(ret, value);
+	if (rc == 0) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	rc = X509_EXTENSION_set_object(ret, this->objectIdentifier.getObjectIdentifier());
+	if (rc == 0) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	rc = X509_EXTENSION_set_critical(ret, this->critical ? 1 : 0);
+	if (rc == 0) {
+		throw CertificationException("" /* TODO */);
+	}
 
 	return ret;
 }

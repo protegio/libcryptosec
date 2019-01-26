@@ -1,6 +1,7 @@
-#include <libcryptosec/certificate/IssuerAlternativeNameExtension.h>
+#include <libcryptosec/certificate/extension/IssuerAlternativeNameExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 IssuerAlternativeNameExtension::IssuerAlternativeNameExtension() : Extension()
 {

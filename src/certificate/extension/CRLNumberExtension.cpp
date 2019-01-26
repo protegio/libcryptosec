@@ -1,4 +1,4 @@
-#include <libcryptosec/certificate/CRLNumberExtension.h>
+#include <libcryptosec/certificate/extension/CRLNumberExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 #include <libcryptosec/exception/CertificationException.h>

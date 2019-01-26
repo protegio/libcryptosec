@@ -175,13 +175,31 @@ void ByteArray::copyTo(ByteArray& to, unsigned int toOffset, unsigned int fromOf
 
 void ByteArray::setDataPointer(unsigned char* d, unsigned int size)
 {
-	if(this->m_data) {
-		delete[] this->m_data;
+	if (this->m_data == d){
+		this->setSize(size);
+	} else {
+		if (this->m_data) {
+			delete[] this->m_data;
+		}
+		this->size = size;
+		this->originalSize = size;
+		this->m_data = d;
 	}
+}
 
-	this->size = size;
-	this->originalSize = size;
-	this->m_data = d;
+void ByteArray::setDataPointer(const unsigned char* d, unsigned int size) {
+	if (this->m_data == d) {
+		this->setSize(size);
+	} else {
+		if (this->m_data && size > this->originalSize) {
+			delete[] this->m_data;
+			this->m_data = new unsigned char[size + 1];
+		}
+		memcpy(this->m_data, d, size);
+		this->size = size;
+		this->originalSize = (size > this->originalSize ? size : this->originalSize);
+		this->m_data[this->originalSize] = '\0';
+	}
 }
 
 const unsigned char* ByteArray::getConstDataPointer() const {

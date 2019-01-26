@@ -86,12 +86,7 @@ GeneralName::~GeneralName()
 {
 }
 
-std::string GeneralName::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string GeneralName::getXmlEncoded(std::string tab)
+std::string GeneralName::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, name;
 	name = GeneralName::type2Name(this->type);
@@ -214,7 +209,7 @@ GeneralName::Type GeneralName::getType() const
 	return this->type;
 }
 
-GENERAL_NAME* GeneralName::getGeneralName()
+GENERAL_NAME* GeneralName::getGeneralName() const
 {
 	GENERAL_NAME *ret;
 	unsigned char *ipAddress;

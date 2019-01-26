@@ -1,7 +1,7 @@
 #ifndef DELTACRLINDICATOREXTENSION_H_
 #define DELTACRLINDICATOREXTENSION_H_
 
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
 class DeltaCRLIndicatorExtension : public Extension
 {

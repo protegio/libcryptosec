@@ -198,6 +198,7 @@ public:
      * @param size	O tamanho do array de bytes.
      */
     void setDataPointer(unsigned char* data, unsigned int size);
+    void setDataPointer(const unsigned char* data, unsigned int size);
 
     /**
      * @return Um ponteiro const para o array de bytes gerenciado pelo ByteArray.

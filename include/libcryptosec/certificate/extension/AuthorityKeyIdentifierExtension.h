@@ -1,7 +1,7 @@
 #ifndef AUTHORITYKEYIDENTIFIEREXTENSION_H_
 #define AUTHORITYKEYIDENTIFIEREXTENSION_H_
 
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/GeneralNames.h>
 
 #include <openssl/x509.h>

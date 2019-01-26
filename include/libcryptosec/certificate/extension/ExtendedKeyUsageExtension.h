@@ -1,7 +1,7 @@
 #ifndef EXTENDEDKEYUSAGEEXTENSION_H_
 #define EXTENDEDKEYUSAGEEXTENSION_H_
 
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 
 #include <openssl/x509.h>

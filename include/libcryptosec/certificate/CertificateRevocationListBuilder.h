@@ -2,7 +2,7 @@
 #define CERTIFICATEREVOCATIONLISTBUILDER_H_
 
 #include <libcryptosec/certificate/CertificateRevocationList.h>
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/RevokedCertificate.h>
 #include <libcryptosec/certificate/RDNSequence.h>
 #include <libcryptosec/DateTime.h>

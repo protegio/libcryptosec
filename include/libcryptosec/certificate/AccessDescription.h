@@ -10,7 +10,7 @@ public:
 	AccessDescription();
 	AccessDescription(ACCESS_DESCRIPTION *accessDescription);
 	virtual ~AccessDescription();
-	ACCESS_DESCRIPTION* getAccessDescription();
+	ACCESS_DESCRIPTION* getAccessDescription() const;
 	GeneralName getAccessLocation();
 	ObjectIdentifier getAccessMethod();
 	void setAccessLocation(GeneralName accessLocation);

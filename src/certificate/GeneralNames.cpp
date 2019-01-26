@@ -32,22 +32,13 @@ GeneralNames::~GeneralNames()
 {
 }
 
-std::string GeneralNames::getXmlEncoded()
+std::string GeneralNames::getXmlEncoded(const std::string& tab) const
 {
-	return this->getXmlEncoded("");
-}
-
-std::string GeneralNames::getXmlEncoded(std::string tab)
-{
-	unsigned int i;
 	std::string ret;
 	ret += tab + "<generalNames>\n";
-	
-	for (i=0;i<this->generalNames.size();i++)
-	{
-		ret += this->generalNames.at(i).getXmlEncoded(tab + "\t");
+	for (auto generalName : this->generalNames) {
+		ret += generalName.getXmlEncoded(tab + "\t");
 	}
-	
 	ret += tab + "</generalNames>\n";
 	return ret;
 }
@@ -67,7 +58,7 @@ int GeneralNames::getNumberOfEntries() const
 	return this->generalNames.size();
 }
 
-GENERAL_NAMES* GeneralNames::getInternalGeneralNames()
+GENERAL_NAMES* GeneralNames::getInternalGeneralNames() const
 {
 	GENERAL_NAMES *ret;
 	GENERAL_NAME *generalName;

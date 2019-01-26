@@ -1,6 +1,7 @@
-#include "libcryptosec/certificate/AuthorityInformationAccessExtension.h"
+#include <libcryptosec/certificate/extension/AuthorityInformationAccessExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 AuthorityInformationAccessExtension::AuthorityInformationAccessExtension() : Extension() {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_info_access);

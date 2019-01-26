@@ -12,7 +12,7 @@ AccessDescription::AccessDescription(ACCESS_DESCRIPTION *accessDescription) {
 	}
 }
 
-ACCESS_DESCRIPTION* AccessDescription::getAccessDescription() {
+ACCESS_DESCRIPTION* AccessDescription::getAccessDescription() const {
 	ACCESS_DESCRIPTION* accessDescription = ACCESS_DESCRIPTION_new();
 
 	accessDescription->method = OBJ_dup(accessMethod.getObjectIdentifier());

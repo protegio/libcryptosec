@@ -118,8 +118,8 @@ TEST_F(MessageDigestTest, Digest) {
 		if (algorithm != MessageDigest::Algorithm::NO_ALGORITHM) {
 			MessageDigest md(algorithm);
 			auto hash = md.doFinal(testByteArray);
-			this->printTest(algorithm, testByteArray, testVector[algorithm], *hash);
-			EXPECT_EQ(*hash, testVector[algorithm]);
+			this->printTest(algorithm, testByteArray, testVector[algorithm], hash);
+			EXPECT_EQ(hash, testVector[algorithm]);
 		} else {
 			EXPECT_THROW(MessageDigest::getMessageDigest(algorithm), MessageDigestException);
 		}

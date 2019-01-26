@@ -1,5 +1,26 @@
 #include <libcryptosec/certificate/Certificate.h>
 
+#include <libcryptosec/certificate/CertificateRequest.h>
+#include <libcryptosec/certificate/RDNSequence.h>
+#include <libcryptosec/certificate/extension/Extension.h>
+#include <libcryptosec/certificate/extension/ExtensionFactory.h>
+#include <libcryptosec/PrivateKey.h>
+#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/DateTime.h>
+#include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/Base64.h>
+#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/EncodeException.h>
+
+#include <openssl/pem.h>
+#include <openssl/x509v3.h>
+
+#include <vector>
+#include <string>
+
+#include <time.h>
+
 Certificate::Certificate(X509 *cert)
 {
 	this->cert = cert;
@@ -9,7 +30,7 @@ Certificate::Certificate(const X509* cert) {
 	this->cert = X509_dup((X509*) cert);
 }
 
-Certificate::Certificate(std::string pemEncoded)
+Certificate::Certificate(const std::string& pemEncoded)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -31,7 +52,7 @@ Certificate::Certificate(std::string pemEncoded)
 	BIO_free(buffer);
 }
 
-Certificate::Certificate(ByteArray &derEncoded)
+Certificate::Certificate(const ByteArray& derEncoded)
 {
 	BIO *buffer;
 	buffer = BIO_new(BIO_s_mem());
@@ -39,7 +60,7 @@ Certificate::Certificate(ByteArray &derEncoded)
 	{
 		throw EncodeException(EncodeException::BUFFER_CREATING, "Certificate::Certificate");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
+	if ((unsigned int)(BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
 	{
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "Certificate::Certificate");
@@ -70,12 +91,36 @@ Certificate::~Certificate()
 	this->cert = NULL;
 }
 
-std::string Certificate::getXmlEncoded()
+Certificate& Certificate::operator=(const Certificate& value)
 {
-	return this->getXmlEncoded("");
+	if (&value == this) {
+		return *this;
+	}
+
+	if (this->cert) {
+		X509_free(this->cert);
+	}
+
+	this->cert = X509_dup(value.getX509());
+    return *this;
 }
 
-std::string Certificate::getXmlEncoded(std::string tab)
+Certificate& Certificate::operator=(Certificate&& value) {
+	if (&value == this) {
+		return *this;
+	}
+
+	if (this->cert) {
+		X509_free(this->cert);
+	}
+
+	this->cert = value.cert;
+	value.cert = nullptr;
+
+    return *this;
+}
+
+std::string Certificate::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, string;
 	ByteArray data;
@@ -204,7 +249,7 @@ std::string Certificate::getXmlEncoded(std::string tab)
 	return ret;
 }
 
-std::string Certificate::toXml(std::string tab)
+std::string Certificate::toXml(const std::string& tab) const
 {
 	std::string ret, string;
 	ByteArray data;
@@ -359,11 +404,10 @@ std::string Certificate::getPemEncoded() const
 	return ret;
 }
 
-ByteArray* Certificate::getDerEncoded() const
+ByteArray Certificate::getDerEncoded() const
 {
 	BIO *buffer;
 	int ndata, wrote;
-	ByteArray *ret;
 	unsigned char *data;
 	buffer = BIO_new(BIO_s_mem());
 	if (buffer == NULL)
@@ -382,12 +426,13 @@ ByteArray* Certificate::getDerEncoded() const
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "Certificate::getDerEncoded");
 	}
-	ret = new ByteArray(data, ndata);
+
+	ByteArray ret(data, ndata);
 	BIO_free(buffer);
-	return ret;
+	return std::move(ret);
 }
 
-long int Certificate::getSerialNumber()
+long int Certificate::getSerialNumber() const
 {
 	ASN1_INTEGER *asn1Int;
 	long ret;
@@ -413,7 +458,7 @@ long int Certificate::getSerialNumber()
 	return ret;
 }
 
-BigInteger Certificate::getSerialNumberBigInt()
+BigInteger Certificate::getSerialNumberBigInt() const
 {
 	ASN1_INTEGER *asn1Int;
 	BigInteger ret;
@@ -435,14 +480,14 @@ BigInteger Certificate::getSerialNumberBigInt()
 	return ret;
 }
 
-MessageDigest::Algorithm Certificate::getMessageDigestAlgorithm()
+MessageDigest::Algorithm Certificate::getMessageDigestAlgorithm() const
 {
 	MessageDigest::Algorithm ret;
 	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
 	return ret;
 }
 
-PublicKey* Certificate::getPublicKey()
+PublicKey* Certificate::getPublicKey() const
 {
 	EVP_PKEY *key;
 	PublicKey *ret;
@@ -467,7 +512,7 @@ PublicKey* Certificate::getPublicKey()
 	return ret;
 }
 
-ByteArray Certificate::getPublicKeyInfo()
+ByteArray Certificate::getPublicKeyInfo() const
 {
 	ByteArray ret;
 	unsigned int size;
@@ -482,7 +527,7 @@ ByteArray Certificate::getPublicKeyInfo()
 	return ret;
 }
 
-long Certificate::getVersion()
+long Certificate::getVersion() const
 {
 	long ret;
 	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
@@ -498,21 +543,21 @@ long Certificate::getVersion()
 	return ret;
 }
 
-DateTime Certificate::getNotBefore()
+DateTime Certificate::getNotBefore() const
 {
 	ASN1_TIME *asn1Time;
 	asn1Time = X509_get_notBefore(this->cert);
 	return DateTime(asn1Time);
 }
 
-DateTime Certificate::getNotAfter()
+DateTime Certificate::getNotAfter() const
 {
 	ASN1_TIME *asn1Time;
 	asn1Time = X509_get_notAfter(this->cert);
 	return DateTime(asn1Time);
 }
 
-RDNSequence Certificate::getIssuer()
+RDNSequence Certificate::getIssuer() const
 {
 	RDNSequence name;
 	if (this->cert)
@@ -522,7 +567,7 @@ RDNSequence Certificate::getIssuer()
 	return name;
 }
 
-RDNSequence Certificate::getSubject()
+RDNSequence Certificate::getSubject() const
 {
 	RDNSequence name;
 	if (this->cert)
@@ -532,7 +577,7 @@ RDNSequence Certificate::getSubject()
 	return name;
 }
 
-std::vector<Extension*> Certificate::getExtension(Extension::Name extensionName)
+std::vector<Extension*> Certificate::getExtension(Extension::Name extensionName) const
 {
 	int next, i;
 	X509_EXTENSION *ext;
@@ -544,52 +589,14 @@ std::vector<Extension*> Certificate::getExtension(Extension::Name extensionName)
 		ext = X509_get_ext(this->cert, i);
 		if (Extension::getName(ext) == extensionName)
 		{
-			switch (Extension::getName(ext))
-			{
-				case Extension::KEY_USAGE:
-						oneExt = new KeyUsageExtension(ext);
-					break;
-				case Extension::EXTENDED_KEY_USAGE:
-					oneExt = new ExtendedKeyUsageExtension(ext);
-					break;
-				case Extension::AUTHORITY_KEY_IDENTIFIER:
-					oneExt = new AuthorityKeyIdentifierExtension(ext);
-					break;
-				case Extension::CRL_DISTRIBUTION_POINTS:
-					oneExt = new CRLDistributionPointsExtension(ext);
-					break;
-				case Extension::AUTHORITY_INFORMATION_ACCESS:
-					oneExt = new AuthorityInformationAccessExtension(ext);
-					break;
-				case Extension::BASIC_CONSTRAINTS:
-					oneExt = new BasicConstraintsExtension(ext);
-					break;
-				case Extension::CERTIFICATE_POLICIES:
-					oneExt = new CertificatePoliciesExtension(ext);
-					break;
-				case Extension::ISSUER_ALTERNATIVE_NAME:
-					oneExt = new IssuerAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_ALTERNATIVE_NAME:
-					oneExt = new SubjectAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_INFORMATION_ACCESS:
-					oneExt = new SubjectInformationAccessExtension(ext);
-					break;
-				case Extension::SUBJECT_KEY_IDENTIFIER:
-					oneExt = new SubjectKeyIdentifierExtension(ext);
-					break;
-				default:
-					oneExt = new Extension(ext);
-					break;
-			}
+			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 		}
 	}
 	return ret;
 }
 
-std::vector<Extension*> Certificate::getExtensions()
+std::vector<Extension*> Certificate::getExtensions() const
 {
 	int next, i;
 	X509_EXTENSION *ext;
@@ -599,51 +606,13 @@ std::vector<Extension*> Certificate::getExtensions()
 	for (i=0;i<next;i++)
 	{
 		ext = X509_get_ext(this->cert, i);
-		switch (Extension::getName(ext))
-		{
-			case Extension::KEY_USAGE:
-				oneExt = new KeyUsageExtension(ext);
-				break;
-			case Extension::EXTENDED_KEY_USAGE:
-				oneExt = new ExtendedKeyUsageExtension(ext);
-				break;
-			case Extension::AUTHORITY_KEY_IDENTIFIER:
-				oneExt = new AuthorityKeyIdentifierExtension(ext);
-				break;
-			case Extension::CRL_DISTRIBUTION_POINTS:
-				oneExt = new CRLDistributionPointsExtension(ext);
-				break;
-			case Extension::AUTHORITY_INFORMATION_ACCESS:
-				oneExt = new AuthorityInformationAccessExtension(ext);
-				break;
-			case Extension::BASIC_CONSTRAINTS:
-				oneExt = new BasicConstraintsExtension(ext);
-				break;
-			case Extension::CERTIFICATE_POLICIES:
-				oneExt = new CertificatePoliciesExtension(ext);
-				break;
-			case Extension::ISSUER_ALTERNATIVE_NAME:
-				oneExt = new IssuerAlternativeNameExtension(ext);
-				break;
-			case Extension::SUBJECT_ALTERNATIVE_NAME:
-				oneExt = new SubjectAlternativeNameExtension(ext);
-				break;
-			case Extension::SUBJECT_INFORMATION_ACCESS:
-				oneExt = new SubjectInformationAccessExtension(ext);
-				break;			
-			case Extension::SUBJECT_KEY_IDENTIFIER:
-				oneExt = new SubjectKeyIdentifierExtension(ext);
-				break;
-			default:
-				oneExt = new Extension(ext);
-				break;
-		}
+		oneExt = ExtensionFactory::getExtension(ext);
 		ret.push_back(oneExt);
 	}
 	return ret;
 }
 
-std::vector<Extension *> Certificate::getUnknownExtensions()
+std::vector<Extension*> Certificate::getUnknownExtensions() const
 {
 	int next, i;
 	X509_EXTENSION *ext;
@@ -666,17 +635,15 @@ std::vector<Extension *> Certificate::getUnknownExtensions()
 	return ret;
 }
 
-ByteArray* Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
+ByteArray Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
 {
-	ByteArray *ret = NULL, *derEncoded = NULL;
 	MessageDigest messageDigest(algorithm);
-
-	derEncoded = this->getDerEncoded();
-	ret = messageDigest.doFinal(*derEncoded);
+	ByteArray derEncoded = this->getDerEncoded();
+	ByteArray ret = messageDigest.doFinal(std::move(derEncoded));
 	return ret;
 }
 
-bool Certificate::verify(const PublicKey& publicKey)
+bool Certificate::verify(const PublicKey& publicKey) const
 {
 	// TODO: cast ok?
 	int ok = X509_verify(this->cert, (EVP_PKEY*) publicKey.getEvpPkey());
@@ -688,47 +655,20 @@ X509* Certificate::getX509() const
 	return this->cert;
 }
 
-CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm)
+CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm) const
 {
 	X509_REQ *req = NULL;
 	const EVP_MD *md = NULL;
 
 	md = MessageDigest::getMessageDigest(algorithm);
+
 	// TODO: cast ok?
 	req = X509_to_X509_REQ(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
 	if (!req) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getNewCertificateRequest");
 	}
+
 	return CertificateRequest(req);
-}
-
-Certificate& Certificate::operator=(const Certificate& value)
-{
-	if (&value == this) {
-		return *this;
-	}
-
-	if (this->cert) {
-		X509_free(this->cert);
-	}
-
-	this->cert = X509_dup(value.getX509());
-    return *this;
-}
-
-Certificate& Certificate::operator=(Certificate&& value) {
-	if (&value == this) {
-		return *this;
-	}
-
-	if (this->cert) {
-		X509_free(this->cert);
-	}
-
-	this->cert = value.cert;
-	value.cert = nullptr;
-
-    return *this;
 }
 
 bool Certificate::operator ==(const Certificate& value)

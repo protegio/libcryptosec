@@ -1,62 +1,64 @@
 #ifndef CERTIFICATEREVOCATIONLIST_H_
 #define CERTIFICATEREVOCATIONLIST_H_
 
+#include <libcryptosec/certificate/extension/Extension.h>
+#include <libcryptosec/certificate/RDNSequence.h>
+#include <libcryptosec/certificate/RevokedCertificate.h>
+#include <libcryptosec/DateTime.h>
+#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/BigInteger.h>
+#include <libcryptosec/ByteArray.h>
+
 #include <openssl/x509.h>
 
 #include <string>
 #include <vector>
 
-#include <libcryptosec/ByteArray.h>
-#include <libcryptosec/Base64.h>
-#include <libcryptosec/DateTime.h>
-#include <libcryptosec/PublicKey.h>
-
-#include "Extension.h"
-#include "KeyUsageExtension.h"
-#include "ExtendedKeyUsageExtension.h"
-#include "BasicConstraintsExtension.h"
-#include "CRLDistributionPointsExtension.h"
-#include "AuthorityInformationAccessExtension.h"
-#include "IssuerAlternativeNameExtension.h"
-#include "SubjectAlternativeNameExtension.h"
-#include "AuthorityKeyIdentifierExtension.h"
-#include "SubjectKeyIdentifierExtension.h"
-#include "SubjectInformationAccessExtension.h"
-#include "CertificatePoliciesExtension.h"
-#include "CRLNumberExtension.h"
-#include "DeltaCRLIndicatorExtension.h"
-
-#include "RDNSequence.h"
-#include "RevokedCertificate.h"
 
 class CertificateRevocationList
 {
 public:
-	CertificateRevocationList(const X509_CRL *crl);
-	CertificateRevocationList(X509_CRL *crl);
-	CertificateRevocationList(std::string pemEncoded);
-	CertificateRevocationList(ByteArray &derEncoded);
+	CertificateRevocationList(const X509_CRL* crl);
+	CertificateRevocationList(X509_CRL* crl);
+	CertificateRevocationList(const std::string& pemEncoded);
+	CertificateRevocationList(const ByteArray& derEncoded);
+
 	CertificateRevocationList(const CertificateRevocationList& crl);
+	CertificateRevocationList(CertificateRevocationList&& crl);
+
 	virtual ~CertificateRevocationList();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	std::string getPemEncoded();
-	ByteArray getDerEncoded();
-	long getSerialNumber();
-	BigInteger getSerialNumberBigInt();
-	long getBaseCRLNumber();
-	BigInteger getBaseCRLNumberBigInt();
-	long getVersion();
-	RDNSequence getIssuer();
-	DateTime getLastUpdate();
-	DateTime getNextUpdate();
-	std::vector<RevokedCertificate> getRevokedCertificate();
-	bool verify(const PublicKey& publicKey);
+
+	CertificateRevocationList& operator=(const CertificateRevocationList& value);
+	CertificateRevocationList& operator=(CertificateRevocationList&& value);
+
+	std::string getXmlEncoded(const std::string& tab = "") const;
+
+	std::string getPemEncoded() const;
+	ByteArray getDerEncoded() const;
+
+	long getSerialNumber() const;
+	BigInteger getSerialNumberBigInt() const;
+
+	long getBaseCRLNumber() const;
+	BigInteger getBaseCRLNumberBigInt() const;
+
+	long getVersion() const;
+
+	RDNSequence getIssuer() const;
+
+	DateTime getLastUpdate() const;
+	DateTime getNextUpdate() const;
+
+	std::vector<RevokedCertificate> getRevokedCertificates() const;
+
+	bool verify(const PublicKey& publicKey) const;
+
 	X509_CRL* getX509Crl() const;
-	CertificateRevocationList& operator =(const CertificateRevocationList& value);
-	std::vector<Extension*> getExtension(Extension::Name extensionName);
-	std::vector<Extension *> getExtensions();
-	std::vector<Extension *> getUnknownExtensions();
+
+	std::vector<Extension*> getExtension(Extension::Name extensionName) const;
+	std::vector<Extension*> getExtensions() const;
+	std::vector<Extension*> getUnknownExtensions() const;
+
 protected:
 	X509_CRL *crl;
 };

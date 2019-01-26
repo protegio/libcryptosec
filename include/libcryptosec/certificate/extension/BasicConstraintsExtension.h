@@ -3,7 +3,7 @@
 
 #include <openssl/x509.h>
 
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
 #include <string>
 

@@ -1,4 +1,4 @@
-#include <libcryptosec/certificate/ExtendedKeyUsageExtension.h>
+#include <libcryptosec/certificate/extension/ExtendedKeyUsageExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
@@ -74,7 +74,6 @@ X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 	X509_EXTENSION *ret = NULL;
 	ASN1_OBJECT *asn1Obj = NULL;
 	STACK_OF(ASN1_OBJECT) *extKeyUsages = NULL;
-	unsigned int i = 0;
 	int rc = 0;
 
 	extKeyUsages = sk_ASN1_OBJECT_new_null();

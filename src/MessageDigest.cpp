@@ -134,24 +134,24 @@ void MessageDigest::update(const std::string &data)
 	this->update(content);
 }
 
-ByteArray* MessageDigest::doFinal()
+ByteArray MessageDigest::doFinal()
 {
-	ByteArray* ret = new ByteArray(EVP_MAX_MD_SIZE);
+	ByteArray ret(EVP_MAX_MD_SIZE);
 	unsigned int size = 0;
 
-	this->doFinal(ret->getDataPointer(), &size);
-	ret->setSize(size);
+	this->doFinal(ret.getDataPointer(), &size);
+	ret.setSize(size);
 
 	return ret;
 }
 
-ByteArray* MessageDigest::doFinal(const ByteArray &data)
+ByteArray MessageDigest::doFinal(const ByteArray &data)
 {
 	this->update(data);
 	return this->doFinal();
 }
 
-ByteArray* MessageDigest::doFinal(const std::string &data)
+ByteArray MessageDigest::doFinal(const std::string &data)
 {
 	this->update(data);
 	return this->doFinal();

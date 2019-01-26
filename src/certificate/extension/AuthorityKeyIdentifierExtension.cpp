@@ -1,4 +1,4 @@
-#include <libcryptosec/certificate/AuthorityKeyIdentifierExtension.h>
+#include <libcryptosec/certificate/extension/AuthorityKeyIdentifierExtension.h>
 
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/exception/CertificationException.h>

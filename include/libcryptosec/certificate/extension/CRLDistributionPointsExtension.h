@@ -1,14 +1,9 @@
 #ifndef CRLDISTRIBUTIONPOINTSEXTENSION_H_
 #define CRLDISTRIBUTIONPOINTSEXTENSION_H_
 
-#include <openssl/asn1.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 
-#include "Extension.h"
-#include "DistributionPoint.h"
-
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/DistributionPoint.h>
 
 class CRLDistributionPointsExtension : public Extension
 {

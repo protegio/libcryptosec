@@ -1,88 +1,75 @@
 #ifndef CERTIFICATE_H_
 #define CERTIFICATE_H_
 
-/* system includes */
-#include <time.h>
-#include <vector>
-#include <string>
-/* openssl includes */
-#include <openssl/pem.h>
-#include <openssl/x509v3.h>
-#include <openssl/x509.h>
-/* libcryptosec includes */
-#include <libcryptosec/Base64.h>
-#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/certificate/CertificateRequest.h>
+#include <libcryptosec/certificate/RDNSequence.h>
 #include <libcryptosec/DateTime.h>
 #include <libcryptosec/MessageDigest.h>
-#include <libcryptosec/PrivateKey.h>
-#include <libcryptosec/PublicKey.h>
-#include <libcryptosec/certificate/CertificateRequest.h>
+#include <libcryptosec/BigInteger.h>
 
-#include "RDNSequence.h"
-#include "Extension.h"
-#include "KeyUsageExtension.h"
-#include "ExtendedKeyUsageExtension.h"
-#include "BasicConstraintsExtension.h"
-#include "CRLDistributionPointsExtension.h"
-#include "AuthorityInformationAccessExtension.h"
-#include "IssuerAlternativeNameExtension.h"
-#include "SubjectAlternativeNameExtension.h"
-#include "SubjectInformationAccessExtension.h"
-#include "AuthorityKeyIdentifierExtension.h"
-#include "SubjectKeyIdentifierExtension.h"
-#include "CertificatePoliciesExtension.h"
+#include <openssl/x509.h>
 
-#include <libcryptosec/exception/CertificationException.h>
-#include <libcryptosec/exception/EncodeException.h>
+#include <string>
+#include <vector>
+
+class PublicKey;
+class PrivateKey;
+class Extension;
 
 class Certificate
 {
 public:
-	Certificate(X509 *cert);
+	Certificate(X509* cert);
 	Certificate(const X509* cert);
-	Certificate(std::string pemEncoded);
-	Certificate(ByteArray &derEncoded);
+	Certificate(const std::string& pemEncoded);
+	Certificate(const ByteArray& derEncoded);
 	Certificate(const Certificate& cert);
 	Certificate(Certificate&& cert);
 
 	virtual ~Certificate();
+
+	Certificate& operator=(const Certificate& cert);
+	Certificate& operator=(Certificate&& cert);
+
 	std::string getPemEncoded() const;
-	ByteArray* getDerEncoded() const;
+	ByteArray getDerEncoded() const;
+
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	virtual std::string toXml(std::string tab = "");
-	long getSerialNumber();
-	BigInteger getSerialNumberBigInt();
-	MessageDigest::Algorithm getMessageDigestAlgorithm();
-	PublicKey* getPublicKey();
-	ByteArray getPublicKeyInfo();
-	long getVersion();
-	DateTime getNotBefore();
-	DateTime getNotAfter();
-	RDNSequence getIssuer();
-	RDNSequence getSubject();
-	std::vector<Extension *> getExtension(Extension::Name extensionName);
-	std::vector<Extension *> getExtensions();
-	std::vector<Extension *> getUnknownExtensions();
-	ByteArray* getFingerPrint(MessageDigest::Algorithm algorithm) const;
-	bool verify(const PublicKey& publicKey);
+	std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string toXml(const std::string& tab = "") const;
+
+	long getSerialNumber() const;
+	BigInteger getSerialNumberBigInt() const;
+	MessageDigest::Algorithm getMessageDigestAlgorithm() const;
+	PublicKey* getPublicKey() const;
+	ByteArray getPublicKeyInfo() const;
+	long getVersion() const;
+	DateTime getNotBefore() const;
+	DateTime getNotAfter() const;
+	RDNSequence getIssuer() const;
+	RDNSequence getSubject() const;
+	std::vector<Extension*> getExtension(Extension::Name extensionName) const;
+	std::vector<Extension*> getExtensions() const;
+	std::vector<Extension*> getUnknownExtensions() const;
+	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const;
+	bool verify(const PublicKey& publicKey) const;
 	X509* getX509() const;
+
 	/**
 	 * create a new certificate request using the data from this certificate
 	 * @param privateKey certificate request signing key
 	 * @param algorithm message digest algorithm
 	 * @throws CertificationException error on conversion of x509 to x509 req
 	 */
-	CertificateRequest getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm);
-	Certificate& operator=(const Certificate& value);
-	Certificate& operator=(Certificate&& value);
+	CertificateRequest getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm) const;
+
 	bool operator ==(const Certificate& value);
 	bool operator !=(const Certificate& value);
+
 protected:
 	X509 *cert;
 };

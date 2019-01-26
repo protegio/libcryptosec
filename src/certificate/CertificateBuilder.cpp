@@ -2,18 +2,8 @@
 
 #include <libcryptosec/certificate/Certificate.h>
 #include <libcryptosec/certificate/CertificateRequest.h>
-#include <libcryptosec/certificate/Extension.h>
-#include <libcryptosec/certificate/ExtensionFactory.h>
-#include <libcryptosec/certificate/KeyUsageExtension.h>
-#include <libcryptosec/certificate/ExtendedKeyUsageExtension.h>
-#include <libcryptosec/certificate/BasicConstraintsExtension.h>
-#include <libcryptosec/certificate/CRLDistributionPointsExtension.h>
-#include <libcryptosec/certificate/IssuerAlternativeNameExtension.h>
-#include <libcryptosec/certificate/SubjectAlternativeNameExtension.h>
-#include <libcryptosec/certificate/SubjectInformationAccessExtension.h>
-#include <libcryptosec/certificate/AuthorityKeyIdentifierExtension.h>
-#include <libcryptosec/certificate/SubjectKeyIdentifierExtension.h>
-#include <libcryptosec/certificate/CertificatePoliciesExtension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
+#include <libcryptosec/certificate/extension/ExtensionFactory.h>
 #include <libcryptosec/exception/AsymmetricKeyException.h>
 #include <libcryptosec/exception/CertificationException.h>
 #include <libcryptosec/exception/EncodeException.h>
@@ -22,6 +12,9 @@
 #include <libcryptosec/DateTime.h>
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
+#include <libcryptosec/Base64.h>
+
+#include <openssl/pem.h>
 
 CertificateBuilder::CertificateBuilder()
 	: cert(X509_new()), includeECDSAParameters(false)
@@ -267,8 +260,7 @@ std::string CertificateBuilder::getXmlEncoded(const std::string& tab)
 		ret += "\t\t</subject>\n";
 
 		ret += "\t\t<subjectPublicKeyInfo>\n";
-			if (X509_get0_pubkey(this->cert))
-			{
+			if (X509_get0_pubkey(this->cert)) {
 				string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
 				ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
 				const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);

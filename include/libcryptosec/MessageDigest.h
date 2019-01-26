@@ -1,13 +1,13 @@
 #ifndef MESSAGEDIGEST_H_
 #define MESSAGEDIGEST_H_
 
+#include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Macros.h>
 
 #include <openssl/evp.h>
 
 #include <string>
 
-class ByteArray;
 class Engine;
 
 /**
@@ -116,7 +116,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */
-	ByteArray* doFinal();
+	ByteArray doFinal();
 
 	/**
 	 * @brief Realiza o resumo criptográfico.
@@ -138,7 +138,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */	
-	ByteArray* doFinal(const ByteArray& data);
+	ByteArray doFinal(const ByteArray& data);
 
 	/**
 	 * Realiza atualização do contexto e faz resumo criptográfico.
@@ -148,7 +148,7 @@ public:
 	 * @throw MessageDigestException caso ocorra erro ao finalizar o contexto de resumo do OpenSSL.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente ou caso não tenha sido passado o conteúdo para calculo do resumo. 
 	 */	
-	ByteArray* doFinal(const std::string& data);
+	ByteArray doFinal(const std::string& data);
 	
 	/**
 	 * Retorna algoritmo de resumo selecionado.

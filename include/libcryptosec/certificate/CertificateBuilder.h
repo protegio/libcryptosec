@@ -1,7 +1,7 @@
 #ifndef CERTIFICATEBUILDER_H_
 #define CERTIFICATEBUILDER_H_
 
-#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/MessageDigest.h>
 
 #include <openssl/x509.h>

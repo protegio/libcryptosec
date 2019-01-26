@@ -28,8 +28,7 @@ public:
 	GeneralName(GENERAL_NAME *generalName);
 //	GeneralName(const GeneralName& generalName);
 	virtual ~GeneralName();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	std::string getXmlEncoded(const std::string& tab) const;
 	void setOtherName(std::string oid, std::string data);
 	std::pair<std::string, std::string> getOtherName() const;
 	void setRfc822Name(std::string data);
@@ -45,7 +44,7 @@ public:
 	void setRegisteredId(ObjectIdentifier objectIdentifier);
 	ObjectIdentifier getRegisteredId() const;
 	GeneralName::Type getType() const;
-	GENERAL_NAME* getGeneralName();
+	GENERAL_NAME* getGeneralName() const;
 	static std::string type2Name(GeneralName::Type type);
 	GeneralName& operator=(const GeneralName& value);
 	static std::string  data2IpAddress(unsigned char *data);
