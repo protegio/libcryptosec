@@ -53,7 +53,7 @@ public:
 	BigInteger getSerialNumberBigInt();
 
 	MessageDigest::Algorithm getMessageDigestAlgorithm();
-	void setPublicKey(PublicKey& publicKey);
+	void setPublicKey(const PublicKey& publicKey);
 	PublicKey getPublicKey();
 	ByteArray getPublicKeyInfo();
 
@@ -115,7 +115,7 @@ public:
 	std::vector<Extension*> getExtension(Extension::Name extensionName);
 	std::vector<Extension*> getExtensions();
 	std::vector<Extension*> getUnknownExtensions();
-	Certificate sign(PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
+	Certificate sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
 	const X509* getX509() const;
 	bool isIncludeEcdsaParameters() const;
 	void setIncludeEcdsaParameters(bool includeEcdsaParameters);

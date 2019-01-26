@@ -12,7 +12,7 @@
 BigInteger::BigInteger() :
 		bigInt(BN_new())
 {
-	if(this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 
@@ -22,7 +22,7 @@ BigInteger::BigInteger() :
 BigInteger::BigInteger(BIGNUM const* bn) :
 		bigInt(BN_dup(bn))
 {
-	if(this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
 	}
 	
@@ -32,17 +32,22 @@ BigInteger::BigInteger(long val) :
 		bigInt(BN_new())
 
 {
-	if(this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 
 	BigInteger::setValue(val);
 }
 
+BigInteger::BigInteger(int val) :
+		BigInteger((long) val)
+{
+}
+
 BigInteger::BigInteger(const ASN1_INTEGER* val) :
 		bigInt(BN_new())
 {
-	if(this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
@@ -55,7 +60,7 @@ BigInteger::BigInteger(const ASN1_INTEGER* val) :
 BigInteger::BigInteger(const ByteArray& b) :
 		bigInt(BN_new())
 {
-	if(!this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
@@ -68,7 +73,7 @@ BigInteger::BigInteger(const ByteArray& b) :
 BigInteger::BigInteger(const std::string& dec):
 		bigInt(BN_new())
 {
-	if(!this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 	
@@ -78,7 +83,7 @@ BigInteger::BigInteger(const std::string& dec):
 BigInteger::BigInteger(const char* dec) :
 		bigInt(BN_new())
 {
-	if(!this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 
@@ -88,7 +93,7 @@ BigInteger::BigInteger(const char* dec) :
 BigInteger::BigInteger(const BigInteger& b) :
 		bigInt(BN_dup(b.bigInt))
 {
-	if(!this->bigInt) {
+	if(this->bigInt == NULL) {
 		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
 	}
 }

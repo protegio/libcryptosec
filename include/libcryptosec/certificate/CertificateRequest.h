@@ -1,30 +1,19 @@
 #ifndef CERTIFICATEREQUEST_H_
 #define CERTIFICATEREQUEST_H_
 
+#include <libcryptosec/certificate/RDNSequence.h>
+#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/PrivateKey.h>
+#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/ByteArray.h>
+
 #include <openssl/x509.h>
 
 #include <string>
 #include <vector>
 
-#include <libcryptosec/ByteArray.h>
-#include <libcryptosec/MessageDigest.h>
-#include <libcryptosec/PrivateKey.h>
-#include <libcryptosec/PublicKey.h>
-
-#include "RDNSequence.h"
-
-#include "Extension.h"
-#include "KeyUsageExtension.h"
-#include "ExtendedKeyUsageExtension.h"
-#include "BasicConstraintsExtension.h"
-#include "CRLDistributionPointsExtension.h"
-#include "AuthorityInformationAccessExtension.h"
-#include "IssuerAlternativeNameExtension.h"
-#include "SubjectAlternativeNameExtension.h"
-#include "SubjectInformationAccessExtension.h"
-#include "AuthorityKeyIdentifierExtension.h"
-#include "SubjectKeyIdentifierExtension.h"
-#include "CertificatePoliciesExtension.h"
+class Extension;
 
 class CertificateRequest
 {
@@ -67,6 +56,7 @@ public:
 	virtual bool isSigned() const throw();
 	X509_REQ* getX509Req() const;
 	CertificateRequest& operator =(const CertificateRequest& value);
+
 protected:
 	X509_REQ *req;
 };

@@ -1,16 +1,7 @@
 #ifndef DSAKEYPAIR_H_
 #define DSAKEYPAIR_H_
 
-#include <openssl/evp.h>
-#include "ByteArray.h"
-#include "SymmetricKey.h"
-#include "KeyPair.h"
-#include "DSAPublicKey.h"
-#include "DSAPrivateKey.h"
-
-#include <libcryptosec/exception/EngineException.h>
-#include <libcryptosec/exception/EncodeException.h>
-#include <libcryptosec/exception/AsymmetricKeyException.h>
+#include <libcryptosec/KeyPair.h>
 
 /**
 * Representa um par de chaves assimétricas DSA.
@@ -31,16 +22,7 @@ class DSAKeyPair : public KeyPair
 		DSAKeyPair(int length);
 		
 		virtual ~DSAKeyPair();
-		/**
-		 * gets the public key from key pair
-		 * @return a public key from key pair
-		 */
-		virtual PublicKey* getPublicKey();
-		/**
-		 * gets the private from key pair
-		 * @return a private key from key pair
-		 */
-		virtual PrivateKey* getPrivateKey();
+
 		/**
 		 * encode the key pair in PEM format encrypted
 		 * @param passphrase key for encrypt the key pair
@@ -48,11 +30,7 @@ class DSAKeyPair : public KeyPair
 		 * @return key pair encrypted encoded in PEM format
 		 */
 
-		virtual AsymmetricKey::Algorithm getAlgorithm();
-		/**
-		 * gets the key size
-		 * @return key size
-		 */
+		virtual AsymmetricKey::Algorithm getAlgorithm() const;
 };
 
 #endif /*DSAKEYPAIR_H_*/

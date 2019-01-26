@@ -1,9 +1,9 @@
 #include <libcryptosec/DateTime.h>
 
 //pegar hora local
-DateTime::DateTime()
+DateTime::DateTime() :
+		seconds(0)
 {
-	this->setDateTime(0);	
 }
 
 DateTime::DateTime(time_t dateTime)
@@ -16,7 +16,7 @@ DateTime::DateTime(BigInteger const& dateTime)
 	this->setDateTime(dateTime);
 }
 
-DateTime::DateTime(ASN1_TIME *asn1Time)
+DateTime::DateTime(const ASN1_TIME *asn1Time)
 {
 /*	tm dateTimeTm;
 	std::string dateTimeWr;

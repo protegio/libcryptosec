@@ -39,7 +39,8 @@ std::string NetscapeSPKIBuilder::getBase64Encoded()
 
 void NetscapeSPKIBuilder::setPublicKey(PublicKey &publicKey)
 {
-	NETSCAPE_SPKI_set_pubkey(this->netscapeSPKI, publicKey.getEvpPkey());
+	// TODO: cast ok?
+	NETSCAPE_SPKI_set_pubkey(this->netscapeSPKI, (EVP_PKEY*) publicKey.getEvpPkey());
 }
 
 PublicKey* NetscapeSPKIBuilder::getPublicKey()
@@ -89,14 +90,12 @@ std::string NetscapeSPKIBuilder::getChallenge()
 
 NetscapeSPKI* NetscapeSPKIBuilder::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigest)
 {
-	int rc;
-	NetscapeSPKI *ret;
-	rc = NETSCAPE_SPKI_sign(this->netscapeSPKI, privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigest));
-	if (!rc)
-	{
+	// TODO: cast ok?
+	int rc = NETSCAPE_SPKI_sign(this->netscapeSPKI, (EVP_PKEY*) privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigest));
+	if (!rc) {
 		throw NetscapeSPKIException(NetscapeSPKIException::SIGNING_SPKI, "NetscapeSPKIBuilder::sign");
 	}
-	ret = new NetscapeSPKI(this->netscapeSPKI);
+	NetscapeSPKI *ret = new NetscapeSPKI(this->netscapeSPKI);
 	this->netscapeSPKI = NETSCAPE_SPKI_new();
 	return ret;
 }

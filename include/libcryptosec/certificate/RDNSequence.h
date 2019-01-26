@@ -1,18 +1,12 @@
 #ifndef RDNSEQUENCE_H_
 #define RDNSEQUENCE_H_
 
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+
 #include <openssl/x509.h>
 
 #include <string>
-#include <iostream>
 #include <vector>
-#include <map>
-
-#include <libcryptosec/ByteArray.h>
-#include "ObjectIdentifier.h"
-#include "ObjectIdentifierFactory.h"
-
-#include <libcryptosec/exception/CertificationException.h>
 
 class RDNSequence
 {
@@ -39,31 +33,30 @@ public:
 	};
 	
 	RDNSequence();
+	RDNSequence(const X509_NAME *rdn);
+	RDNSequence(const STACK_OF(X509_NAME_ENTRY) *entries);
 	RDNSequence(const RDNSequence& rdn);
+	RDNSequence(RDNSequence&& rdn);
 
-	RDNSequence(X509_NAME *rdn);
-	RDNSequence(STACK_OF(X509_NAME_ENTRY) *entries);
 	virtual ~RDNSequence();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	void addEntry(RDNSequence::EntryType type, std::string value);
-	void addEntry(RDNSequence::EntryType type, std::vector<std::string> values);
-	std::vector<std::string> getEntries(RDNSequence::EntryType type);
-	std::vector<std::pair<ObjectIdentifier, std::string> > getUnknownEntries();
-	std::vector<std::pair<ObjectIdentifier, std::string> > getEntries() const;
-	X509_NAME* getX509Name() const;
-	RDNSequence& operator =(const RDNSequence& value);
-protected:
-//	std::map<EntryType, std::vector<std::string> > entries;
-//	std::vector<std::pair<std::string, std::string> > unknownEntries;
-	
-	std::vector<std::pair<ObjectIdentifier, std::string> > newEntries;
 
+	RDNSequence& operator=(const RDNSequence& value);
+	RDNSequence& operator=(RDNSequence&& value);
+
+	std::string getXmlEncoded(const std::string& tab = "") const;
+	void addEntry(RDNSequence::EntryType type, const std::string& value);
+	void addEntry(RDNSequence::EntryType type, const std::vector<std::string>& values);
+	std::vector<std::string> getEntries(RDNSequence::EntryType type) const;
+	std::vector<std::pair<ObjectIdentifier, std::string> > getUnknownEntries() const;
+	const std::vector<std::pair<ObjectIdentifier, std::string> >& getEntries() const;
+	X509_NAME* getX509Name() const;
+
+protected:
 	static RDNSequence::EntryType id2Type(int id);
 	static int type2Id(RDNSequence::EntryType type);
 	static std::string getNameId(RDNSequence::EntryType type);
 
-//	std::string getNameId(RDNSequence::EntryType type);
+	std::vector<std::pair<ObjectIdentifier, std::string> > newEntries;
 };
 
 #endif /*RDNSEQUENCE_H_*/

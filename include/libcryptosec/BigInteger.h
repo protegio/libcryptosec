@@ -40,6 +40,7 @@ public:
 	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger. 
 	 * */
 	BigInteger(long val);
+	BigInteger(int val);
 	
 	/**
 	 * BigInteger a partir de uma estrutura ASN1_INTEGER do OpenSSL.

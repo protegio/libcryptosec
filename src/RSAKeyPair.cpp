@@ -1,5 +1,9 @@
 #include <libcryptosec/RSAKeyPair.h>
 
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+#include <openssl/evp.h>
+
 RSAKeyPair::RSAKeyPair(int length)
 {
 	RSA *rsa = NULL;
@@ -46,60 +50,9 @@ err0:
 
 RSAKeyPair::~RSAKeyPair()
 {
-	if (this->key) {
-		EVP_PKEY_free(this->key);
-		this->key = NULL;
-	}
-
-	if (this->engine) {
-		ENGINE_free(this->engine);
-		this->engine = NULL;
-	}
 }
 
-PublicKey* RSAKeyPair::getPublicKey()
-{
-	PublicKey *ret = NULL;
-	std::string keyTemp;
-
-	// TODO: that's a lasy method to create a RSAPublicKey object
-	keyTemp = this->getPublicKeyPemEncoded();
-	ret = new RSAPublicKey(keyTemp);
-
-	return ret;
-}
-
-PrivateKey* RSAKeyPair::getPrivateKey()
-{
-	PrivateKey *ret = NULL;
-	EVP_PKEY *pkey = NULL;
-
-	if (this->engine) {
-		pkey = ENGINE_load_private_key(this->engine, this->keyId.c_str(), NULL, NULL);
-		if (!pkey) {
-			throw AsymmetricKeyException(AsymmetricKeyException::UNAVAILABLE_KEY, "KeyId: " + this->keyId, "RSAKeyPair::getPrivateKey");
-		}
-
-		try	{
-			ret = new PrivateKey(pkey);
-		} catch (...) {
-			EVP_PKEY_free(pkey);
-			throw AsymmetricKeyException(AsymmetricKeyException::UNAVAILABLE_KEY, "KeyId: " + this->keyId, "RSAKeyPair::getPrivateKey");
-		}
-	} else {
-		ret = new RSAPrivateKey(this->key);
-		if (ret == NULL) {
-			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "RSAKeyPair::getPrivateKey");
-		}
-
-		// TODO: shouldn't the EVP_PKEY_up_ref be in the PrivateKey class?
-		EVP_PKEY_up_ref(this->key);
-	}
-
-	return ret;
-}
-
-AsymmetricKey::Algorithm RSAKeyPair::getAlgorithm()
+AsymmetricKey::Algorithm RSAKeyPair::getAlgorithm() const
 {
 	return AsymmetricKey::RSA;
 }

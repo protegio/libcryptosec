@@ -6,7 +6,7 @@ RevokedCertificate::RevokedCertificate()
 	this->reasonCode = RevokedCertificate::UNSPECIFIED;
 }
 
-RevokedCertificate::RevokedCertificate(X509_REVOKED *revoked)
+RevokedCertificate::RevokedCertificate(const X509_REVOKED *revoked)
 {
 	ASN1_ENUMERATED* asn1Enumerated;
 	if (revoked)
@@ -105,7 +105,7 @@ RevokedCertificate::ReasonCode RevokedCertificate::getReasonCode()
 	return this->reasonCode;
 }
 
-X509_REVOKED* RevokedCertificate::getX509Revoked()
+X509_REVOKED* RevokedCertificate::getX509Revoked() const
 {
 	X509_REVOKED *ret;
 	ASN1_ENUMERATED *asn1Enumerated;

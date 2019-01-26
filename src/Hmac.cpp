@@ -68,7 +68,8 @@ void Hmac::init(const unsigned char* key, unsigned int size, MessageDigest::Algo
 		throw HmacException(HmacException::CTX_INIT, "Hmac::init");
 	}
 
-	rc = HMAC_Init_ex(this->ctx, (void*) key, size, md, (engine ? engine->getEngine() : NULL));
+	// TODO: esse cast da engine é ok?
+	rc = HMAC_Init_ex(this->ctx, (void*) key, size, md, (engine ? (ENGINE*) engine->getEngine() : NULL));
 	if (!rc) {
 		this->state = Hmac::NO_INIT;
 		throw HmacException(HmacException::CTX_INIT, "Hmac::init");

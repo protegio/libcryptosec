@@ -1,6 +1,9 @@
 #include <libcryptosec/DSAKeyPair.h>
 
-#include <openssl/crypto.h>
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+#include <openssl/dsa.h>
+#include <openssl/evp.h>
 
 DSAKeyPair::DSAKeyPair(int length)
 {
@@ -32,62 +35,9 @@ DSAKeyPair::DSAKeyPair(int length)
 
 DSAKeyPair::~DSAKeyPair()
 {
-	if (this->key)
-	{
-		EVP_PKEY_free(this->key);
-		this->key = NULL;
-	}
-	if (this->engine)
-	{
-		ENGINE_free(this->engine);
-		this->engine = NULL;
-	}
 }
 
-PublicKey* DSAKeyPair::getPublicKey()
-{
-	PublicKey *ret;
-	std::string keyTemp;
-	keyTemp = this->getPublicKeyPemEncoded();
-	ret = new DSAPublicKey(keyTemp);
-	return ret;
-}
-
-PrivateKey* DSAKeyPair::getPrivateKey()
-{
-	PrivateKey *ret;
-	EVP_PKEY *pkey;
-	ret = NULL;
-	if (engine)
-	{
-		pkey = ENGINE_load_private_key(this->engine, this->keyId.c_str(), NULL, NULL);
-		if (!pkey)
-		{
-			throw AsymmetricKeyException(AsymmetricKeyException::UNAVAILABLE_KEY, "KeyId: " + this->keyId, "DSAKeyPair::getPrivateKey");
-		}
-		try
-		{
-			ret = new PrivateKey(pkey);
-		}
-		catch (...)
-		{
-			EVP_PKEY_free(pkey);
-			throw;
-		}
-	}
-	else
-	{
-		ret = new DSAPrivateKey(this->key);
-		if (ret == NULL)
-		{
-			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "DSAKeyPair::getPrivateKey");
-		}
-		EVP_PKEY_up_ref(this->key);
-	}
-	return ret;
-}
-
-AsymmetricKey::Algorithm DSAKeyPair::getAlgorithm()
+AsymmetricKey::Algorithm DSAKeyPair::getAlgorithm() const
 {
 	return AsymmetricKey::DSA;
 }

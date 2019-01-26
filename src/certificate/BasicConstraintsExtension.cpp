@@ -1,10 +1,16 @@
 #include <libcryptosec/certificate/BasicConstraintsExtension.h>
 
-BasicConstraintsExtension::BasicConstraintsExtension() : Extension()
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/exception/CertificationException.h>
+
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
+BasicConstraintsExtension::BasicConstraintsExtension() :
+		Extension(),
+		ca(false), pathLen(-1)
 {
-	this->ca = false;
-	this->pathLen = -1;
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_basic_constraints);
+	this->objectIdentifier = std::move(ObjectIdentifierFactory::getObjectIdentifier(NID_basic_constraints));
 }
 
 BasicConstraintsExtension::BasicConstraintsExtension(X509_EXTENSION *ext) : Extension(ext)
@@ -32,7 +38,7 @@ BasicConstraintsExtension::~BasicConstraintsExtension()
 {
 }
 
-std::string BasicConstraintsExtension::extValue2Xml(std::string tab)
+std::string BasicConstraintsExtension::extValue2Xml(const std::string& tab)
 {
 	std::string ret, string;
 	char temp[15];
@@ -54,17 +60,7 @@ std::string BasicConstraintsExtension::extValue2Xml(std::string tab)
 	return ret;	
 }
 
-/**
- * @deprecated
- * Retorna o conteudo da extensão em formato XML.
- * Esta função será substituida por toXml().
- * */
-std::string BasicConstraintsExtension::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string BasicConstraintsExtension::getXmlEncoded(std::string tab)
+std::string BasicConstraintsExtension::getXmlEncoded(const std::string& tab)
 {
 	std::string ret, string;
 	char temp[15];
@@ -96,7 +92,7 @@ void BasicConstraintsExtension::setCa(bool value)
 	this->ca = value;
 }
 
-bool BasicConstraintsExtension::isCa()
+bool BasicConstraintsExtension::isCa() const
 {
 	return this->ca;
 }
@@ -106,12 +102,12 @@ void BasicConstraintsExtension::setPathLen(long value)
 	this->pathLen = value;
 }
 
-long BasicConstraintsExtension::getPathLen()
+long BasicConstraintsExtension::getPathLen() const
 {
 	return this->pathLen;
 }
 
-X509_EXTENSION* BasicConstraintsExtension::getX509Extension()
+X509_EXTENSION* BasicConstraintsExtension::getX509Extension() const
 {
 	X509_EXTENSION *ret;
 	BASIC_CONSTRAINTS_st *basicConstraints;

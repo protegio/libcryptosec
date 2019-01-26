@@ -25,7 +25,7 @@ public:
 		AACOMPROMISE = 8,
 	};
 	RevokedCertificate();
-	RevokedCertificate(X509_REVOKED *revoked);
+	RevokedCertificate(const X509_REVOKED *revoked);
 	virtual ~RevokedCertificate();
 	std::string getXmlEncoded();
 	std::string getXmlEncoded(std::string tab);
@@ -37,7 +37,7 @@ public:
 	DateTime getRevocationDate();
 	void setReasonCode(RevokedCertificate::ReasonCode reasonCode);
 	RevokedCertificate::ReasonCode getReasonCode();
-	X509_REVOKED* getX509Revoked();
+	X509_REVOKED* getX509Revoked() const;
 	static std::string reasonCode2Name(RevokedCertificate::ReasonCode reasonCode);
 protected:
 	BigInteger certificateSerialNumber;

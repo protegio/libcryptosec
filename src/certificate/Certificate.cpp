@@ -676,10 +676,10 @@ ByteArray* Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
 	return ret;
 }
 
-bool Certificate::verify(PublicKey &publicKey)
+bool Certificate::verify(const PublicKey& publicKey)
 {
-	int ok;
-	ok = X509_verify(this->cert, publicKey.getEvpPkey());
+	// TODO: cast ok?
+	int ok = X509_verify(this->cert, (EVP_PKEY*) publicKey.getEvpPkey());
 	return (ok == 1);
 }
 
@@ -688,13 +688,14 @@ X509* Certificate::getX509() const
 	return this->cert;
 }
 
-CertificateRequest Certificate::getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm)
+CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm)
 {
 	X509_REQ *req = NULL;
 	const EVP_MD *md = NULL;
 
 	md = MessageDigest::getMessageDigest(algorithm);
-	req = X509_to_X509_REQ(this->cert, privateKey.getEvpPkey(), md);
+	// TODO: cast ok?
+	req = X509_to_X509_REQ(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
 	if (!req) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getNewCertificateRequest");
 	}

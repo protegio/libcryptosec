@@ -1,5 +1,12 @@
 #include <libcryptosec/certificate/AuthorityKeyIdentifierExtension.h>
 
+#include <libcryptosec/Base64.h>
+#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
 AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() : Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_authority_key_identifier);

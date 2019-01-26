@@ -3,6 +3,9 @@
 
 #include <openssl/rand.h>
 
+#include <string.h>
+#include <stdio.h>
+
 ByteArray::ByteArray() :
 		size(0),
 		originalSize(0),

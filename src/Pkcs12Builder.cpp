@@ -1,41 +1,44 @@
 #include <libcryptosec/Pkcs12Builder.h>
 
-Pkcs12Builder::Pkcs12Builder()
+#include <libcryptosec/exception/Pkcs12Exception.h>
+
+#include <string.h>
+
+Pkcs12Builder::Pkcs12Builder(const PrivateKey& key, const Certificate& cert,
+		const std::string& friendlyName) :
+		key(key), cert(cert), friendlyName(friendlyName)
 {
-	this->key = NULL;
-	this->keyCert = NULL;
-	this->friendlyName = std::string("");
 }
 
 Pkcs12Builder::~Pkcs12Builder()
 {
 }
 
-void Pkcs12Builder::setKeyAndCertificate(PrivateKey* key, Certificate* cert, std::string friendlyName) throw()
+void Pkcs12Builder::setKeyAndCertificate(const PrivateKey& key, const Certificate& cert,
+		const std::string& friendlyName)
 {
 	this->key = key;
-	this->keyCert = cert;
+	this->cert = cert;
 	this->friendlyName = friendlyName;
 }
 
-void Pkcs12Builder::setAdditionalCerts(std::vector<Certificate*> certs) throw()
+void Pkcs12Builder::setAdditionalCerts(const std::vector<Certificate>& certs)
 {
 	this->certs = certs;
 }
 
-void Pkcs12Builder::addAdditionalCert(Certificate* cert) throw()
+void Pkcs12Builder::addAdditionalCert(const Certificate& cert)
 {
 	this->certs.push_back(cert);
 }
 
-void Pkcs12Builder::clearAdditionalCerts() throw()
+void Pkcs12Builder::clearAdditionalCerts()
 {
 	this->certs.clear();
 }
 
-Pkcs12* Pkcs12Builder::doFinal(std::string password) const
+Pkcs12 Pkcs12Builder::doFinal(const std::string& password)
 {
-	PKCS12* tmp = NULL;
 	STACK_OF(X509)* ca = NULL;
 	char* cpass = NULL;
 	char* cname = NULL;	
@@ -47,7 +50,7 @@ Pkcs12* Pkcs12Builder::doFinal(std::string password) const
 	int keytype = 0;
 
 	//verifica se chave privada corresponde a chave publica
-	if(!X509_check_private_key(this->keyCert->getX509(), this->key->getEvpPkey()))
+	if(!X509_check_private_key(this->cert.getX509(), this->key.getEvpPkey()))
 	{
 		throw Pkcs12Exception(Pkcs12Exception::KEY_AND_CERT_DO_NOT_MATCH, "Pkcs12Builder::doFinal");
 	}
@@ -65,27 +68,24 @@ Pkcs12* Pkcs12Builder::doFinal(std::string password) const
 	
 	//cria pilha de certificados
 	ca = sk_X509_new_null();
-	for(unsigned int i = 0 ; i < this->certs.size() ; i++)
-	{
-		sk_X509_push(ca, this->certs.at(i)->getX509());
+	for(auto cert : this->certs) {
+		sk_X509_push(ca, cert.getX509());
 	}
 	
 	//cria estruta PKCS12
-	tmp =  PKCS12_create(cpass, cname, this->key->getEvpPkey(), this->keyCert->getX509(), ca,
-	                                nid_key, nid_cert, iter, mac_iter, keytype);
+	Pkcs12 tmp(
+		PKCS12_create(
+			cpass, cname, this->key.getEvpPkey(),
+			this->cert.getX509(), ca,
+			nid_key, nid_cert,
+			iter, mac_iter,
+			keytype
+		)
+	);
 
-	if(tmp == NULL)
-	{
-		delete cpass;
-		delete cname;
-		sk_X509_free(ca);
-		
-		throw Pkcs12Exception(Pkcs12Exception::UNKNOWN, "Pkcs12Builder::doFinal");
-	}
-	
 	delete[] cpass;
 	delete[] cname;
 	sk_X509_free(ca);
 
-	return new Pkcs12(tmp);
+	return std::move(tmp);
 }

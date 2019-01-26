@@ -1,111 +1,86 @@
 #include <libcryptosec/certificate/RDNSequence.h>
 
+#include <openssl/x509.h>
+
+#include <string>
+#include <iostream>
+#include <vector>
+#include <map>
+
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
+#include <libcryptosec/exception/CertificationException.h>
+
 RDNSequence::RDNSequence()
 {
-	this->newEntries.clear();
 }
 
-RDNSequence::RDNSequence(const RDNSequence& rdn) {
-	this->newEntries = rdn.getEntries();
-}
-
-RDNSequence::RDNSequence(X509_NAME *rdn)
+RDNSequence::RDNSequence(const RDNSequence& rdn) :
+		newEntries(rdn.getEntries())
 {
-	X509_NAME_ENTRY *nameEntry;
-	int i, num;
-	std::string value;
-	std::pair<ObjectIdentifier, std::string> oneEntry;
-	if (rdn)
-	{
-		num = X509_NAME_entry_count(rdn);
-		for (i=0;i<num;i++)
-		{
-			nameEntry = X509_NAME_get_entry(rdn, i);
-			oneEntry.first = ObjectIdentifier(OBJ_dup(X509_NAME_ENTRY_get_object(nameEntry)));
-			
-			// TODO: esse cast é seguro? a string termina em \0?
-			const char* pValue = (const char*) X509_NAME_ENTRY_get_data(nameEntry)->data;
-			value = std::string(pValue);
-			oneEntry.second = value;
-			
-			this->newEntries.push_back(oneEntry);
-			
-//			nameEntry = sk_X509_NAME_ENTRY_value(rdn->entries, i);
-//			nid = OBJ_obj2nid(nameEntry->object);
-//			if (nid != NID_undef)
-//			{
-//				if (RDNSequence::id2Type(nid) != RDNSequence::UNKNOWN)
-//				{
-//					data = (char *)ASN1_STRING_data(nameEntry->value);
-//					value = data;
-//					this->entries[RDNSequence::id2Type(nid)].push_back(value);
-//				}
-//				else
-//				{
-//					data = (char *)ASN1_STRING_data(nameEntry->value);
-//					value = data;
-//					oneEntry.second = value;
-//					data = (char *)calloc(31, sizeof(char));
-//					OBJ_obj2txt(data, 30, nameEntry->object, 1);
-//					value = data;
-//					free(data);
-//					oneEntry.first = value;
-//					this->unknownEntries.push_back(oneEntry);
-//				}
-//			}
+}
+
+RDNSequence::RDNSequence(const X509_NAME *rdn)
+{
+	if (rdn == NULL) {
+		throw CertificationException("" /* TODO */ );
+	}
+
+	int num = X509_NAME_entry_count(rdn);
+	for (int i = 0; i < num; i++) {
+		std::pair<ObjectIdentifier, std::string> oneEntry;
+
+		X509_NAME_ENTRY *nameEntry = X509_NAME_get_entry(rdn, i);
+		if (nameEntry == NULL) {
+			throw CertificationException("" /* TODO */ );
 		}
+
+		const ASN1_OBJECT *oid = X509_NAME_ENTRY_get_object(nameEntry);
+		if (oid == NULL) {
+			throw CertificationException("" /* TODO */ );
+		}
+
+		const char* data = (const char*) X509_NAME_ENTRY_get_data(nameEntry)->data;
+		if (data == NULL) {
+			throw CertificationException("" /* TODO */ );
+		}
+
+		oneEntry.first = ObjectIdentifier(oid);
+		oneEntry.second = std::string(data);
+		this->newEntries.push_back(oneEntry);
 	}
 }
 
-RDNSequence::RDNSequence(STACK_OF(X509_NAME_ENTRY) *entries)
+RDNSequence::RDNSequence(const STACK_OF(X509_NAME_ENTRY) *entries)
 {
-	X509_NAME_ENTRY *nameEntry;
-	int i, num;
+	if (entries == NULL) {
+		throw CertificationException("" /* TODO */ );
+	}
 
-	std::string value;
-	std::pair<ObjectIdentifier, std::string> oneEntry;
-//	std::vector<std::string> entry;
-//
-//	for (i=0;i<14;i++)
-//	{
-//		this->entries.push_back(entry);
-//	}
-	if (entries)
-	{
-		num = sk_X509_NAME_ENTRY_num(entries);
-		for (i=0;i<num;i++)
-		{
-			nameEntry = sk_X509_NAME_ENTRY_value(entries, i);
-			
-			oneEntry.first = ObjectIdentifier(OBJ_dup(X509_NAME_ENTRY_get_object(nameEntry)));
-			
-			const char *data = (const char *) X509_NAME_ENTRY_get_data(nameEntry)->data;
-			oneEntry.second = data;
-			this->newEntries.push_back(oneEntry);
-			
-//			nid = OBJ_obj2nid(nameEntry->object);
-//			if (nid != NID_undef)
-//			{
-//				if (RDNSequence::id2Type(nid) != RDNSequence::UNKNOWN)
-//				{
-//					data = (char *)ASN1_STRING_data(nameEntry->value);
-//					value = data;
-//					this->entries[RDNSequence::id2Type(nid)].push_back(value);
-//				}
-//				else
-//				{
-//					data = (char *)ASN1_STRING_data(nameEntry->value);
-//					value = data;
-//					oneEntry.second = value;
-//					data = (char *)calloc(31, sizeof(char));
-//					OBJ_obj2txt(data, 30, nameEntry->object, 1);
-//					value = data;
-//					free(data);
-//					oneEntry.first = value;
-//					this->unknownEntries.push_back(oneEntry);
-//				}
-//			}
+	int num = sk_X509_NAME_ENTRY_num(entries);
+	for (int i = 0; i < num; i++) {
+		std::pair<ObjectIdentifier, std::string> oneEntry;
+
+		X509_NAME_ENTRY *nameEntry = sk_X509_NAME_ENTRY_value(entries, i);
+		if (nameEntry == NULL) {
+			throw CertificationException("" /* TODO */ );
 		}
+
+		const ASN1_OBJECT *oid = X509_NAME_ENTRY_get_object(nameEntry);
+		if (oid == NULL) {
+			throw CertificationException("" /* TODO */ );
+		}
+
+		const char *data = (const char *) X509_NAME_ENTRY_get_data(nameEntry)->data;
+		if (data == NULL) {
+			throw CertificationException("" /* TODO */ );
+		}
+
+		oneEntry.first = ObjectIdentifier(oid);
+		oneEntry.second = std::string(data);
+		this->newEntries.push_back(oneEntry);
 	}
 }
 
@@ -113,52 +88,44 @@ RDNSequence::~RDNSequence()
 {
 }
 
-std::string RDNSequence::getXmlEncoded()
+RDNSequence& RDNSequence::operator=(const RDNSequence& value)
 {
-	return this->getXmlEncoded("");
+	if(&value == this) {
+		return *this;
+	}
+	this->newEntries = value.newEntries;
+	return *this;
 }
 
-std::string RDNSequence::getXmlEncoded(std::string tab)
+
+RDNSequence& RDNSequence::operator=(RDNSequence&& value) {
+	if(&value == this) {
+		return *this;
+	}
+	this->newEntries = std::move(value.newEntries);
+	return *this;
+}
+
+std::string RDNSequence::getXmlEncoded(const std::string& tab) const
 {
-	std::string ret;
-	int nid;
-//	unsigned int j;
-//	std::map<RDNSequence::EntryType, std::vector<std::string> >::iterator iter;
 	std::vector<std::pair<ObjectIdentifier, std::string> >::iterator iterEntries;
+	std::string ret;
+	int nid = 0;
 	
 	ret = tab + "<RDNSequence>\n";
-	
-	for (iterEntries = this->newEntries.begin();iterEntries != this->newEntries.end();iterEntries++)
-	{
+	for (auto entry : this->newEntries) {
 		nid = iterEntries->first.getNid();
-		if (RDNSequence::id2Type(nid) != RDNSequence::UNKNOWN)
-		{
+		if (RDNSequence::id2Type(nid) != RDNSequence::UNKNOWN) {
 			ret += tab + "\t<" + RDNSequence::getNameId(RDNSequence::id2Type(nid)) + ">" + iterEntries->second + "</" + RDNSequence::getNameId(RDNSequence::id2Type(nid)) + ">\n";
-		}
-		else
-		{
+		} else {
 			ret += tab + "\t<unknownAttribute>" + iterEntries->first.getOid() + ":" + iterEntries->second + "</unknownAttribute>\n";
 		}
 	}
-	
-//	for (iter = this->entries.begin();iter != this->entries.end();iter++)
-//	{
-//		for (j=0;j<iter->second.size();j++)
-//		{
-//			ret += tab + "\t<" + RDNSequence::getNameId(iter->first) + ">" + iter->second.at(j) + "</" + RDNSequence::getNameId(iter->first) + ">\n";
-//		}
-//	}
-//	
-//	for (iterUnknown = this->unknownEntries.begin();iterUnknown != this->unknownEntries.end();iterUnknown++)
-//	{
-//		ret += tab + "\t<unknownAttribute>" + iterUnknown->first + ":" + iterUnknown->second + "</unknownAttribute>\n";
-//	}
-	
 	ret += tab + "</RDNSequence>\n";
 	return ret;
 }
 
-void RDNSequence::addEntry(RDNSequence::EntryType type, std::string value)
+void RDNSequence::addEntry(RDNSequence::EntryType type, const std::string& value)
 {
 	std::pair<ObjectIdentifier, std::string> oneEntry;
 	if (type != RDNSequence::UNKNOWN)
@@ -169,100 +136,71 @@ void RDNSequence::addEntry(RDNSequence::EntryType type, std::string value)
 	}
 }
 
-void RDNSequence::addEntry(RDNSequence::EntryType type, std::vector<std::string> values)
+void RDNSequence::addEntry(RDNSequence::EntryType type, const std::vector<std::string>& values)
 {
-	unsigned int i;
-	for (i=0;i<values.size();i++)
-	{
-		this->addEntry(type, values.at(i));
+	for (auto entry : values) {
+		this->addEntry(type, entry);
 	}
 }
 
-std::vector<std::string> RDNSequence::getEntries(RDNSequence::EntryType type)
+std::vector<std::string> RDNSequence::getEntries(RDNSequence::EntryType type) const
 {
-//	return this->entries[type];
-	unsigned int i;
 	std::vector<std::string> ret;
-	for (i=0;i<this->newEntries.size();i++)
-	{
-		if (id2Type(OBJ_obj2nid(this->newEntries.at(i).first.getObjectIdentifier())) == type)
-		{
-			ret.push_back(this->newEntries.at(i).second);
+	for (auto entry : this->newEntries) {
+		if (id2Type(entry.first.getNid()) == type) {
+			ret.push_back(entry.second);
 		}
 	}
 	return ret;
 }
 
-std::vector<std::pair<ObjectIdentifier, std::string> > RDNSequence::getUnknownEntries()
+std::vector<std::pair<ObjectIdentifier, std::string> > RDNSequence::getUnknownEntries() const
 {
-//	std::vector<std::string> ret;
 	std::vector<std::pair<ObjectIdentifier, std::string> > ret;
-	std::pair<ObjectIdentifier, std::string> oneEntry;
-	unsigned int i;
-	for (i=0;i<this->newEntries.size();i++)
-	{
-		if (id2Type(OBJ_obj2nid(this->newEntries.at(i).first.getObjectIdentifier())) == RDNSequence::UNKNOWN)
-		{
-			oneEntry.first = this->newEntries.at(i).first;
-			oneEntry.second = this->newEntries.at(i).second;
+	for (auto entry : this->newEntries) {
+		if (id2Type(entry.first.getNid()) == RDNSequence::UNKNOWN) {
+			std::pair<ObjectIdentifier, std::string> oneEntry;
+			oneEntry.first = entry.first;
+			oneEntry.second = entry.second;
 			ret.push_back(oneEntry);
 		}
 	}
 	return ret;
 }
 
-std::vector<std::pair<ObjectIdentifier, std::string> > RDNSequence::getEntries() const
+const std::vector<std::pair<ObjectIdentifier, std::string> >& RDNSequence::getEntries() const
 {
 	return this->newEntries;
 }
 
 X509_NAME* RDNSequence::getX509Name() const
 {
-//	unsigned int j;
-	X509_NAME *ret;
-	X509_NAME_ENTRY *entry;
-//	ASN1_OBJECT *asn1Obj;
-	std::string data;
-//	std::map<RDNSequence::EntryType, std::vector<std::string> >::iterator iter;
-	
-//	std::vector<std::pair<std::string, std::string> >::iterator iterUnknown;
+	X509_NAME *ret = X509_NAME_new();
+	int rc = 0;
 
-	ret = X509_NAME_new();
-	
-	for (auto iterEntries : this->newEntries)
-	{
-//		printf("Num: %s - %s\n", RDNSequence::getNameId(RDNSequence::id2Type(iterEntries->first.getNid())).c_str(), iterEntries->second.c_str());
-		entry = X509_NAME_ENTRY_new();
-		X509_NAME_ENTRY_set_object(entry, iterEntries.first.getObjectIdentifier());
-		data = iterEntries.second;
-		X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *) data.c_str(), data.length());
-		X509_NAME_add_entry(ret, entry, -1, 0);
+	for (auto iterEntries : this->newEntries) {
+		X509_NAME_ENTRY *entry = X509_NAME_ENTRY_new();
+		if (entry == NULL) {
+			throw CertificationException("" /* TODO */);
+		}
+
+		rc = X509_NAME_ENTRY_set_object(entry, iterEntries.first.getObjectIdentifier());
+		if (rc == 0) {
+			throw CertificationException("" /* TODO */);
+		}
+
+		rc = X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *) iterEntries.second.c_str(), iterEntries.second.length());
+		if (rc == 0) {
+			throw CertificationException("" /* TODO */);
+		}
+
+		rc = X509_NAME_add_entry(ret, entry, -1, 0);
+		if (rc == 0) {
+			throw CertificationException("" /* TODO */);
+		}
+
 		X509_NAME_ENTRY_free(entry);
-		
-		
-//		asn1Obj = OBJ_nid2obj(RDNSequence::type2Id(iter->first));
-//		for (j=0;j<iter->second.size();j++)
-//		{
-//			entry = X509_NAME_ENTRY_new();
-//			X509_NAME_ENTRY_set_object(entry, asn1Obj);
-//			data = iter->second.at(j);
-//			X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *)data.c_str(), data.length());
-//			X509_NAME_add_entry(ret, entry, -1, 0);
-//			X509_NAME_ENTRY_free(entry);
-//		}
-//		ASN1_OBJECT_free(asn1Obj);
 	}
-//	for (iterUnknown = this->unknownEntries.begin();iterUnknown != this->unknownEntries.end();iterUnknown++)
-//	{
-//		asn1Obj = OBJ_txt2obj(iterUnknown->first.c_str(), 1);
-//		entry = X509_NAME_ENTRY_new();
-//		X509_NAME_ENTRY_set_object(entry, asn1Obj);
-//		X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *)iterUnknown->second.c_str(), iterUnknown->second.length());
-//		X509_NAME_add_entry(ret, entry, -1, 0);
-//		X509_NAME_ENTRY_free(entry);
-//		ASN1_OBJECT_free(asn1Obj);
-//	}
-//	X509_NAME_print_ex_fp(stderr, ret, 0, 0);
 	return ret;
 }
 
@@ -443,10 +381,4 @@ int RDNSequence::type2Id(RDNSequence::EntryType type)
 			break;
 	}
 	return ret;
-}
-
-RDNSequence& RDNSequence::operator =(const RDNSequence& value)
-{
-	this->newEntries = value.getEntries();
-	return *this;
 }

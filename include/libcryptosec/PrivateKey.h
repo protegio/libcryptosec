@@ -1,15 +1,10 @@
 #ifndef PRIVATEKEY_H_
 #define PRIVATEKEY_H_
 
-#include <libcryptosec/AsymmetricKey.h>
 #include <libcryptosec/SymmetricCipher.h>
-#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/AsymmetricKey.h>
 
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-
-#include <string>
-
+class SymmetricKey;
 class ByteArray;
 
 /**

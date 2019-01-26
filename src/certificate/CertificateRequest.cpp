@@ -1,5 +1,11 @@
 #include <libcryptosec/certificate/CertificateRequest.h>
 
+#include <libcryptosec/Base64.h>
+#include <libcryptosec/certificate/ExtensionFactory.h>
+#include <libcryptosec/exception/EncodeException.h>
+
+#include <openssl/pem.h>
+
 CertificateRequest::CertificateRequest()
 {
 	this->req = X509_REQ_new();
@@ -241,7 +247,8 @@ MessageDigest::Algorithm CertificateRequest::getMessageDigestAlgorithm()
 
 void CertificateRequest::setPublicKey(PublicKey &publicKey)
 {
-	X509_REQ_set_pubkey(this->req, publicKey.getEvpPkey());
+	// TODO: cast ok?
+	X509_REQ_set_pubkey(this->req, (EVP_PKEY*) publicKey.getEvpPkey());
 }
 
 PublicKey* CertificateRequest::getPublicKey() const
@@ -414,45 +421,7 @@ std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name ext
 
 		if (Extension::getName(ext) == extensionName)
 		{
-			switch (Extension::getName(ext))
-			{
-				case Extension::KEY_USAGE:
-					oneExt = new KeyUsageExtension(ext);
-					break;
-				case Extension::EXTENDED_KEY_USAGE:
-					oneExt = new ExtendedKeyUsageExtension(ext);
-					break;
-				case Extension::AUTHORITY_KEY_IDENTIFIER:
-					oneExt = new AuthorityKeyIdentifierExtension(ext);
-					break;
-				case Extension::CRL_DISTRIBUTION_POINTS:
-					oneExt = new CRLDistributionPointsExtension(ext);
-					break;
-				case Extension::AUTHORITY_INFORMATION_ACCESS:
-					oneExt = new AuthorityInformationAccessExtension(ext);
-					break;
-				case Extension::BASIC_CONSTRAINTS:
-					oneExt = new BasicConstraintsExtension(ext);
-					break;
-				case Extension::CERTIFICATE_POLICIES:
-					oneExt = new CertificatePoliciesExtension(ext);
-					break;
-				case Extension::ISSUER_ALTERNATIVE_NAME:
-					oneExt = new IssuerAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_ALTERNATIVE_NAME:
-					oneExt = new SubjectAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_INFORMATION_ACCESS:
-					oneExt = new SubjectInformationAccessExtension(ext);
-					break;
-				case Extension::SUBJECT_KEY_IDENTIFIER:
-					oneExt = new SubjectKeyIdentifierExtension(ext);
-					break;
-				default:
-					oneExt = new Extension(ext);
-					break;
-			}
+			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 			ext = sk_X509_EXTENSION_delete(extensionsStack, i);
 			X509_EXTENSION_free(ext);
@@ -502,45 +471,7 @@ std::vector<Extension *> CertificateRequest::getExtension(Extension::Name extens
 		ext = sk_X509_EXTENSION_value(extensions, i);
 		if (Extension::getName(ext) == extensionName)
 		{
-			switch (Extension::getName(ext))
-			{
-				case Extension::KEY_USAGE:
-					oneExt = new KeyUsageExtension(ext);
-					break;
-				case Extension::EXTENDED_KEY_USAGE:
-					oneExt = new ExtendedKeyUsageExtension(ext);
-					break;
-				case Extension::AUTHORITY_KEY_IDENTIFIER:
-					oneExt = new AuthorityKeyIdentifierExtension(ext);
-					break;
-				case Extension::CRL_DISTRIBUTION_POINTS:
-					oneExt = new CRLDistributionPointsExtension(ext);
-					break;
-				case Extension::AUTHORITY_INFORMATION_ACCESS:
-					oneExt = new AuthorityInformationAccessExtension(ext);
-					break;
-				case Extension::BASIC_CONSTRAINTS:
-					oneExt = new BasicConstraintsExtension(ext);
-					break;
-				case Extension::CERTIFICATE_POLICIES:
-					oneExt = new CertificatePoliciesExtension(ext);
-					break;
-				case Extension::ISSUER_ALTERNATIVE_NAME:
-					oneExt = new IssuerAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_ALTERNATIVE_NAME:
-					oneExt = new SubjectAlternativeNameExtension(ext);
-					break;
-				case Extension::SUBJECT_INFORMATION_ACCESS:
-					oneExt = new SubjectInformationAccessExtension(ext);
-					break;
-				case Extension::SUBJECT_KEY_IDENTIFIER:
-					oneExt = new SubjectKeyIdentifierExtension(ext);
-					break;
-				default:
-					oneExt = new Extension(ext);
-					break;
-			}
+			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 		}
 	}
@@ -559,45 +490,7 @@ std::vector<Extension*> CertificateRequest::getExtensions() const
 	for (i=0;i<sk_X509_EXTENSION_num(extensions);i++)
 	{
 		ext = sk_X509_EXTENSION_value(extensions, i);
-		switch (Extension::getName(ext))
-		{
-			case Extension::KEY_USAGE:
-				oneExt = new KeyUsageExtension(ext);
-				break;
-			case Extension::EXTENDED_KEY_USAGE:
-				oneExt = new ExtendedKeyUsageExtension(ext);
-				break;
-			case Extension::AUTHORITY_KEY_IDENTIFIER:
-				oneExt = new AuthorityKeyIdentifierExtension(ext);
-				break;
-			case Extension::CRL_DISTRIBUTION_POINTS:
-				oneExt = new CRLDistributionPointsExtension(ext);
-				break;
-			case Extension::AUTHORITY_INFORMATION_ACCESS:
-				oneExt = new AuthorityInformationAccessExtension(ext);
-				break;
-			case Extension::BASIC_CONSTRAINTS:
-				oneExt = new BasicConstraintsExtension(ext);
-				break;
-			case Extension::CERTIFICATE_POLICIES:
-				oneExt = new CertificatePoliciesExtension(ext);
-				break;
-			case Extension::ISSUER_ALTERNATIVE_NAME:
-				oneExt = new IssuerAlternativeNameExtension(ext);
-				break;
-			case Extension::SUBJECT_ALTERNATIVE_NAME:
-				oneExt = new SubjectAlternativeNameExtension(ext);
-				break;
-			case Extension::SUBJECT_INFORMATION_ACCESS:
-				oneExt = new SubjectInformationAccessExtension(ext);
-				break;
-			case Extension::SUBJECT_KEY_IDENTIFIER:
-				oneExt = new SubjectKeyIdentifierExtension(ext);
-				break;
-			default:
-				oneExt = new Extension(ext);
-				break;
-		}
+		oneExt = ExtensionFactory::getExtension(ext);
 		ret.push_back(oneExt);
 	}
 	return ret;
@@ -644,7 +537,8 @@ void CertificateRequest::sign(PrivateKey &privateKey, MessageDigest::Algorithm m
 	PublicKey *pub;
 	pub = this->getPublicKey();
 	delete pub;
-	rc = X509_REQ_sign(this->req, privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
+	// TODO: cast ok?
+	rc = X509_REQ_sign(this->req, (EVP_PKEY*) privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
 	if (!rc)
 	{
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRequest::sign");
@@ -656,7 +550,8 @@ bool CertificateRequest::verify()
 	int rc;
 	PublicKey *pub;
 	pub = this->getPublicKey();
-	rc = X509_REQ_verify(this->req, pub->getEvpPkey());
+	// TODO: cast ok?
+	rc = X509_REQ_verify(this->req, (EVP_PKEY*) pub->getEvpPkey());
 	delete pub;
 	return (rc==1?true:false);
 }

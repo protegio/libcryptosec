@@ -154,7 +154,7 @@ public:
 	 *
 	 * @return Um ponteiro para a estrutura OpenSSL interna à classe AsymmetricKey.
 	 */
-	EVP_PKEY* getEvpPkey();
+	EVP_PKEY* getEvpPkey() const;
 
 	/**
 	 * @brief Retorna o algoritmo assimétrico que deve ser usado com a chave atual.
@@ -172,7 +172,7 @@ public:
 	 * @throw AsymmetricKeyException Se o tipo de chave não for suportado ou caso um
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
-	int getSize();
+	int getSize() const;
 	
 	/**
 	 * @brief Retorna o tamanho da chave em bits.
@@ -181,7 +181,7 @@ public:
 	 * @throw AsymmetricKeyException Se o tipo de chave não for suportado ou caso um
 	 * erro tenha ocorrido ao tentar obter o tamanho da mesma.
 	 */
-	int getSizeBits();
+	int getSizeBits() const;
 	
 	/**
 	 * @brief Verifica se a chave é igual à passada como argumento.

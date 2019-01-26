@@ -40,7 +40,7 @@ public:
 	 * @return Encrypted data.
 	 * @throws AsymmetricCipherException If any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray* encrypt(RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
+	static ByteArray* encrypt(const RSAPublicKey& key, const ByteArray& data, AsymmetricCipher::Padding padding);
 
 	/**
 	 * @brief Encrypt string using a asymmetric public key.
@@ -54,7 +54,7 @@ public:
 	 * @return Encrypted data.
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray* encrypt(RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding);
+	static ByteArray* encrypt(const RSAPublicKey& key, const std::string& data, AsymmetricCipher::Padding padding);
 
 	/**
 	 * @brief Decrypt encrypted data using a asymmetric private key.
@@ -67,7 +67,7 @@ public:
 	 * @return Encrypted data.
 	 * @throws AsymmetricCipherException if any problem happen, throw this exception with a ENCRYPTING_DATA code.
 	 */
-	static ByteArray* decrypt(RSAPrivateKey &key, const ByteArray &data, AsymmetricCipher::Padding padding);
+	static ByteArray* decrypt(const RSAPrivateKey& key, const ByteArray& data, AsymmetricCipher::Padding padding);
 
 private:
 

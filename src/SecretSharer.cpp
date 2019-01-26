@@ -11,6 +11,12 @@
 
 #include <libcryptosec/SecretSharer.h>
 
+#include <libcryptosec/Random.h>
+#include <libcryptosec/exception/RandomException.h>
+#include <libcryptosec/exception/SecretSharerException.h>
+
+#include <string.h>
+
 /* global */
 
 # ifdef DEBUG

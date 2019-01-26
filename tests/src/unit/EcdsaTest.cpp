@@ -1,13 +1,13 @@
-#include <libcryptosec/ec/EllipticCurve.h>
-#include <libcryptosec/ECDSAKeyPair.h>
-
 #include <libcryptosec/certificate/Certificate.h>
 #include <libcryptosec/certificate/CertificateBuilder.h>
-
-#include <libcryptosec/AsymmetricKey.h>
 #include <libcryptosec/Signer.h>
-#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/ECDSAKeyPair.h>
+#include <libcryptosec/ECDSAPrivateKey.h>
+#include <libcryptosec/ECDSAPublicKey.h>
+#include <libcryptosec/ec/EllipticCurve.h>
+#include <libcryptosec/AsymmetricKey.h>
 #include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/ByteArray.h>
 
 #include <fstream>
 #include <stdio.h>
@@ -28,12 +28,14 @@ protected:
 	{
 		MessageDigest::loadMessageDigestAlgorithms();
 		SymmetricCipher::loadSymmetricCiphersAlgorithms();
+		this->prKey = nullptr;
+		this->pubKey = nullptr;
 	}
 
 	virtual void TearDown()
 	{
-		delete(prKey);
-		delete(pubKey);
+		delete(this->prKey);
+		delete(this->pubKey);
 	}
 
 	void testGenerateKeyPair(AsymmetricKey::Curve curve)
@@ -69,28 +71,26 @@ protected:
 
 	void testSignCertificate(AsymmetricKey::Curve curve, MessageDigest::Algorithm algorithm)
 	{
-		EXPECT_NO_THROW(
-			//Fixture Setup
-			CertificateBuilder *certBuilder = new CertificateBuilder();
+		//Fixture Setup
+		CertificateBuilder *certBuilder = new CertificateBuilder();
 
-			ECDSAKeyPair keypair (curve);
-			prKey = (ECDSAPrivateKey*) keypair.getPrivateKey();
-			pubKey = (ECDSAPublicKey*) keypair.getPublicKey();
+		ECDSAKeyPair keypair (curve);
+		prKey = (ECDSAPrivateKey*) keypair.getPrivateKey();
+		pubKey = (ECDSAPublicKey*) keypair.getPublicKey();
 
-			//Exercise SUT
-			certBuilder->setPublicKey(*pubKey);
-			certBuilder->includeEcdsaParameters();
+		//Exercise SUT
+		certBuilder->setPublicKey(*pubKey);
+		certBuilder->includeEcdsaParameters();
 
-			Certificate cert = certBuilder->sign(*prKey, algorithm);
-			std::string pem = cert.getPemEncoded();
+		Certificate cert = certBuilder->sign(*prKey, algorithm);
+		std::string pem = cert.getPemEncoded();
 
-			//Result Verification
-			ASSERT_TRUE(pem.size() > 0);
-			ASSERT_TRUE(cert.verify(*pubKey));
+		//Result Verification
+		ASSERT_TRUE(pem.size() > 0);
+		ASSERT_TRUE(cert.verify(*pubKey));
 
-			//Fixture Teardown
-			delete(certBuilder);
-		);
+		//Fixture Teardown
+		delete(certBuilder);
 	}
 };
 

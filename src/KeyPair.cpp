@@ -1,22 +1,35 @@
 #include <libcryptosec/KeyPair.h>
+
+#include <libcryptosec/RSAPrivateKey.h>
+#include <libcryptosec/DSAPrivateKey.h>
+#include <libcryptosec/ECDSAPrivateKey.h>
+#include <libcryptosec/RSAPublicKey.h>
+#include <libcryptosec/DSAPublicKey.h>
+#include <libcryptosec/ECDSAPublicKey.h>
+#include <libcryptosec/exception/EngineException.h>
+#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+#include <openssl/bio.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
+#include <openssl/pem.h>
 
-KeyPair::KeyPair()
+#include <string.h>
+
+KeyPair::KeyPair() :
+	key(nullptr), keyId(), engine(nullptr)
 {
-	this->engine = 0;
-	this->key = 0;
 }
 
 //TODO Este construtor deve é obsoleto. Devem ser usados os construtores das classes especializadas RSAKeyPair, DSAKeyPair e ECDSAKeyPair
-KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length)
+KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length) :
+		key(nullptr), keyId(), engine(nullptr)
 {
 	RSA *rsa = NULL;
 	BIGNUM *rsa_f4 = NULL;
 	DSA *dsa = NULL;
-	//EC_KEY *eckey = NULL;
-	this->key = NULL;
-	this->engine = NULL;
+
 	switch (algorithm)
 	{
 		case AsymmetricKey::RSA:
@@ -54,297 +67,285 @@ KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length)
 	}
 }
 
-KeyPair::KeyPair(Engine *engine, std::string keyId)
+KeyPair::KeyPair(const Engine& engine, const std::string& keyId) :
+		engine(engine), keyId(keyId)
 {
-	ENGINE *eng;
-	eng = engine->getEngine();
-	if (!ENGINE_init(eng))
-	{
+	// TODO: esse cast é ok?
+	ENGINE *eng = (ENGINE*) this->engine.getEngine();
+
+	if (!ENGINE_init(eng)) {
 		throw EngineException(EngineException::INIT_FAILED, "KeyPair::KeyPair", true);
 	}
+
 	// TODO: rever essa questão do User Interface UI_OpenSSL();
-//	this->key = ENGINE_load_public_key(eng, keyId.c_str(), UI_OpenSSL(), NULL);
+	// this->key = ENGINE_load_public_key(eng, keyId.c_str(), UI_OpenSSL(), NULL);
 	this->key = ENGINE_load_private_key(eng, keyId.c_str(), NULL, NULL);
 	ENGINE_finish(eng);
-	if (!this->key)
-	{
+	if (!this->key) {
 		throw EngineException(EngineException::KEY_NOT_FOUND, "KeyPair::KeyPair", true);
 	}
-	this->engine = engine->getEngine();
-	this->keyId = keyId;
-	ENGINE_up_ref(this->engine);
 }
 
-KeyPair::KeyPair(std::string pemEncoded, ByteArray passphrase)
+KeyPair::KeyPair(const std::string& pemEncoded, const ByteArray& passphrase) :
+		engine(nullptr)
 {
-	BIO *buffer;
+	BIO *buffer = NULL;
+	unsigned int numberOfBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::KeyPair");
 	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
+
+	numberOfBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	if (numberOfBytes != pemEncoded.size()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "KeyPair::KeyPair");
 	}
+
 	this->key = PEM_read_bio_PrivateKey(buffer, NULL, KeyPair::passphraseCallBack, (void *)&passphrase);
-	if (this->key == NULL)
-	{
+	if (this->key == NULL) {
 		BIO_free(buffer);
 		/* TODO: how to know if is the passphrase wrong ??? */
 		throw EncodeException(EncodeException::PEM_DECODE, "KeyPair::KeyPair");
 	}
+
 	BIO_free(buffer);
-	this->engine = NULL;
 }
 
-KeyPair::KeyPair(std::string pemEncoded)
+KeyPair::KeyPair(const std::string& pemEncoded) :
+		engine(nullptr)
 {
-	BIO *buffer;
+	BIO *buffer = NULL;
+	unsigned int numberOfBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::KeyPair");
 	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
+
+	numberOfBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	if (numberOfBytes != pemEncoded.size()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "KeyPair::KeyPair");
 	}
+
 	this->key = PEM_read_bio_PrivateKey(buffer, NULL, NULL, NULL);
-	if (this->key == NULL)
-	{
+	if (this->key == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_DECODE, "KeyPair::KeyPair");
 	}
+
 	BIO_free(buffer);
-	this->engine = NULL;
 }
 
-KeyPair::KeyPair(ByteArray derEncoded)
+KeyPair::KeyPair(const ByteArray& derEncoded) :
+		engine(nullptr)
 {
 	/* DER format support only RSA, DSA and EC. DH isn't supported */
-	BIO *buffer;
+	BIO *buffer = NULL;
+	unsigned int numberOfBytes = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::KeyPair");
 	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
+
+	numberOfBytes = BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize());
+	if (numberOfBytes != derEncoded.getSize()) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_WRITING, "KeyPair::KeyPair");
 	}
+
 	this->key = d2i_PrivateKey_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->key == NULL)
-	{
+	if (this->key == NULL) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_DECODE, "KeyPair::KeyPair");
 	}
+
 	BIO_free(buffer);
-	this->engine = NULL;
 }
 
-KeyPair::KeyPair(const KeyPair &keyPair)
+KeyPair::KeyPair(const KeyPair &keyPair) :
+		key(keyPair.key),
+		keyId(keyPair.keyId),
+		engine(keyPair.engine)
 {
-	this->key = keyPair.getEvpPkey();
-	if (this->key)
-	{
+	if (this->key) {
 		EVP_PKEY_up_ref(this->key);
 	}
-	this->keyId = keyPair.getKeyId();
-	this->engine = keyPair.getEngine();
-	if (this->engine)
-	{
-		ENGINE_up_ref(this->engine);
-	}
+}
+
+KeyPair::KeyPair(KeyPair&& keyPair) :
+		key(keyPair.key),
+		keyId(keyPair.keyId),
+		engine(keyPair.engine)
+{
+	keyPair.key = nullptr;
+	keyPair.engine = nullptr;
 }
 
 KeyPair::~KeyPair()
 {
-	if (this->key)
-	{
+	if (this->key) {
 		EVP_PKEY_free(this->key);
 		this->key = NULL;
 	}
-	if (this->engine)
-	{
-		ENGINE_free(this->engine);
-		this->engine = NULL;
-	}
 }
 
-PublicKey* KeyPair::getPublicKey()
-{
-	PublicKey *ret;
-	std::string keyTemp;
-	keyTemp = this->getPublicKeyPemEncoded();
-	switch (this->getAlgorithm())
-	{
-		case AsymmetricKey::RSA:
-			ret = new RSAPublicKey(keyTemp);
-			break;
-		case AsymmetricKey::DSA:
-			ret = new DSAPublicKey(keyTemp);
-			break;
-		case AsymmetricKey::EC:
-			ret = new ECDSAPublicKey(keyTemp);
-			break;
+KeyPair& KeyPair::operator=(const KeyPair& keyPair) {
+	if (&keyPair == this) {
+		return *this;
 	}
-	return ret;
+
+	this->key = keyPair.key;
+	EVP_PKEY_up_ref(this->key);
+	this->keyId = keyPair.keyId;
+	this->engine = keyPair.engine;
+
+	return *this;
 }
 
-PrivateKey* KeyPair::getPrivateKey()
+KeyPair& KeyPair::operator=(KeyPair&& keyPair) {
+	if (&keyPair == this) {
+		return *this;
+	}
+
+	this->key = std::move(keyPair.key);
+	this->keyId = std::move(keyPair.keyId);
+	this->engine = std::move(keyPair.engine);
+
+	keyPair.key = nullptr;
+
+	return *this;
+}
+
+PublicKey* KeyPair::getPublicKey() const
 {
-	PrivateKey *ret;
-	EVP_PKEY *pkey;
-	ret = NULL;
-	if (engine)
-	{
-		pkey = ENGINE_load_private_key(this->engine, this->keyId.c_str(), NULL, NULL);
-		if (!pkey)
-		{
+	std::string keyTemp = this->getPublicKeyPemEncoded();
+	switch (this->getAlgorithm()) {
+	case AsymmetricKey::RSA:
+		return new RSAPublicKey(keyTemp);
+	case AsymmetricKey::DSA:
+		return new DSAPublicKey(keyTemp);
+	case AsymmetricKey::EC:
+		return new ECDSAPublicKey(keyTemp);
+	}
+	throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "KeyPair::getPublicKey");
+}
+
+PrivateKey* KeyPair::getPrivateKey() const
+{
+	EVP_PKEY *pkey = NULL;
+
+	if (this->engine.getEngine()) {
+		// TODO: esse cast é ok? provavelmente não
+		pkey = ENGINE_load_private_key((ENGINE*) this->engine.getEngine(), this->keyId.c_str(), NULL, NULL);
+		if (!pkey) {
 			throw AsymmetricKeyException(AsymmetricKeyException::UNAVAILABLE_KEY, "KeyId: " + this->keyId, "KeyPair::getPrivateKey");
 		}
-		try
-		{
-			ret = new PrivateKey(pkey);
-		}
-		catch (...)
-		{
+
+		try {
+			return new PrivateKey(pkey);
+		} catch (...) {
 			EVP_PKEY_free(pkey);
 			throw;
 		}
-	}
-	else
-	{
+	} else {
 		switch (this->getAlgorithm())
 		{
 			case AsymmetricKey::RSA:
-				ret = new RSAPrivateKey(this->key);
-				break;
+				return new RSAPrivateKey(this->key);
 			case AsymmetricKey::DSA:
-				ret = new DSAPrivateKey(this->key);
-				break;
+				return new DSAPrivateKey(this->key);
 			case AsymmetricKey::EC:
-				ret = new ECDSAPrivateKey(this->key);
-				break;
+				return new ECDSAPrivateKey(this->key);
 		}
-		if (ret == NULL)
-		{
-			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "KeyPair::getPrivateKey");
-		}
-		EVP_PKEY_up_ref(this->key);
+		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "KeyPair::getPrivateKey");
 	}
-	return ret;
 }
 
-std::string KeyPair::getPemEncoded(SymmetricKey &passphrase, SymmetricCipher::OperationMode mode)
+std::string KeyPair::getPemEncoded(const EVP_CIPHER* cipher, const ByteArray* passphraseData) const
 {
-	BIO *buffer;
-	const EVP_CIPHER *cipher;
-	int ndata, wrote;
-	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
-	const ByteArray* passphraseData;
+	BIO *buffer = NULL;
+	unsigned char *data = NULL;
+	int ndata = 0, wrote = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::getPemEncoded");
 	}
-	try
-	{
-		cipher = SymmetricCipher::getCipher(passphrase.getAlgorithm(), mode);
-	}
-	catch (...)
-	{
+
+	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0,
+			(cipher ? KeyPair::passphraseCallBack : NULL),
+			(cipher ? (void *) passphraseData : NULL));
+
+	if (!wrote) {
 		BIO_free(buffer);
+		throw EncodeException(EncodeException::PEM_ENCODE, "KeyPair::getPemEncoded");
+	}
+
+	ndata = BIO_get_mem_data(buffer, &data);
+	if (ndata <= 0) {
+		BIO_free(buffer);
+		throw EncodeException(EncodeException::BUFFER_READING, "KeyPair::getPemEncoded");
+	}
+
+	// TODO: Improve this
+	ByteArray ret(data, ndata);
+	BIO_free(buffer);
+	return ret.toString();
+}
+
+std::string KeyPair::getPemEncoded(const SymmetricKey& passphrase, SymmetricCipher::OperationMode mode) const
+{
+	const ByteArray *passphraseData = NULL;
+	const EVP_CIPHER *cipher = NULL;
+
+	try {
+		cipher = SymmetricCipher::getCipher(passphrase.getAlgorithm(), mode);
+	} catch (...) {
 		throw;
 	}
+
 	passphraseData = passphrase.getEncoded();
-
-	// TODO: is it ok to pass a ByteArray object here?
-	wrote = PEM_write_bio_PrivateKey(buffer, this->key, cipher, NULL, 0, KeyPair::passphraseCallBack, (void *) passphraseData);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_ENCODE, "KeyPair::getPemEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "KeyPair::getPemEncoded");
-	}
-	retTemp = new ByteArray(data, ndata);
-	ret = retTemp->toString();
-	delete retTemp;
-	BIO_free(buffer);
-	return ret;
+	return this->getPemEncoded(cipher, passphraseData);
 }
 
-std::string KeyPair::getPemEncoded()
+std::string KeyPair::getPemEncoded() const
 {
-	BIO *buffer;
-	int ndata, wrote;
-	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::getPemEncoded");
-	}
-	wrote = PEM_write_bio_PrivateKey(buffer, this->key, NULL, NULL, 0, NULL, NULL);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_ENCODE, "KeyPair::getPemEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "KeyPair::getPemEncoded");
-	}
-	retTemp = new ByteArray(data, ndata);
-	ret = retTemp->toString();
-	delete retTemp;
-	BIO_free(buffer);
-	return ret;
+	return this->getPemEncoded(NULL, NULL);
 }
 
-ByteArray KeyPair::getDerEncoded()
+ByteArray KeyPair::getDerEncoded() const
 {
-	BIO *buffer;
-	int ndata, wrote;
-	ByteArray ret;
-	unsigned char *data;
+	BIO *buffer = NULL;
+	unsigned char *data = NULL;
+	int ndata = 0, wrote = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::getDerEncoded");
 	}
+
 	wrote = i2d_PrivateKey_bio(buffer, this->key);
-	if (!wrote)
-	{
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::DER_ENCODE, "KeyPair::getDerEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "KeyPair::getDerEncoded");
 	}
-	ret = ByteArray(data, ndata);
+
+	ByteArray ret(data, ndata);
 	BIO_free(buffer);
 	return ret;
 }
 
-AsymmetricKey::Algorithm KeyPair::getAlgorithm()
+AsymmetricKey::Algorithm KeyPair::getAlgorithm() const
 {
 	AsymmetricKey::Algorithm type;
 	if (this->key == NULL)
@@ -367,12 +368,6 @@ AsymmetricKey::Algorithm KeyPair::getAlgorithm()
 		case EVP_PKEY_EC:
 			type = AsymmetricKey::EC;
 			break;
-//		case EVP_PKEY_DH:
-//			type = AsymmetricKey::DH;
-//			break;
-//		case EVP_PKEY_EC:
-//			type = AsymmetricKey::EC;
-//			break;
 		default:
 			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "There is no support for this type: "
 					+ std::string(OBJ_nid2sn(EVP_PKEY_id(this->key))), "KeyPair::getAlgorithm");
@@ -380,37 +375,41 @@ AsymmetricKey::Algorithm KeyPair::getAlgorithm()
 	return type;
 }
 
-int KeyPair::getSize()
+int KeyPair::getSize() const
 {
-	int ret;
-	if (this->key == NULL)
-	{
+	int ret = 0;
+
+	if (this->key == NULL) {
 		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "KeyPair::getSize");
 	}
-	/* TODO: this function will br right only for RSA, DSA and EC. The others algorithms (DH) must be used 
-	 * individual functions */
+
+	/* TODO: this function will br right only for RSA, DSA and EC.
+	 * The others algorithms (DH) must be used individual functions
+	 */
 	ret = EVP_PKEY_size(this->key);
-	if (ret == 0)
-	{
+	if (ret == 0) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "KeyPair::getSize");
 	}
+
 	return ret;
 }
 
-int KeyPair::getSizeBits()
+int KeyPair::getSizeBits() const
 {
-	int ret;
-	if (this->key == NULL)
-	{
+	int ret = 0;
+
+	if (this->key == NULL) {
 		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "KeyPair::getSizeBits");
 	}
-	/* TODO: this function will br right only for RSA, DSA and EC. The others algorithms (DH) must be used 
-	 * individual functions */
+
+	/* TODO: this function will be right only for RSA, DSA and EC.
+	 * The others algorithms (DH) must be used individual functions
+	 */
 	ret = EVP_PKEY_bits(this->key);
-	if (ret == 0)
-	{
+	if (ret == 0) {
 		throw AsymmetricKeyException(AsymmetricKeyException::INTERNAL_ERROR, "KeyPair::getSizeBits");
 	}
+
 	return ret;
 }
 
@@ -424,53 +423,50 @@ int KeyPair::passphraseCallBack(char *buf, int size, int rwflag, void *u)
         {
             length = size;
         }
-        memcpy(buf, passphrase->getDataPointer(), length);
+        memcpy(buf, passphrase->getConstDataPointer(), length);
     }
     return length;
 }
 
-std::string KeyPair::getPublicKeyPemEncoded()
+std::string KeyPair::getPublicKeyPemEncoded() const
 {
-	BIO *buffer;
-	int ndata, wrote;
-	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
+	BIO *buffer = NULL;
+	unsigned char *data = NULL;
+	int ndata = 0, wrote = 0;
+
 	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
+	if (buffer == NULL) {
 		throw EncodeException(EncodeException::BUFFER_CREATING, "KeyPair::getPublicKeyPemEncoded");
 	}
+
 	wrote = PEM_write_bio_PUBKEY(buffer, this->key);
-	if (!wrote)
-	{
+	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_ENCODE, "KeyPair::getPublicKeyPemEncoded");
 	}
+
 	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
+	if (ndata <= 0) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::BUFFER_READING, "KeyPair::getPublicKeyPemEncoded");
 	}
-	retTemp = new ByteArray(data, ndata);
-	ret = retTemp->toString();
-	delete retTemp;
+
+	ByteArray ret(data, ndata);
 	BIO_free(buffer);
-	return ret;
+	return ret.toString();
 }
 
-EVP_PKEY* KeyPair::getEvpPkey() const
+const EVP_PKEY* KeyPair::getEvpPkey() const
 {
 	return this->key;
 }
 		
-ENGINE* KeyPair::getEngine() const
+const Engine& KeyPair::getEngine() const
 {
 	return this->engine;
 }
 	
-std::string KeyPair::getKeyId() const
+const std::string& KeyPair::getKeyId() const
 {
 	return this->keyId;
 }

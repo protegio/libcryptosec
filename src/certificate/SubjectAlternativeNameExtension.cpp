@@ -1,5 +1,7 @@
 #include <libcryptosec/certificate/SubjectAlternativeNameExtension.h>
 
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
 SubjectAlternativeNameExtension::SubjectAlternativeNameExtension() : Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_subject_alt_name);

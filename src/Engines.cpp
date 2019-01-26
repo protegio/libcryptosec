@@ -22,9 +22,11 @@ std::vector<std::string> Engines::getEnginesList()
 
 void Engines::setEngineDefault(Engine &engine, Engine::Algorithm algorithm)
 {
+	ENGINE *e = NULL;
 	unsigned int flag;
-	ENGINE *e;
-	e = engine.getEngine();
+
+	// TODO: esse cast é ok?
+	e = (ENGINE*) engine.getEngine();
 	if (!e)
 	{
 		throw EngineException(EngineException::INVALID_ENGINE, "Engines::setEngineDefault");

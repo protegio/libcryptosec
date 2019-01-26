@@ -70,7 +70,7 @@ public:
 	 * Cria um objeto DateTime com uma data específica.
 	 * @param asn1Time data específica. 
 	 */	
-	DateTime(ASN1_TIME *asn1Time);
+	DateTime(const ASN1_TIME *asn1Time);
 
 	/**
 	 * Contrutor.

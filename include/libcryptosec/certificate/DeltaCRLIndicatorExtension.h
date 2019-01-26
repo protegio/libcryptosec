@@ -1,12 +1,7 @@
 #ifndef DELTACRLINDICATOREXTENSION_H_
 #define DELTACRLINDICATOREXTENSION_H_
 
-#include <openssl/asn1.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-
-#include "Extension.h"
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/Extension.h>
 
 class DeltaCRLIndicatorExtension : public Extension
 {

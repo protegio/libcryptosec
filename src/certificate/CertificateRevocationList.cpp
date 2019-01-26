@@ -2,9 +2,24 @@
 
 #include <libcryptosec/exception/EncodeException.h>
 
-CertificateRevocationList::CertificateRevocationList(X509_CRL *crl)
+CertificateRevocationList::CertificateRevocationList(const X509_CRL *crl) :
+		// TODO: esse cast é ok?
+		crl(X509_CRL_dup((X509_CRL*) crl))
+
 {
-	this->crl = crl;
+	if (this->crl == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+}
+
+CertificateRevocationList::CertificateRevocationList(X509_CRL *crl) :
+		// TODO: esse cast é ok?
+		crl(crl)
+
+{
+	if (this->crl == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
 }
 
 CertificateRevocationList::CertificateRevocationList(std::string pemEncoded)
@@ -323,10 +338,10 @@ std::vector<RevokedCertificate> CertificateRevocationList::getRevokedCertificate
     return ret;
 }
 
-bool CertificateRevocationList::verify(PublicKey &publicKey)
+bool CertificateRevocationList::verify(const PublicKey& publicKey)
 {
-	int rc;
-	rc = X509_CRL_verify(this->crl, publicKey.getEvpPkey());
+	// TODO: cast ok?
+	int rc = X509_CRL_verify(this->crl, (EVP_PKEY*) publicKey.getEvpPkey());
 	return (rc?1:0);
 }
 

@@ -32,6 +32,7 @@
 class CertificateRevocationList
 {
 public:
+	CertificateRevocationList(const X509_CRL *crl);
 	CertificateRevocationList(X509_CRL *crl);
 	CertificateRevocationList(std::string pemEncoded);
 	CertificateRevocationList(ByteArray &derEncoded);
@@ -50,7 +51,7 @@ public:
 	DateTime getLastUpdate();
 	DateTime getNextUpdate();
 	std::vector<RevokedCertificate> getRevokedCertificate();
-	bool verify(PublicKey &publicKey);
+	bool verify(const PublicKey& publicKey);
 	X509_CRL* getX509Crl() const;
 	CertificateRevocationList& operator =(const CertificateRevocationList& value);
 	std::vector<Extension*> getExtension(Extension::Name extensionName);

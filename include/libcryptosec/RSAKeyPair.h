@@ -1,16 +1,9 @@
 #ifndef RSAKEYPAIR_H_
 #define RSAKEYPAIR_H_
 
-#include <openssl/evp.h>
-#include "ByteArray.h"
-#include "SymmetricKey.h"
-#include "KeyPair.h"
-#include "RSAPublicKey.h"
-#include "RSAPrivateKey.h"
+#include <libcryptosec/KeyPair.h>
 
-#include <libcryptosec/exception/EngineException.h>
-#include <libcryptosec/exception/EncodeException.h>
-#include <libcryptosec/exception/AsymmetricKeyException.h>
+#include <libcryptosec/AsymmetricKey.h>
 
 /**
  * Representa um par de chaves assimétricas RSA.
@@ -31,16 +24,7 @@ class RSAKeyPair : public KeyPair
 		RSAKeyPair(int length);
 		
 		virtual ~RSAKeyPair();
-		/**
-		 * gets the public key from key pair
-		 * @return a public key from key pair
-		 */
-		virtual PublicKey* getPublicKey();
-		/**
-		 * gets the private from key pair
-		 * @return a private key from key pair
-		 */
-		virtual PrivateKey* getPrivateKey();
+
 		/**
 		 * encode the key pair in PEM format encrypted
 		 * @param passphrase key for encrypt the key pair
@@ -48,11 +32,7 @@ class RSAKeyPair : public KeyPair
 		 * @return key pair encrypted encoded in PEM format
 		 */
 
-		virtual AsymmetricKey::Algorithm getAlgorithm();
-		/**
-		 * gets the key size
-		 * @return key size
-		 */
+		virtual AsymmetricKey::Algorithm getAlgorithm() const;
 };
 
 #endif /*RSAKEYPAIR_H_*/

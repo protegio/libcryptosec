@@ -1,5 +1,11 @@
 #include <libcryptosec/certificate/DeltaCRLIndicatorExtension.h>
 
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/exception/CertificationException.h>
+
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
 DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(unsigned long baseCrlNumber=0) : Extension() 
 {
 	this->baseCrlNumber = baseCrlNumber;

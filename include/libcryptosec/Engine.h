@@ -64,7 +64,7 @@ public:
 	 * Cria um objeto Engine a partir de outro do mesmo tipo.
 	 * @param engine objeto Engine.
 	 */
-	Engine(Engine &engine);
+	Engine(const Engine& engine);
 	
 	
 	/**
@@ -141,7 +141,7 @@ public:
 	 * Retorna atributo ENGINE do objeto Engine.
 	 * @return objeto ENGINE.
 	 */
-	ENGINE* getEngine();
+	const ENGINE* getEngine() const;
 	
 	/**
 	 * Retorna string que identifica um algoritmo da engine.

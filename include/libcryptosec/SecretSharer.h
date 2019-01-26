@@ -6,12 +6,6 @@
 #include <sstream>
 #include <istream>
 
-#include "ByteArray.h"
-#include "Random.h"
-
-#include <libcryptosec/exception/RandomException.h>
-#include <libcryptosec/exception/SecretSharerException.h>
-
 /**
  * Sharing and recovering secrets with only static functions.
  */

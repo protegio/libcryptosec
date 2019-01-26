@@ -13,15 +13,22 @@ class ObjectIdentifier
 public:
 	ObjectIdentifier();
 	ObjectIdentifier(ASN1_OBJECT *asn1Object);
+	ObjectIdentifier(const ASN1_OBJECT *asn1Object);
 	ObjectIdentifier(const ObjectIdentifier& objectIdentifier);
+	ObjectIdentifier(ObjectIdentifier&& objectIdentifier);
+
 	virtual ~ObjectIdentifier();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	std::string getOid();
+
+	ObjectIdentifier& operator=(const ObjectIdentifier& value);
+	ObjectIdentifier& operator=(ObjectIdentifier&& value);
+
+	std::string getXmlEncoded(const std::string& tab = "") const;
+
+	std::string getOid() const;
 	int getNid() const;
-	std::string getName();
+	std::string getName() const;
 	const ASN1_OBJECT* getObjectIdentifier() const;
-	ObjectIdentifier& operator =(const ObjectIdentifier& value);
+
 protected:
 	ASN1_OBJECT *asn1Object;
 };

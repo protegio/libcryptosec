@@ -21,6 +21,15 @@ public:
 		ADDING_EXTENSION,
 		UNKNOWN_OID,
 		KNOWN_OID,
+		OBJ_DUP_ERROR,
+		SK_TYPE_NEW_NULL_ERROR,
+		SK_TYPE_PUSH_ERROR,
+		X509V3_EXT_I2D_ERROR,
+		X509V3_EXT_D2I_ERROR,
+		X509_CRL_NEW_ERROR,
+		X509_CRL_DUP_ERROR,
+		X509_CRL_SET_VERSION_ERROR,
+		X509_CRL_GET_ISSUER_ERROR,
 	};
     CertificationException(const std::string& where)
     {
@@ -97,6 +106,33 @@ public:
     			break;
     		case CertificationException::KNOWN_OID:
     			ret = "Known OID";
+    			break;
+    		case CertificationException::OBJ_DUP_ERROR:
+    			ret = "Object duplication error";
+    			break;
+    		case CertificationException::SK_TYPE_NEW_NULL_ERROR:
+    			ret = "Stack new null error";
+    			break;
+    		case CertificationException::SK_TYPE_PUSH_ERROR:
+    			ret = "Stack push error";
+    			break;
+    		case CertificationException::X509V3_EXT_I2D_ERROR:
+    			ret = "X509v3 extension encode error";
+    			break;
+    		case CertificationException::X509V3_EXT_D2I_ERROR:
+    			ret = "X509v3 extension decode error";
+    			break;
+    		case X509_CRL_NEW_ERROR:
+    			ret = "X509 CRL new error";
+    			break;
+    		case X509_CRL_DUP_ERROR:
+    			ret = "X509 CRL duplication error";
+    			break;
+    		case X509_CRL_SET_VERSION_ERROR:
+    			ret = "X509 CRL set version error";
+    			break;
+    		case X509_CRL_GET_ISSUER_ERROR:
+    			ret = "X509 CRL get issuer error";
     			break;
     	}
     	return ret;

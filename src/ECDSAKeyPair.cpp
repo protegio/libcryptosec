@@ -1,6 +1,15 @@
-#include "libcryptosec/ECDSAKeyPair.h"
+#include <libcryptosec/ECDSAKeyPair.h>
 
-ECDSAKeyPair::ECDSAKeyPair(ByteArray& derEncoded) {
+#include <libcryptosec/ec/EllipticCurve.h>
+#include <libcryptosec/Base64.h>
+#include <libcryptosec/ByteArray.h>
+
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+
+ECDSAKeyPair::ECDSAKeyPair(const ByteArray& derEncoded) {
 	this->key = NULL;
 	this->engine = NULL;
 	EC_GROUP * group = createGroup(derEncoded);
@@ -8,7 +17,7 @@ ECDSAKeyPair::ECDSAKeyPair(ByteArray& derEncoded) {
 	EC_GROUP_free(group);
 }
 
-ECDSAKeyPair::ECDSAKeyPair(std::string& encoded) {
+ECDSAKeyPair::ECDSAKeyPair(const std::string& encoded) {
 	this->key = NULL;
 	this->engine = NULL;
 	ByteArray derEncoded = Base64::decode(encoded);
@@ -55,18 +64,10 @@ ECDSAKeyPair::ECDSAKeyPair(AsymmetricKey::Curve curve, bool named) {
 }
 
 ECDSAKeyPair::~ECDSAKeyPair() {
-	if (this->key) {
-		EVP_PKEY_free(this->key);
-		this->key = NULL;
-	}
-	if (this->engine) {
-		ENGINE_free(this->engine);
-		this->engine = NULL;
-	}
 }
 
-void ECDSAKeyPair::generateKey(EC_GROUP * group) {
-
+void ECDSAKeyPair::generateKey(EC_GROUP * group)
+{
 	EC_KEY* eckey = EC_KEY_new();
 
 	if (eckey == NULL){
@@ -186,43 +187,6 @@ EC_GROUP * ECDSAKeyPair::createGroup(ByteArray &derEncoded) {
 	return group;
 }
 
-PublicKey* ECDSAKeyPair::getPublicKey() {
-	PublicKey *ret;
-	std::string keyTemp;
-	keyTemp = this->getPublicKeyPemEncoded();
-	ret = new ECDSAPublicKey(keyTemp);
-	return ret;
-}
-
-PrivateKey* ECDSAKeyPair::getPrivateKey() {
-	PrivateKey *ret;
-	EVP_PKEY *pkey;
-	ret = NULL;
-	if (engine) {
-		pkey = ENGINE_load_private_key(this->engine, this->keyId.c_str(), NULL,
-				NULL);
-		if (!pkey) {
-			throw AsymmetricKeyException(
-					AsymmetricKeyException::UNAVAILABLE_KEY,
-					"KeyId: " + this->keyId, "ECDSAKeyPair::getPrivateKey");
-		}
-		try {
-			ret = new PrivateKey(pkey);
-		} catch (...) {
-			EVP_PKEY_free(pkey);
-			throw;
-		}
-	} else {
-		ret = new ECDSAPrivateKey(this->key);
-		if (ret == NULL) {
-			throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE,
-					"ECDSAKeyPair::getPrivateKey");
-		}
-		EVP_PKEY_up_ref(this->key);
-	}
-	return ret;
-}
-
-AsymmetricKey::Algorithm ECDSAKeyPair::getAlgorithm() {
+AsymmetricKey::Algorithm ECDSAKeyPair::getAlgorithm() const {
 	return AsymmetricKey::EC;
 }

@@ -61,7 +61,9 @@ MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine)
 
 	md = MessageDigest::getMessageDigest(this->algorithm);
 	EVP_MD_CTX_init(this->ctx);
-	rc = EVP_DigestInit_ex(this->ctx, md, engine.getEngine());
+
+	// TODO: esse cast da engine é ok?
+	rc = EVP_DigestInit_ex(this->ctx, md, (ENGINE*) engine.getEngine());
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::MessageDigest");
@@ -101,7 +103,9 @@ void MessageDigest::init(MessageDigest::Algorithm algorithm, Engine &engine)
 	this->algorithm = algorithm;
 	md = MessageDigest::getMessageDigest(this->algorithm);
 	EVP_MD_CTX_init(this->ctx);
-	rc = EVP_DigestInit_ex(this->ctx, md, engine.getEngine());
+
+	// TODO: esse cast da engine é ok?
+	rc = EVP_DigestInit_ex(this->ctx, md, (ENGINE*) engine.getEngine());
 	if (!rc)
 	{
 		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::init");
@@ -154,7 +158,6 @@ ByteArray* MessageDigest::doFinal(const std::string &data)
 }
 
 void MessageDigest::doFinal(unsigned char* hash, unsigned int* size) {
-	unsigned int ndigest = 0;
 	int rc = 0;
 
 	if (this->state == MessageDigest::NO_INIT || this->state == MessageDigest::INIT) {

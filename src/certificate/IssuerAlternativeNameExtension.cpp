@@ -1,5 +1,7 @@
 #include <libcryptosec/certificate/IssuerAlternativeNameExtension.h>
 
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
 IssuerAlternativeNameExtension::IssuerAlternativeNameExtension() : Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_issuer_alt_name);

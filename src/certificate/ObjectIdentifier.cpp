@@ -1,52 +1,85 @@
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 
-ObjectIdentifier::ObjectIdentifier()
+ObjectIdentifier::ObjectIdentifier() :
+		asn1Object(ASN1_OBJECT_new())
 {
-	this->asn1Object = ASN1_OBJECT_new();
-//	printf("New OID: nid: %d - length: %d\n", this->asn1Object->nid, this->asn1Object->length);
 }
 
-ObjectIdentifier::ObjectIdentifier(ASN1_OBJECT *asn1Object)
+ObjectIdentifier::ObjectIdentifier(const ASN1_OBJECT *asn1Object) :
+		asn1Object(OBJ_dup(asn1Object))
 {
-	this->asn1Object = asn1Object;
-//	printf("Set OID: nid: %d - length: %d\n", this->asn1Object->nid, this->asn1Object->length);
 }
 
-ObjectIdentifier::ObjectIdentifier(const ObjectIdentifier& objectIdentifier)
+ObjectIdentifier::ObjectIdentifier(ASN1_OBJECT *asn1Object) :
+		asn1Object(asn1Object)
 {
-	this->asn1Object = OBJ_dup(objectIdentifier.getObjectIdentifier());
+}
+
+ObjectIdentifier::ObjectIdentifier(const ObjectIdentifier& objectIdentifier) :
+		asn1Object(OBJ_dup(objectIdentifier.asn1Object))
+{
+}
+
+ObjectIdentifier::ObjectIdentifier(ObjectIdentifier&& objectIdentifier) :
+		asn1Object(objectIdentifier.asn1Object)
+{
+	objectIdentifier.asn1Object = nullptr;
 }
 
 ObjectIdentifier::~ObjectIdentifier()
 {
-	ASN1_OBJECT_free(this->asn1Object);
+	if (this->asn1Object) {
+		ASN1_OBJECT_free(this->asn1Object);
+	}
 }
 
-std::string ObjectIdentifier::getXmlEncoded()
+ObjectIdentifier& ObjectIdentifier::operator=(const ObjectIdentifier& value)
 {
-	return this->getXmlEncoded("");
+	if (&value == this) {
+		return *this;
+	}
+
+	if (this->asn1Object) {
+		ASN1_OBJECT_free(this->asn1Object);
+	}
+
+	this->asn1Object = OBJ_dup(value.asn1Object);
+
+	return *this;
 }
 
-std::string ObjectIdentifier::getXmlEncoded(std::string tab)
+ObjectIdentifier& ObjectIdentifier::operator=(ObjectIdentifier&& value)
+{
+	if (&value == this) {
+		return *this;
+	}
+
+	if (this->asn1Object) {
+		ASN1_OBJECT_free(this->asn1Object);
+	}
+
+	this->asn1Object = value.asn1Object;
+	value.asn1Object = nullptr;
+
+	return *this;
+}
+
+std::string ObjectIdentifier::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, oid;
-	try
-	{
+	try {
 		oid = this->getOid();
-	}
-	catch (...)
-	{
+	} catch (...) {
 		oid = "";
 	}
 	ret = tab + "<oid>" + oid + "</oid>\n";
 	return ret;
 }
 
-std::string ObjectIdentifier::getOid()
+std::string ObjectIdentifier::getOid() const
 {
 	char data[30];
-	if (!OBJ_get0_data(this->asn1Object))
-	{
+	if (!OBJ_get0_data(this->asn1Object)) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "ObjectIdentifier::getOid");
 	}
 	OBJ_obj2txt(data, 30, this->asn1Object, 1);
@@ -58,39 +91,24 @@ int ObjectIdentifier::getNid() const
 	return OBJ_obj2nid(this->asn1Object);
 }
 
-std::string ObjectIdentifier::getName()
+std::string ObjectIdentifier::getName() const
 {
 	std::string ret;
-	if (!OBJ_get0_data(this->asn1Object))
-	{
+	if (!OBJ_get0_data(this->asn1Object)) {
 		return "undefined";
 	}
+
 	int nid = OBJ_obj2nid(this->asn1Object);
-	if (nid != NID_undef)
+	if (nid != NID_undef) {
 		ret = OBJ_nid2sn(nid);
-	else
+	} else {
 		ret = this->getOid();
+	}
+
 	return ret;
 }
 
 const ASN1_OBJECT* ObjectIdentifier::getObjectIdentifier() const
 {
 	return this->asn1Object;
-}
-
-ObjectIdentifier& ObjectIdentifier::operator =(const ObjectIdentifier& value)
-{	
-	if (this->asn1Object)
-	{
-		ASN1_OBJECT_free(this->asn1Object);
-	}
-	if (OBJ_length(value.getObjectIdentifier()) > 0)
-	{
-		this->asn1Object = OBJ_dup(value.getObjectIdentifier());
-	}
-	else
-	{
-		this->asn1Object = ASN1_OBJECT_new();
-	}
-	return (*this);
 }

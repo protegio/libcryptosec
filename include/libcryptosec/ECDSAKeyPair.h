@@ -1,17 +1,11 @@
 #ifndef ECDSAKEYPAIR_H_
 #define ECDSAKEYPAIR_H_
-#include <openssl/evp.h>
-#include <openssl/bio.h>
 
-#include "ByteArray.h"
-#include "KeyPair.h"
-#include "ec/EllipticCurve.h"
-#include "Base64.h"
+#include <libcryptosec/KeyPair.h>
 
-#include <libcryptosec/exception/EngineException.h>
-#include <libcryptosec/exception/EncodeException.h>
-#include <libcryptosec/exception/AsymmetricKeyException.h>
+#include <string>
 
+class EllipticCurve;
 
 /**
  * Representa um par de chaves assimétricas ECDSA.
@@ -32,13 +26,13 @@ public:
 	 * Cria par por parâmetros informados em DER
 	 * TODO
 	 */
-	ECDSAKeyPair(ByteArray &derEncoded);
+	ECDSAKeyPair(const ByteArray& derEncoded);
 
 	/**
 	 * Cria par por parâmetros informados em PEM
 	 * TODO
 	 */
-	ECDSAKeyPair(std::string &encoded);
+	ECDSAKeyPair(const std::string& encoded);
 
 	/**
 	 * Cria par por parãmetros informados por um objeto Curve
@@ -50,18 +44,7 @@ public:
 
 	virtual ~ECDSAKeyPair();
 
-	/**
-	 * gets the public key from key pair
-	 * @return a public key from key pair
-	 */
-	virtual PublicKey* getPublicKey();
-	/**
-	 * gets the private from key pair
-	 * @return a private key from key pair
-	 */
-	virtual PrivateKey* getPrivateKey();
-
-	virtual AsymmetricKey::Algorithm getAlgorithm();
+	virtual AsymmetricKey::Algorithm getAlgorithm() const;
 
 protected:
 	void generateKey(EC_GROUP * group);

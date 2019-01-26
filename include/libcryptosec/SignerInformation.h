@@ -5,7 +5,6 @@
 
 #include "MessageDigest.h"
 #include <libcryptosec/certificate/RDNSequence.h>
-#include <libcryptosec/asn1/Asn1Attribute.h>
 
 class SignerInformation
 {
@@ -17,7 +16,7 @@ public:
 	int getVersion() const throw();
 	std::pair<RDNSequence, long> getIssuerAndSerial() const throw();
 	MessageDigest::Algorithm getDigestAlg() const throw();
-	std::vector<Asn1Attribute> getSignedAttributes() const throw();
+	// std::vector<Asn1Attribute> getSignedAttributes() const throw();
 	ObjectIdentifier getEncryptionAlg() const throw();
 	ByteArray getSignature() const throw();
 	

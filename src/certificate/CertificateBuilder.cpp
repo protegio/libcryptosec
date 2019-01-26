@@ -26,6 +26,10 @@
 CertificateBuilder::CertificateBuilder()
 	: cert(X509_new()), includeECDSAParameters(false)
 {
+	if (this->cert == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
 	DateTime dateTime;
 	this->setNotBefore(dateTime);
 	this->setNotAfter(dateTime);
@@ -558,10 +562,11 @@ MessageDigest::Algorithm CertificateBuilder::getMessageDigestAlgorithm()
 	return ret;
 }
 
-void CertificateBuilder::setPublicKey(PublicKey& publicKey)
+void CertificateBuilder::setPublicKey(const PublicKey& publicKey)
 {
 	int rc = 0;
-	rc = X509_set_pubkey(this->cert, publicKey.getEvpPkey());
+	// TODO: cast ok?
+	rc = X509_set_pubkey(this->cert, (EVP_PKEY*) publicKey.getEvpPkey());
 	if (rc == 0) {
 		throw CertificationException(CertificationException::INVALID_PUBLIC_KEY, "CertificateBuilder::setPublicKey");
 	}
@@ -680,132 +685,103 @@ RDNSequence CertificateBuilder::getIssuer() const
 
 void CertificateBuilder::alterSubject(const RDNSequence& name)
 {
-	X509_NAME *subject = X509_get_subject_name(this->cert);
-	if(subject == NULL) {
+	int rc = 0;
+
+	X509_NAME *oldSubject = X509_get_subject_name(this->cert);
+	if(oldSubject == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
 
-	X509_NAME *subjectName = X509_NAME_new();
-	if(subjectName == NULL) {
+	X509_NAME *newSubject = X509_NAME_new();
+	if(newSubject == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
 
-	std::vector<std::pair<ObjectIdentifier, std::string> > entries = name.getEntries();
-	X509_NAME_ENTRY *newEntry;
+	const std::vector<std::pair<ObjectIdentifier, std::string>>& entries = name.getEntries();
 
-	int addedFieldType = this->getCodification(name);
+	// TODO: essa lógica é confusa e precisa ser melhorada
+	// Retorna a codificação da primeiro entrada que encontrar
+	// no campo subject do certificado sendo montado. Se nenhuma
+	// entrada for encontrada, retorna a codificação MBSTRING_ASC.
+	// Essa função ignora o campo country.
+	// A codificação retornada será usada apenas em entradas
+	// adicionadas e não modificadas. Entradas modificadas usam a
+	// mesma codificação da entrada antiga.
+	int codification = this->getCodification(name);
 
-	std::string data;
-	for(std::vector<std::pair<ObjectIdentifier, std::string> >::iterator entry = entries.begin(); entry != entries.end(); entry++)
-	{
-		data = entry->second;
-		newEntry = X509_NAME_ENTRY_new();
+	for(auto entry : entries) {
+		X509_NAME_ENTRY *newEntry = X509_NAME_ENTRY_new();
+		if (newEntry == NULL) {
+			throw CertificationException("" /* TODO */);
+		}
 
-		int position = X509_NAME_get_index_by_NID(subject, entry->first.getNid(), -1);
+		int position = X509_NAME_get_index_by_NID(oldSubject, entry.first.getNid(), -1);
 
-		if(!data.empty()) // If entry is not empty, add entry
-		{
-			if(position != -1)
-			{
-				X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
+		if(!entry.second.empty()) {
+			if(position != -1) {
+				X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(oldSubject, position);
+				if (oldEntry == NULL) {
+					throw CertificationException("" /* TODO */);
+				}
 
-				ASN1_OBJECT* obj = X509_NAME_ENTRY_get_object(oldEntry);
-				int entryType = OBJ_obj2nid(obj);
+				const ASN1_OBJECT* oldEntryOID = X509_NAME_ENTRY_get_object(oldEntry);
+				if (oldEntryOID == NULL) {
+					throw CertificationException("" /* TODO */);
+				}
 
-				if(!X509_NAME_ENTRY_set_object(newEntry, entry->first.getObjectIdentifier()))
-				{
+				int oldEntryNid = OBJ_obj2nid(oldEntryOID);
+				if (oldEntryNid == NID_undef) {
+					throw CertificationException("" /* TODO */);
+				}
+
+				const ASN1_STRING *oldEntryData = X509_NAME_ENTRY_get_data(oldEntry);
+				if (oldEntryOID == NULL) {
+					throw CertificationException("" /* TODO */);
+				}
+
+				rc = X509_NAME_ENTRY_set_object(newEntry, entry.first.getObjectIdentifier());
+				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
 
-				if(!X509_NAME_ENTRY_set_data(newEntry, entryType, (unsigned char *)data.c_str(), data.length()))
-				{
+				rc = X509_NAME_ENTRY_set_data(newEntry, oldEntryData->type, (const unsigned char*) entry.second.c_str(), entry.second.length());
+				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
 
-				if(!X509_NAME_add_entry(subjectName, newEntry, -1, 0))
-				{
+				rc = X509_NAME_add_entry(newSubject, newEntry, -1, 0);
+				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
 
 				X509_NAME_ENTRY_free(newEntry);
 
-			}
-			else
-			{
-				if(!X509_NAME_ENTRY_set_object(newEntry, entry->first.getObjectIdentifier()))
-				{
+			} else {
+				rc = X509_NAME_ENTRY_set_object(newEntry, entry.first.getObjectIdentifier());
+				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
-				if(!X509_NAME_ENTRY_set_data(newEntry, addedFieldType, (unsigned char *)data.c_str(), data.length()))
-				{
+
+				rc = X509_NAME_ENTRY_set_data(newEntry, codification, (const unsigned char *) entry.second.c_str(), entry.second.length());
+				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
-				if(!X509_NAME_add_entry(subjectName, newEntry, -1, 0))
-				{
+
+				rc = X509_NAME_add_entry(newSubject, newEntry, -1, 0);
+				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
+
 				X509_NAME_ENTRY_free(newEntry);
 			}
 		}
 	}
 
-	int rc = X509_set_subject_name(this->cert, subjectName);
-	X509_NAME_free(subjectName);
-
-	if(!rc)
-	{
+	rc = X509_set_subject_name(this->cert, newSubject);
+	X509_NAME_free(newSubject);
+	if(!rc) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
-
-/*	ALTERSUBJECT VERSION 2.2.4
-	X509_NAME *subject = X509_get_subject_name(this->cert);
-
-	if(subject == NULL){
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::setSubject");
-	}
-
-	std::vector<std::pair<ObjectIdentifier, std::string> > entries = name.getEntries();
-
-	int entryType = MBSTRING_ASC;
-	for (int i=0; i<entries.size(); i++)
-	{
-		int pos = X509_NAME_get_index_by_OBJ(subject, entries.at(i).first.getObjectIdentifier(), -1);
-		bool notCountry = entries.at(i).first.getNid() != NID_countryName;
-		if (pos >= 0 && notCountry)
-		{
-			X509_NAME_ENTRY* entry = X509_NAME_get_entry(subject, pos);
-			entryType = entry->value->type;
-			break;
-		}
-	}
-
-	for (int i=0; i<entries.size(); i++)
-	{
-		int nameEntryPos = X509_NAME_get_index_by_OBJ(subject, entries.at(i).first.getObjectIdentifier(), -1);
-		X509_NAME_ENTRY* ne;
-		std::string data = entries.at(i).second;
-		if (!data.empty())
-		{
-			if (nameEntryPos >= 0)
-			{
-				ne = X509_NAME_get_entry(subject, nameEntryPos);
-				int rc = X509_NAME_ENTRY_set_data(ne, ne->value->type, (unsigned char *)data.c_str(), data.length());
-				if (!rc)
-				{
-					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::setSubject");
-				}
-			}
-			else
-			{
-				ne = X509_NAME_ENTRY_new();
-				X509_NAME_ENTRY_set_object(ne, entries.at(i).first.getObjectIdentifier());
-				X509_NAME_ENTRY_set_data(ne, entryType, (unsigned char *)data.c_str(), data.length());
-				X509_NAME_add_entry(subject, ne, -1, 0);
-				X509_NAME_ENTRY_free(ne);
-			}
-		}
-	}
-	name = RDNSequence(subject);*/
 }
 
 void CertificateBuilder::setSubject(const RDNSequence &name)
@@ -999,13 +975,14 @@ std::vector<Extension*> CertificateBuilder::removeExtension(const ObjectIdentifi
 	return ret;
 }
 
-Certificate CertificateBuilder::sign(PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
+Certificate CertificateBuilder::sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
 {
 	PublicKey pub = this->getPublicKey();
 	DateTime dateTime;
 	int rc;
 
-	rc = X509_sign(this->cert, privateKey.getEvpPkey(),
+	// TODO: cast ok?
+	rc = X509_sign(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(),
 			MessageDigest::getMessageDigest(messageDigestAlgorithm));
 	if (!rc) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::sign");
@@ -1031,7 +1008,8 @@ void CertificateBuilder::includeEcdsaParameters() {
 	PublicKey publicKey = this->getPublicKey();
 
 	if(publicKey.getAlgorithm() == AsymmetricKey::EC && this->isIncludeEcdsaParameters()) {
-		EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY(publicKey.getEvpPkey());
+		// TODO: cast ok?
+		EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY((EVP_PKEY*) publicKey.getEvpPkey());
 		EC_KEY_set_asn1_flag(ec_key, 0);
 	}
 	this->setPublicKey(publicKey);
@@ -1039,19 +1017,19 @@ void CertificateBuilder::includeEcdsaParameters() {
 
 int CertificateBuilder::getCodification(const RDNSequence& name){
 	int entryType = MBSTRING_ASC;
+
 	X509_NAME *subject = X509_get_subject_name(this->cert);
 	if(subject == NULL) {
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 	}
 
-	std::vector<std::pair<ObjectIdentifier, std::string> > entries = name.getEntries();
-
+	const std::vector<std::pair<ObjectIdentifier, std::string>> &entries = name.getEntries();
 	for(auto entry : entries) {
 		int position = X509_NAME_get_index_by_NID(subject, entry.first.getNid(), -1);
 		if(position != -1 && entry.first.getNid() != NID_countryName) {
 			X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
-			ASN1_OBJECT* obj = X509_NAME_ENTRY_get_object(oldEntry);
-			entryType = OBJ_obj2nid(obj);
+			ASN1_STRING* data = X509_NAME_ENTRY_get_data(oldEntry);
+			entryType = data->type;
 			if(entryType != MBSTRING_FLAG) {
 				return entryType;
 			}

@@ -13,14 +13,16 @@ INITIALIZE_ENUM( AsymmetricCipher::Padding, 3,
 	PKCS1_OAEP
 );
 
-ByteArray* AsymmetricCipher::encrypt(RSAPublicKey &key, const ByteArray &data, AsymmetricCipher::Padding padding)
+ByteArray* AsymmetricCipher::encrypt(const RSAPublicKey& key, const ByteArray& data, AsymmetricCipher::Padding padding)
 {
 	int rc;
 	int paddingValue = AsymmetricCipher::getPadding(padding);
 	int rsaSize = key.getSize();
 	ByteArray *ret = new ByteArray(rsaSize);
-	EVP_PKEY *evpPkey = key.getEvpPkey();
-	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
+	const EVP_PKEY *evpPkey = key.getEvpPkey();
+
+	// TODO: cast ok?
+	RSA* rsaKey = EVP_PKEY_get0_RSA((EVP_PKEY*) evpPkey);
 
 	if (rsaKey == NULL) {
 		throw AsymmetricCipherException(AsymmetricCipherException::INVALID_KEY_ALGORITHM, "AsymmetricCipher::encrypt");
@@ -35,14 +37,16 @@ ByteArray* AsymmetricCipher::encrypt(RSAPublicKey &key, const ByteArray &data, A
 	return ret;
 }
 
-ByteArray* AsymmetricCipher::encrypt(RSAPublicKey &key, const std::string &data, AsymmetricCipher::Padding padding)
+ByteArray* AsymmetricCipher::encrypt(const RSAPublicKey& key, const std::string& data, AsymmetricCipher::Padding padding)
 {
 	int rc;
 	int paddingValue = AsymmetricCipher::getPadding(padding);
 	int rsaSize = key.getSize();
 	ByteArray *ret = new ByteArray(rsaSize);
-	EVP_PKEY *evpPkey = key.getEvpPkey();
-	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
+	const EVP_PKEY *evpPkey = key.getEvpPkey();
+
+	// TODO: cast ok?
+	RSA* rsaKey = EVP_PKEY_get0_RSA((EVP_PKEY*) evpPkey);
 
 	if (rsaKey == NULL) {
 		throw AsymmetricCipherException(AsymmetricCipherException::INVALID_KEY_ALGORITHM, "AsymmetricCipher::encrypt");
@@ -57,14 +61,16 @@ ByteArray* AsymmetricCipher::encrypt(RSAPublicKey &key, const std::string &data,
 	return ret;
 }
 
-ByteArray* AsymmetricCipher::decrypt(RSAPrivateKey &key, const ByteArray &ciphered, AsymmetricCipher::Padding padding)
+ByteArray* AsymmetricCipher::decrypt(const RSAPrivateKey& key, const ByteArray& ciphered, AsymmetricCipher::Padding padding)
 {
 	int rc;
 	int paddingValue = AsymmetricCipher::getPadding(padding);
 	int rsaSize = key.getSize();
 	ByteArray *ret = NULL;
-	EVP_PKEY *evpPkey = key.getEvpPkey();
-	RSA* rsaKey = EVP_PKEY_get0_RSA(evpPkey);
+	const EVP_PKEY *evpPkey = key.getEvpPkey();
+
+	// TODO: cast ok?
+	RSA* rsaKey = EVP_PKEY_get0_RSA((EVP_PKEY*) evpPkey);
 
 	if (rsaKey == NULL) {
 		throw AsymmetricCipherException(AsymmetricCipherException::INVALID_KEY_ALGORITHM, "AsymmetricCipher::decrypt");

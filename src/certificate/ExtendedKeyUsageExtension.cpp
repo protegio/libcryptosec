@@ -1,43 +1,47 @@
 #include <libcryptosec/certificate/ExtendedKeyUsageExtension.h>
 
-ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() : Extension()
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
+ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() :
+		Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_ext_key_usage);
 }
 
-ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext) : Extension(ext)
+ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext) :
+		Extension(ext)
 {
-	STACK_OF(ASN1_OBJECT) *extKeyUsages;
 	ObjectIdentifier objectIdentifier;
-	int nid;
-	std::string value;
-	char temp[30];
-	//ASN1_OBJECT *asn1Obj, *newAsn1Obj;
-	ASN1_OBJECT *asn1Obj;
+	STACK_OF(ASN1_OBJECT) *extKeyUsages = NULL;
+	ASN1_OBJECT *asn1Obj = NULL;
 	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
-	if (OBJ_obj2nid(object) != NID_ext_key_usage)
-	{
+	std::string value;
+	int nid;
+
+	if (OBJ_obj2nid(object) != NID_ext_key_usage) {
 		throw CertificationException(CertificationException::INVALID_TYPE, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
 	}
+
 	extKeyUsages = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i(ext);
-		
+	if (extKeyUsages == 0) {
+		throw CertificationException(CertificationException::X509V3_EXT_D2I_ERROR, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
+	}
+
 	while(sk_ASN1_OBJECT_num(extKeyUsages) > 0)
 	{
 		asn1Obj = sk_ASN1_OBJECT_pop(extKeyUsages);
 		nid = OBJ_obj2nid(asn1Obj);
-		if (nid == NID_undef)
-		{
-			OBJ_obj2txt(temp, 30, asn1Obj, 0);
-			value = temp;
-			objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(value);
+		if (nid == NID_undef) {
+			// TODO: ok to skip? should we throw an exception?
+			continue;
 		}
-		else
-		{
-			//newAsn1Obj = OBJ_nid2obj(nid);
-			//objectIdentifier = ObjectIdentifier(newAsn1Obj);
-			objectIdentifier = ObjectIdentifier(asn1Obj);
-		}
-		this->usages.push_back(objectIdentifier);
+
+		ObjectIdentifier item(asn1Obj);
+		this->usages.push_back(std::move(item));
 	}
 	sk_ASN1_OBJECT_free(extKeyUsages);
 }
@@ -46,97 +50,56 @@ ExtendedKeyUsageExtension::~ExtendedKeyUsageExtension()
 {
 }
 
-std::string ExtendedKeyUsageExtension::extValue2Xml(std::string tab)
+std::string ExtendedKeyUsageExtension::extValue2Xml(const std::string& tab) const
 {
 	std::string ret;
-
-	for (unsigned int i=0;i<this->usages.size();i++)
-	{
-		ret += tab + "<usage>" + this->usages.at(i).getName() + "</usage>\n";
+	for (auto usage : this->usages) {
+		ret += tab + "<usage>" + usage.getName() + "</usage>\n";
 	}
-	
 	return ret;
 }
-
-std::string ExtendedKeyUsageExtension::getXmlEncoded()
+void ExtendedKeyUsageExtension::addUsage(const ObjectIdentifier& oid)
 {
-	return this->getXmlEncoded("");
-}
-
-std::string ExtendedKeyUsageExtension::getXmlEncoded(std::string tab)
-{
-	std::string ret, string;
-	unsigned int i;
-	ret = tab + "<extendedKeyUsage>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		for (i=0;i<this->usages.size();i++)
-		{
-			ret += tab + "\t\t<usage>" + this->usages.at(i).getName() + "</usage>\n";
-		}
-	ret += tab + "</extendedKeyUsage>\n";
-	return ret;
-}
-
-void ExtendedKeyUsageExtension::addUsage(ObjectIdentifier oid)
-{
-//	STACK_OF(ASN1_OBJECT) *extKeyUsages;
-//	bool critical;
-//	extKeyUsages = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i(this->ext);
-//	sk_ASN1_OBJECT_push(extKeyUsages, OBJ_dup(oid.getObjectIdentifier()));
-//	critical = this->isCritical();
-//	X509_EXTENSION_free(this->ext);
-//	this->ext = X509V3_EXT_i2d(NID_ext_key_usage, (critical)?1:0, (void *)extKeyUsages);
+	// TODO: validar oid?
 	this->usages.push_back(oid);
 }
 
-std::vector<ObjectIdentifier> ExtendedKeyUsageExtension::getUsages()
+std::vector<ObjectIdentifier> ExtendedKeyUsageExtension::getUsages() const
 {
-//	STACK_OF(ASN1_OBJECT) *extKeyUsages;
-//	ASN1_OBJECT *asn1Obj, *newAsn1Obj;
-//	int i, num;
-//	ObjectIdentifier objectIdentifier;
-//	std::vector<ObjectIdentifier> ret;
-//	char temp[30];
-//	std::string value;
-//	
-//	extKeyUsages = (STACK_OF(ASN1_OBJECT) *)X509V3_EXT_d2i(this->ext);
-//	num = sk_ASN1_OBJECT_num(extKeyUsages);
-//	for (i=0;i<num;i++)
-//	{
-//		asn1Obj = sk_ASN1_OBJECT_value(extKeyUsages, i);
-//		int nid = OBJ_obj2nid(asn1Obj);
-//		if (nid == NID_undef)
-//		{
-//			OBJ_obj2txt(temp, 30, asn1Obj, 0);
-//			value = temp;
-//			objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(value);
-//		}
-//		else
-//		{
-//			newAsn1Obj = OBJ_nid2obj(nid);
-//			objectIdentifier = ObjectIdentifier(newAsn1Obj);
-//		}
-//		ret.push_back(objectIdentifier);
-//	}
-//	return ret;
 	return this->usages;
 }
 
-X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension()
+X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 {
-	X509_EXTENSION *ret;
-	ASN1_OBJECT *asn1Obj;
-	STACK_OF(ASN1_OBJECT) *extKeyUsages;
-	unsigned int i;
+	X509_EXTENSION *ret = NULL;
+	ASN1_OBJECT *asn1Obj = NULL;
+	STACK_OF(ASN1_OBJECT) *extKeyUsages = NULL;
+	unsigned int i = 0;
+	int rc = 0;
+
 	extKeyUsages = sk_ASN1_OBJECT_new_null();
-	for (i=0;i<this->usages.size();i++)
-	{
-		asn1Obj = OBJ_dup(this->usages.at(i).getObjectIdentifier());
-		sk_ASN1_OBJECT_push(extKeyUsages, asn1Obj);
+	if (extKeyUsages == NULL) {
+		throw CertificationException(CertificationException::SK_TYPE_NEW_NULL_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
 	}
-	ret = X509V3_EXT_i2d(NID_ext_key_usage, this->critical?1:0, (void *)extKeyUsages);
+
+	for (auto usage : this->usages)	{
+		asn1Obj = OBJ_dup(usage.getObjectIdentifier());
+		if (asn1Obj == NULL) {
+			throw CertificationException(CertificationException::OBJ_DUP_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
+		}
+
+		rc = sk_ASN1_OBJECT_push(extKeyUsages, asn1Obj);
+		if (rc == 0) {
+			throw CertificationException(CertificationException::SK_TYPE_PUSH_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
+		}
+	}
+
+	ret = X509V3_EXT_i2d(NID_ext_key_usage, this->critical ? 1 : 0, (void *) extKeyUsages);
+	if (ret == NULL) {
+		throw CertificationException(CertificationException::X509V3_EXT_I2D_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
+	}
+
 	sk_ASN1_OBJECT_pop_free(extKeyUsages, ASN1_OBJECT_free);
+
 	return ret;
 }

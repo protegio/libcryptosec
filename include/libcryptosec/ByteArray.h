@@ -1,13 +1,8 @@
 #ifndef BYTEARRAY_H_
 #define BYTEARRAY_H_
 
-#include <string>
-#include <stdexcept>
-#include <iostream>
 #include <sstream>
-#include <vector>
-#include <string.h>
-#include <stdio.h>
+#include <string>
 
 /**
  * @ingroup Util

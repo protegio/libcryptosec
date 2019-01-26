@@ -74,7 +74,7 @@ AsymmetricKey::Algorithm AsymmetricKey::getAlgorithm()
 	return type;
 }
 
-int AsymmetricKey::getSize()
+int AsymmetricKey::getSize() const
 {
 	int ret = EVP_PKEY_size(this->evpPkey);
 	if (ret == 0) {
@@ -83,7 +83,7 @@ int AsymmetricKey::getSize()
 	return ret;
 }
 
-int AsymmetricKey::getSizeBits()
+int AsymmetricKey::getSizeBits() const
 {
 	int ret = EVP_PKEY_bits(this->evpPkey);
 	if (ret == 0) {
@@ -92,7 +92,7 @@ int AsymmetricKey::getSizeBits()
 	return ret;
 }
 
-EVP_PKEY* AsymmetricKey::getEvpPkey()
+EVP_PKEY* AsymmetricKey::getEvpPkey() const
 {
 	return this->evpPkey;
 }

@@ -1,5 +1,12 @@
 #include <libcryptosec/certificate/SubjectKeyIdentifierExtension.h>
 
+#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/Base64.h>
+
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
 SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension() : Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_subject_key_identifier);

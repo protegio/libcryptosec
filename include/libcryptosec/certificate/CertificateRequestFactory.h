@@ -1,11 +1,9 @@
 #ifndef CERTIFICATEREQUESTFACTORY_H_
 #define CERTIFICATEREQUESTFACTORY_H_
 
-#include <libcryptosec/certificate/CertificateRequest.h>
-#include <libcryptosec/certificate/CertificateRequestSPKAC.h>
-#include <libcryptosec/exception/RandomException.h>
-#include <libcryptosec/exception/EncodeException.h>
-#include <libcryptosec/exception/NetscapeSPKIException.h>
+#include <string>
+
+class CertificateRequestSPKAC;
 
 class CertificateRequestFactory {
 public:

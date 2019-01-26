@@ -1,5 +1,7 @@
 #include <libcryptosec/certificate/CRLDistributionPointsExtension.h>
 
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
 CRLDistributionPointsExtension::CRLDistributionPointsExtension() : Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_crl_distribution_points);

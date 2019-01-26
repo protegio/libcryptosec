@@ -1,5 +1,11 @@
 #include <libcryptosec/certificate/KeyUsageExtension.h>
 
+#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
 KeyUsageExtension::KeyUsageExtension() : Extension()
 {
 //	ASN1_BIT_STRING *bitString;

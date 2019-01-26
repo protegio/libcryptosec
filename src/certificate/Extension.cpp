@@ -1,34 +1,62 @@
 #include <libcryptosec/certificate/Extension.h>
 
-Extension::Extension()
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/Base64.h>
+#include <libcryptosec/exception/CertificationException.h>
+
+#include <openssl/x509v3.h>
+
+Extension::Extension() :
+	critical(false)
 {
-	this->critical = false;
 }
 
-Extension::Extension(X509_EXTENSION *ext)
+Extension::Extension(const X509_EXTENSION *ext) :
+		// TODO: esse cast do argumento é ok?
+		objectIdentifier((const ASN1_OBJECT*) X509_EXTENSION_get_object((X509_EXTENSION*) ext)),
+		critical(X509_EXTENSION_get_critical(ext) ? true : false)
 {
-	if (ext == NULL)
-	{
+	if (ext == NULL) {
 		throw CertificationException(CertificationException::INVALID_EXTENSION, "Extension::Extension");
 	}
-	this->objectIdentifier = ObjectIdentifier(OBJ_dup(X509_EXTENSION_get_object(ext)));
-	this->critical = X509_EXTENSION_get_critical(ext)?true:false;
-	const ASN1_OCTET_STRING* value = X509_EXTENSION_get_data(ext);
-	this->value = ByteArray(value->data, value->length);
+
+	// TODO: esse cast do argumento é ok?
+	const ASN1_OCTET_STRING* value = X509_EXTENSION_get_data((X509_EXTENSION*) ext);
+	if (value == NULL) {
+		throw CertificationException(CertificationException::INVALID_EXTENSION, "Extension::Extension");
+	}
+	this->value = std::move(ByteArray(value->data, value->length));
 }
 
-Extension::Extension(std::string oid, bool critical, std::string valueBase64)
+Extension::Extension(const std::string& oid, bool critical, const std::string& valueBase64) :
+		objectIdentifier(ObjectIdentifierFactory::getObjectIdentifier(oid)),
+		critical(critical),
+		value(Base64::decode(valueBase64))
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(oid);
-	this->critical = critical;
-	this->value = Base64::decode(valueBase64);
 }
 
 Extension::~Extension()
 {
 }
 
-std::string Extension::toXml(std::string tab)
+std::string Extension::extValue2Xml(const std::string& tab) const
+{
+	return tab + "<base64Value>\n" +  tab + "\t" + this->getBase64Value() + "\n" + tab + "</base64Value>\n";
+}
+
+std::string Extension::getXmlEncoded(const std::string& tab) const
+{
+	std::string ret, critical;
+	ret = tab + "<extension>\n";
+		ret += tab + "\t<extnID>"+ this->getName() +"</extnID>\n";
+		critical = (this->isCritical())?"yes":"no";
+		ret += tab + "\t<critical>"+ critical +"</critical>\n";
+		ret += tab + "\t<extnValue>"+ this->getBase64Value() +"</extnValue>\n";
+	ret += tab + "</extension>\n";
+	return ret;
+}
+
+std::string Extension::toXml(const std::string& tab) const
 {
 	std::string ret, critical;
 	ret = tab + "<extension>\n";
@@ -41,39 +69,17 @@ std::string Extension::toXml(std::string tab)
 	return ret;
 }
 
-std::string Extension::extValue2Xml(std::string tab)
-{
-	return tab + "<base64Value>\n" +  tab + "\t" + this->getBase64Value() + "\n" + tab + "</base64Value>\n";
-}
-
-std::string Extension::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string Extension::getXmlEncoded(std::string tab)
-{
-	std::string ret, critical;
-	ret = tab + "<extension>\n";
-		ret += tab + "\t<extnID>"+ this->getName() +"</extnID>\n";
-		critical = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>"+ critical +"</critical>\n";
-		ret += tab + "\t<extnValue>"+ this->getBase64Value() +"</extnValue>\n";
-	ret += tab + "</extension>\n";
-	return ret;
-}
-
 ObjectIdentifier Extension::getObjectIdentifier() const
 {
 	return this->objectIdentifier;
 }
 
-std::string Extension::getName()
+std::string Extension::getName() const
 {
 	return this->objectIdentifier.getName();
 }
 
-Extension::Name Extension::getTypeName()
+Extension::Name Extension::getTypeName() const
 {
 	return Extension::getName(this->objectIdentifier.getNid());
 }
@@ -83,9 +89,9 @@ ByteArray Extension::getValue() const
 	return this->value; 
 }
 
-std::string Extension::getBase64Value()
+std::string Extension::getBase64Value() const
 {
-	return Base64::encode(this->value);
+	return  Base64::encode(this->value);
 }
 
 bool Extension::isCritical() const

@@ -1,5 +1,12 @@
 #include <libcryptosec/certificate/CertificateRequestFactory.h>
 
+#include <libcryptosec/certificate/CertificateRequestSPKAC.h>
+#include <libcryptosec/exception/NetscapeSPKIException.h>
+#include <libcryptosec/exception/RandomException.h>
+#include <libcryptosec/exception/EncodeException.h>
+
+#include <string.h>
+
 CertificateRequestSPKAC* CertificateRequestFactory::fromSPKAC(std::string &path)
 {
 	STACK_OF(CONF_VALUE) *sk=NULL;

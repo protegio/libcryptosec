@@ -1,15 +1,12 @@
 #ifndef EXTENSION_H_
 #define EXTENSION_H_
 
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/ByteArray.h>
+
 #include <openssl/x509.h>
-#include <openssl/x509v3.h>
 
-#include <libcryptosec/Base64.h>
-
-#include "ObjectIdentifier.h"
-#include "ObjectIdentifierFactory.h"
-
-#include <libcryptosec/exception/CertificationException.h>
+#include <string>
 
 class Extension
 {
@@ -32,8 +29,25 @@ public:
 		DELTA_CRL_INDICATOR
 	};
 	
-	Extension(X509_EXTENSION *ext);
-	Extension(std::string oid, bool critical, std::string valueBase64);
+	/**
+	 * @brief Inicializa a extensão a partir uma estrutura X509_EXTENSION.
+	 *
+	 * @param ext A estrutura X509_EXTENSION para ser usada na construção.
+	 */
+	Extension(const X509_EXTENSION *ext);
+
+	/**
+	 * @brief Inicializa a extensão a partir dos campos passados.
+	 *
+	 * @param oid O OID da extensão.
+	 * @param critical Identifica se a extensão deve ser marcada como crítica ou não.
+	 * @param valueBase64 O valor da extensão codificado em base 64.
+	 */
+	Extension(const std::string& oid, bool critical, const std::string& valueBase64);
+
+	/**
+	 * @brief Destrutor padrão.
+	 */
 	virtual ~Extension();
 	
 	/**
@@ -41,22 +55,24 @@ public:
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	virtual std::string getXmlEncoded();
-	virtual std::string getXmlEncoded(std::string tab);
-	std::string toXml(std::string tab = "");
-	virtual std::string extValue2Xml(std::string tab = "");
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	std::string toXml(const std::string& tab = "") const;
+
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
 	ObjectIdentifier getObjectIdentifier() const;
-	std::string getName();
-	Extension::Name getTypeName();
+	std::string getName() const;
+	Extension::Name getTypeName() const;
 	ByteArray getValue() const;
-	std::string getBase64Value();
+	std::string getBase64Value() const;
 	void setCritical(bool critical);
 	bool isCritical() const;
 	virtual X509_EXTENSION* getX509Extension() const;
 	static Extension::Name getName(int nid);
 	static Extension::Name getName(X509_EXTENSION *ext);
+
 protected:
 	Extension();
+
 	ObjectIdentifier objectIdentifier;
 	bool critical;
 	ByteArray value;

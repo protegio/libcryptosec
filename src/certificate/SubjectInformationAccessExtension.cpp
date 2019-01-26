@@ -1,5 +1,7 @@
 #include "libcryptosec/certificate/SubjectInformationAccessExtension.h"
 
+#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+
 SubjectInformationAccessExtension::SubjectInformationAccessExtension() : Extension() {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_sinfo_access);
 }

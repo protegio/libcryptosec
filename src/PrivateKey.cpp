@@ -1,5 +1,16 @@
 #include <libcryptosec/PrivateKey.h>
 
+#include <libcryptosec/AsymmetricKey.h>
+#include <libcryptosec/SymmetricCipher.h>
+#include <libcryptosec/exception/EncodeException.h>
+
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+
+#include <string>
+
+#include <string.h>
+
 PrivateKey::PrivateKey(EVP_PKEY *key) : AsymmetricKey(key)
 {
 }

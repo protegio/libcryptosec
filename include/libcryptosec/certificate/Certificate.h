@@ -70,7 +70,7 @@ public:
 	std::vector<Extension *> getExtensions();
 	std::vector<Extension *> getUnknownExtensions();
 	ByteArray* getFingerPrint(MessageDigest::Algorithm algorithm) const;
-	bool verify(PublicKey &publicKey);
+	bool verify(const PublicKey& publicKey);
 	X509* getX509() const;
 	/**
 	 * create a new certificate request using the data from this certificate
@@ -78,7 +78,7 @@ public:
 	 * @param algorithm message digest algorithm
 	 * @throws CertificationException error on conversion of x509 to x509 req
 	 */
-	CertificateRequest getNewCertificateRequest(PrivateKey &privateKey, MessageDigest::Algorithm algorithm);
+	CertificateRequest getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm);
 	Certificate& operator=(const Certificate& value);
 	Certificate& operator=(Certificate&& value);
 	bool operator ==(const Certificate& value);

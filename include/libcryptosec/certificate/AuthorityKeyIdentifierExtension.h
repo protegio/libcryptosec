@@ -1,16 +1,12 @@
 #ifndef AUTHORITYKEYIDENTIFIEREXTENSION_H_
 #define AUTHORITYKEYIDENTIFIEREXTENSION_H_
 
-#include <openssl/asn1.h>
+#include <libcryptosec/certificate/Extension.h>
+#include <libcryptosec/certificate/GeneralNames.h>
+
 #include <openssl/x509.h>
-#include <openssl/x509v3.h>
 
 #include <string>
-
-#include "Extension.h"
-#include "GeneralNames.h"
-
-#include <libcryptosec/exception/CertificationException.h>
 
 class AuthorityKeyIdentifierExtension : public Extension
 {

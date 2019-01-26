@@ -1,28 +1,33 @@
 #ifndef PKCS12BUILDER_H_
 #define PKCS12BUILDER_H_
 
-#include "PrivateKey.h"
+#include <libcryptosec/Pkcs12.h>
 #include <libcryptosec/certificate/Certificate.h>
-#include "Pkcs12.h"
-#include <libcryptosec/exception/Pkcs12Exception.h>
+#include <libcryptosec/PrivateKey.h>
+
+#include <vector>
+#include <string>
 
 class Pkcs12Builder
 {
 public:
-	Pkcs12Builder();
+	Pkcs12Builder(const PrivateKey& key, const Certificate& cert,
+			const std::string& friendlyName = "");
 	virtual ~Pkcs12Builder();
 	
-	void setKeyAndCertificate(PrivateKey* key, Certificate* cert, std::string friendlyName = std::string("")) throw();
-	void setAdditionalCerts(std::vector<Certificate*> certs) throw();
-	void addAdditionalCert(Certificate* cert) throw();
-	void clearAdditionalCerts() throw();
-	Pkcs12* doFinal(std::string password = std::string("")) const;
+	void setKeyAndCertificate(const PrivateKey& key, const Certificate& cert,
+			const std::string& friendlyName = "");
+
+	void setAdditionalCerts(const std::vector<Certificate>& certs);
+	void addAdditionalCert(const Certificate& cert);
+	void clearAdditionalCerts();
+	Pkcs12 doFinal(const std::string& password = "");
 	
 protected:
+	PrivateKey key;
+	Certificate cert;
 	std::string friendlyName;
-	PrivateKey* key;
-	Certificate* keyCert;
-	std::vector<Certificate*> certs;
+	std::vector<Certificate> certs;
 };
 
 #endif /*PKCS12BUILDER_H_*/
