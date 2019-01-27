@@ -17,7 +17,7 @@ class PolicyInformation
 {
 public:
 	PolicyInformation();
-	PolicyInformation(POLICYINFO *policyInfo);
+	PolicyInformation(const POLICYINFO *policyInfo);
 	virtual ~PolicyInformation();
 	
 	std::string getXmlEncoded(const std::string& tab = "") const;

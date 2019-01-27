@@ -15,60 +15,20 @@ KeyUsageExtension::KeyUsageExtension() :
 KeyUsageExtension::KeyUsageExtension(const X509_EXTENSION *ext) :
 		Extension(ext), usages(9)
 {
-	const ASN1_OBJECT* object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::KEY_USAGE);
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_key_usage) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "KeyUsageExtension::KeyUsageExtension");
-	}
-
-	ASN1_BIT_STRING *bitString = (ASN1_BIT_STRING*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (bitString == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	ASN1_BIT_STRING *sslObject = (ASN1_BIT_STRING*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
 
 	for (int i = 0; i < 9; i++) {
-		this->usages[i] = (ASN1_BIT_STRING_get_bit(bitString, i) ? true : false);
+		this->usages[i] = (ASN1_BIT_STRING_get_bit(sslObject, i) ? true : false);
 	}
 
-	ASN1_BIT_STRING_free(bitString);
-}
-
-KeyUsageExtension::KeyUsageExtension(const KeyUsageExtension& ext) :
-		Extension(ext), usages(ext.usages)
-{
-}
-
-KeyUsageExtension::KeyUsageExtension(KeyUsageExtension&& ext) :
-		Extension(std::move(ext)), usages(std::move(ext.usages))
-{
+	ASN1_BIT_STRING_free(sslObject);
 }
 
 KeyUsageExtension::~KeyUsageExtension()
 {
-}
-
-KeyUsageExtension& KeyUsageExtension::operator=(const KeyUsageExtension& ext)
-{
-	if (&ext == this) {
-		return *this;
-	}
-
-	this->usages = ext.usages;
-	return static_cast<KeyUsageExtension&>(Extension::operator=(ext));
-}
-
-KeyUsageExtension& KeyUsageExtension::operator=(KeyUsageExtension&& ext)
-{
-	if (&ext == this) {
-		return *this;
-	}
-
-	this->usages = std::move(ext.usages);
-	return static_cast<KeyUsageExtension&>(Extension::operator=(std::move(ext)));
 }
 
 void KeyUsageExtension::setUsage(KeyUsageExtension::Usage usage, bool value)
@@ -79,24 +39,6 @@ void KeyUsageExtension::setUsage(KeyUsageExtension::Usage usage, bool value)
 bool KeyUsageExtension::getUsage(KeyUsageExtension::Usage usage) const
 {
 	return this->usages[usage];
-}
-
-std::string KeyUsageExtension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string, name;
-	ret = tab + "<keyUsage>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>\n";
-			for (int i = 0; i < 9; i++) {
-				string = this->usages[i]?"1":"0";
-				name = KeyUsageExtension::usage2Name((KeyUsageExtension::Usage)i);
-				ret += tab + "\t\t<" + name + ">" + string + "</" + name + ">\n";
-			}
-		ret += tab + "\t</extnValue>\n";
-	ret += tab + "</keyUsage>\n";
-	return ret;
 }
 
 std::string KeyUsageExtension::extValue2Xml(const std::string& tab) const
@@ -112,24 +54,20 @@ std::string KeyUsageExtension::extValue2Xml(const std::string& tab) const
 
 X509_EXTENSION* KeyUsageExtension::getX509Extension() const
 {
-	ASN1_BIT_STRING *bitString = ASN1_BIT_STRING_new();
-	if (bitString == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	ASN1_BIT_STRING *sslObject = ASN1_BIT_STRING_new();
+	THROW_EXTENSION_ENCODE_IF(sslObject == NULL);
 
 	for (int i = 0; i < 9; i++) {
-		int rc = ASN1_BIT_STRING_set_bit(bitString, i, this->usages[i] ? 1 : 0);
-		if (rc == 0) {
-			throw CertificationException("" /* TODO */);
-		}
+		int rc = ASN1_BIT_STRING_set_bit(sslObject, i, this->usages[i] ? 1 : 0);
+		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+				ASN1_BIT_STRING_free(sslObject);
+		);
 	}
 
-	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_key_usage, (this->isCritical())?1:0, (void*) bitString);
-	if (ret == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_key_usage, (this->isCritical() ? 1 : 0), (void*) sslObject);
+	ASN1_BIT_STRING_free(sslObject);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 
-	ASN1_BIT_STRING_free(bitString);
 	return ret;
 }
 

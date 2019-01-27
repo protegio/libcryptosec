@@ -9,29 +9,25 @@
 CRLNumberExtension::CRLNumberExtension(const BigInteger& serial) :
 		Extension(), serial(serial)
 {
-    this->objectIdentifier = std::move(ObjectIdentifierFactory::getObjectIdentifier(NID_crl_number));
+    this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_crl_number);
 }
 
 CRLNumberExtension::CRLNumberExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	const ASN1_OBJECT *object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::CRL_NUMBER);
+
+	ASN1_INTEGER *sslObject = (ASN1_INTEGER*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+
+	try {
+		this->serial = BigInteger(sslObject);
+	} catch (...) {
+		ASN1_INTEGER_free(sslObject);
+		throw;
 	}
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_crl_number) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "CRLNumberExtension::CRLNumberExtension");
-	}
-
-	ASN1_INTEGER *serialAsn1 = (ASN1_INTEGER*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if(serialAsn1 == NULL) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CRLNumberExtension::CRLNumberExtension");
-	}
-
-	this->serial = std::move(BigInteger(serialAsn1));
-	ASN1_INTEGER_free(serialAsn1);
+	ASN1_INTEGER_free(sslObject);
 }
 
 CRLNumberExtension::~CRLNumberExtension()
@@ -48,20 +44,6 @@ const BigInteger& CRLNumberExtension::getSerial() const
 	return this->serial;
 }
 
-std::string CRLNumberExtension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-	ret = tab + "<crlNumber>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>\n";
-			ret += tab + "\t\t<crlNumber>" +  this->serial.toDec() + "</crlNumber>\n";
-			ret += tab + "\t</extnValue>\n";
-	ret += tab + "</crlNumber>\n";
-	return ret;
-}
-
 std::string CRLNumberExtension::extValue2Xml(const std::string& tab) const
 {
 	std::string ret;
@@ -69,8 +51,11 @@ std::string CRLNumberExtension::extValue2Xml(const std::string& tab) const
 	return ret;
 }
 
-//TODO
 X509_EXTENSION* CRLNumberExtension::getX509Extension() const
 {
-	return 0;
+	ASN1_INTEGER *sslObject = this->serial.getASN1Value();
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_crl_number, this->critical ? 1 : 0, (void*) sslObject);
+	ASN1_INTEGER_free(sslObject);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	return ret;
 }

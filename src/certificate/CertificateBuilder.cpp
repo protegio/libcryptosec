@@ -283,10 +283,9 @@ std::string CertificateBuilder::getXmlEncoded(const std::string& tab)
 
 		ret += "\t\t<extensions>\n";
 		extensions = this->getExtensions();
-		for (i=0;i<extensions.size();i++)
-		{
-			ret += extensions.at(i)->getXmlEncoded("\t\t\t");
-			delete extensions.at(i);
+		for (auto extension : extensions) {
+			ret += extension->toXml("\t\t\t");
+			delete extension;
 		}
 		ret += "\t\t</extensions>\n";
 

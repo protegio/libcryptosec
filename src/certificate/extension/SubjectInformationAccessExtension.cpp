@@ -12,57 +12,31 @@ SubjectInformationAccessExtension::SubjectInformationAccessExtension() :
 SubjectInformationAccessExtension::SubjectInformationAccessExtension(const X509_EXTENSION *ext) :
 		Extension(ext)
 {
-	const ASN1_OBJECT* object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_sinfo_access) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "SubjectInformationAccessExtension::SubjectInformationAccessExtension");
-	}
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::SUBJECT_INFORMATION_ACCESS);
 
-	STACK_OF(ACCESS_DESCRIPTION) *subjectInfoAccess = (STACK_OF(ACCESS_DESCRIPTION) *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (subjectInfoAccess == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	STACK_OF(ACCESS_DESCRIPTION) *sslObjectStack = (STACK_OF(ACCESS_DESCRIPTION) *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
 
-	int num = sk_ACCESS_DESCRIPTION_num(subjectInfoAccess);
+	int num = sk_ACCESS_DESCRIPTION_num(sslObjectStack);
 	for (int i = 0; i < num; i++) {
-		AccessDescription accessDescription((ACCESS_DESCRIPTION *)sk_ACCESS_DESCRIPTION_value(subjectInfoAccess, i));
-		this->accessDescriptions.push_back(std::move(accessDescription));
+		const ACCESS_DESCRIPTION *sslObject = (const ACCESS_DESCRIPTION*) sk_ACCESS_DESCRIPTION_value(sslObjectStack, i);
+		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+				sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
+		);
+
+		try {
+			AccessDescription accessDescription(sslObject);
+			this->accessDescriptions.push_back(std::move(accessDescription));
+		} catch (...) {
+			sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
+			throw;
+		}
 	}
 
-	sk_ACCESS_DESCRIPTION_free(subjectInfoAccess);
-}
-
-SubjectInformationAccessExtension::SubjectInformationAccessExtension(const SubjectInformationAccessExtension& ext) :
-		Extension(ext), accessDescriptions(ext.accessDescriptions)
-{
-
-}
-
-SubjectInformationAccessExtension::SubjectInformationAccessExtension(SubjectInformationAccessExtension&& ext) :
-		Extension(std::move(ext)), accessDescriptions(std::move(ext.accessDescriptions))
-{
-
+	sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
 }
 
 SubjectInformationAccessExtension::~SubjectInformationAccessExtension() {
-}
-
-SubjectInformationAccessExtension& SubjectInformationAccessExtension::operator=(const SubjectInformationAccessExtension& ext) {
-	if (&ext == this) {
-		return *this;
-	}
-
-	this->accessDescriptions = ext.accessDescriptions;
-	return static_cast<SubjectInformationAccessExtension&>(Extension::operator=(ext));
-}
-
-SubjectInformationAccessExtension& SubjectInformationAccessExtension::operator=(SubjectInformationAccessExtension&& ext) {
-	if (&ext == this) {
-		return *this;
-	}
-
-	this->accessDescriptions = std::move(ext.accessDescriptions);
-	return static_cast<SubjectInformationAccessExtension&>(Extension::operator=(std::move(ext)));
 }
 
 void SubjectInformationAccessExtension::addAccessDescription(const AccessDescription& accessDescription) {
@@ -71,25 +45,6 @@ void SubjectInformationAccessExtension::addAccessDescription(const AccessDescrip
 
 const std::vector<AccessDescription>& SubjectInformationAccessExtension::getAccessDescriptions() const {
 	return accessDescriptions;
-}
-
-std::string SubjectInformationAccessExtension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-	ret = tab + "<subjectInformationAccess>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>\n";
-			ret += tab + "\t\t<accessDescriptions>\n";
-			for (auto accessDescription : this->accessDescriptions) {
-				string = accessDescription.getXmlEncoded(tab + "\t\t\t");
-				ret += string;
-			}
-			ret += tab + "\t\t</accessDescriptions>\n";
-		ret += tab + "\t</extnValue>\n";
-	ret += tab + "</subjectInformationAccess>\n";
-	return ret;
 }
 
 std::string SubjectInformationAccessExtension::extValue2Xml(const std::string& tab) const
@@ -105,20 +60,29 @@ std::string SubjectInformationAccessExtension::extValue2Xml(const std::string& t
 }
 
 X509_EXTENSION* SubjectInformationAccessExtension::getX509Extension() const {
-	STACK_OF(ACCESS_DESCRIPTION) *subjectInfoAccess = sk_ACCESS_DESCRIPTION_new_null();
-	if (subjectInfoAccess == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	STACK_OF(ACCESS_DESCRIPTION) *sslObjectStack = sk_ACCESS_DESCRIPTION_new_null();
+	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
 
 	for (auto accessDescription : this->accessDescriptions) {
-		int rc = sk_ACCESS_DESCRIPTION_push(subjectInfoAccess, accessDescription.getAccessDescription());
-		if (rc == 0) {
-			throw CertificationException("" /* TODO */);
+		ACCESS_DESCRIPTION *sslObject = NULL;
+
+		try {
+			sslObject = accessDescription.getAccessDescription();
+		} catch (...) {
+			sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
+			throw;
 		}
+
+		int rc = sk_ACCESS_DESCRIPTION_push(sslObjectStack, sslObject);
+		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+				ACCESS_DESCRIPTION_free(sslObject);
+				sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
+		);
 	}
 
-	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_sinfo_access, this->critical ? 1 : 0, (void*) subjectInfoAccess);
-	sk_ACCESS_DESCRIPTION_free(subjectInfoAccess);
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_sinfo_access, this->critical ? 1 : 0, (void*) sslObjectStack);
+	sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 
 	return ret;
 }

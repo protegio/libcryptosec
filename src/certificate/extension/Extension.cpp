@@ -15,15 +15,12 @@ Extension::Extension(const X509_EXTENSION *ext) :
 		objectIdentifier((const ASN1_OBJECT*) X509_EXTENSION_get_object((X509_EXTENSION*) ext)),
 		critical(X509_EXTENSION_get_critical(ext) ? true : false)
 {
-	if (ext == NULL) {
-		throw CertificationException(CertificationException::INVALID_EXTENSION, "Extension::Extension");
-	}
+	THROW_EXTENSION_DECODE_IF(ext == NULL);
 
 	const ASN1_OCTET_STRING* value = X509_EXTENSION_get_data((X509_EXTENSION*) ext);
-	if (value == NULL) {
-		throw CertificationException(CertificationException::INVALID_EXTENSION, "Extension::Extension");
-	}
-	this->value = std::move(ByteArray(value->data, value->length));
+	THROW_EXTENSION_DECODE_IF(value == NULL);
+
+	this->value = ByteArray(value->data, value->length);
 }
 
 Extension::Extension(const std::string& oid, bool critical, const std::string& valueBase64) :
@@ -37,47 +34,17 @@ Extension::~Extension()
 {
 }
 
-std::string Extension::extValue2Xml(const std::string& tab) const
-{
-	return tab + "<base64Value>\n" +  tab + "\t" + this->getBase64Value() + "\n" + tab + "</base64Value>\n";
-}
-
-std::string Extension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, critical;
-	ret = tab + "<extension>\n";
-		ret += tab + "\t<extnID>"+ this->getName() +"</extnID>\n";
-		critical = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>"+ critical +"</critical>\n";
-		ret += tab + "\t<extnValue>"+ this->getBase64Value() +"</extnValue>\n";
-	ret += tab + "</extension>\n";
-	return ret;
-}
-
-std::string Extension::toXml(const std::string& tab) const
-{
-	std::string ret, critical;
-	ret = tab + "<extension>\n";
-		ret += tab + "\t<extnID>"+ this->getName() +"</extnID>\n";
-		ret += tab + "\t<oid>"+ this->getObjectIdentifier().getOid() +"</oid>\n";
-		critical = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>"+ critical +"</critical>\n";
-		ret += tab + "\t<extnValue>"+ +"\n" + this->extValue2Xml(tab + "\t\t") + tab + "\t</extnValue>\n";
-	ret += tab + "</extension>\n";
-	return ret;
-}
-
 const ObjectIdentifier& Extension::getObjectIdentifier() const
 {
 	return this->objectIdentifier;
 }
 
-std::string Extension::getName() const
+std::string Extension::getNameString() const
 {
 	return this->objectIdentifier.getName();
 }
 
-Extension::Name Extension::getTypeName() const
+Extension::Name Extension::getName() const
 {
 	return Extension::getName(this->objectIdentifier.getNid());
 }
@@ -102,39 +69,45 @@ void Extension::setCritical(bool critical)
 	this->critical = critical;
 }
 
+std::string Extension::toXml(const std::string& tab) const
+{
+	std::string ret, critical;
+	ret = tab + "<extension>\n";
+		ret += tab + "\t<extnID>"+ this->getNameString() +"</extnID>\n";
+		ret += tab + "\t<oid>"+ this->getObjectIdentifier().getOid() +"</oid>\n";
+		critical = (this->isCritical())?"yes":"no";
+		ret += tab + "\t<critical>"+ critical +"</critical>\n";
+		ret += tab + "\t<extnValue>"+ +"\n" + this->extValue2Xml(tab + "\t\t") + tab + "\t</extnValue>\n";
+	ret += tab + "</extension>\n";
+	return ret;
+}
+
+std::string Extension::extValue2Xml(const std::string& tab) const
+{
+	return tab + "<base64Value>\n" +  tab + "\t" + this->getBase64Value() + "\n" + tab + "</base64Value>\n";
+}
+
 X509_EXTENSION* Extension::getX509Extension() const
 {
 	int rc = 0;
 
 	X509_EXTENSION *ret = X509_EXTENSION_new();
-	if (ret == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 
 	ASN1_OCTET_STRING* value = ASN1_OCTET_STRING_new();
-	if (value == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_ENCODE_IF(value == NULL);
 
 	rc = ASN1_OCTET_STRING_set(value, this->value.getConstDataPointer(), this->value.getSize());
-	if (rc == 0) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_ENCODE_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_data(ret, value);
-	if (rc == 0) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_ENCODE_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_object(ret, this->objectIdentifier.getObjectIdentifier());
-	if (rc == 0) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_ENCODE_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_critical(ret, this->critical ? 1 : 0);
-	if (rc == 0) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_ENCODE_IF(rc == 0);
 
 	return ret;
 }
@@ -189,9 +162,11 @@ Extension::Name Extension::getName(int nid)
 	return ret;
 }
 
-Extension::Name Extension::getName(X509_EXTENSION *ext)
+Extension::Name Extension::getName(const X509_EXTENSION* ext)
 {
-	int nid;
-	nid = OBJ_obj2nid(X509_EXTENSION_get_object(ext));
+	const ASN1_OBJECT *oid = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(oid == NULL);
+
+	int nid = OBJ_obj2nid(oid);
 	return Extension::getName(nid);
 }

@@ -3,9 +3,6 @@
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 
-#include <openssl/asn1.h>
-#include <openssl/x509v3.h>
-
 ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() :
 		Extension()
 {
@@ -15,52 +12,34 @@ ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() :
 ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(const X509_EXTENSION *ext) :
 		Extension(ext)
 {
-	ASN1_OBJECT* object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::EXTENDED_KEY_USAGE);
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_ext_key_usage) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
-	}
+	STACK_OF(ASN1_OBJECT) *sslObjectStack = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
 
-	STACK_OF(ASN1_OBJECT) *extKeyUsages = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (extKeyUsages == NULL) {
-		throw CertificationException(CertificationException::X509V3_EXT_D2I_ERROR, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
-	}
+	int num = sk_ASN1_OBJECT_num(sslObjectStack);
+	for (int i = 0; i < num; i++) {
+		const ASN1_OBJECT *sslObject = sk_ASN1_OBJECT_value(sslObjectStack, i);
+		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+				sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
+		);
 
-	while(sk_ASN1_OBJECT_num(extKeyUsages) > 0) {
-		ASN1_OBJECT *asn1Obj = sk_ASN1_OBJECT_pop(extKeyUsages);
-		if (asn1Obj == NULL) {
-			throw CertificationException("" /* TODO */);
+		try {
+			ObjectIdentifier item(sslObject);
+			this->usages.push_back(std::move(item));
+		} catch (...) {
+			sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
+			throw;
 		}
-
-		nid = OBJ_obj2nid(asn1Obj);
-		if (nid == NID_undef) {
-			// TODO: ok to skip? should we throw an exception?
-			continue;
-		}
-
-		ObjectIdentifier item(asn1Obj);
-		this->usages.push_back(std::move(item));
 	}
 
-	sk_ASN1_OBJECT_free(extKeyUsages);
+	sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
 }
 
 ExtendedKeyUsageExtension::~ExtendedKeyUsageExtension()
 {
 }
 
-std::string ExtendedKeyUsageExtension::extValue2Xml(const std::string& tab) const
-{
-	std::string ret;
-	for (auto usage : this->usages) {
-		ret += tab + "<usage>" + usage.getName() + "</usage>\n";
-	}
-	return ret;
-}
 void ExtendedKeyUsageExtension::addUsage(const ObjectIdentifier& oid)
 {
 	// TODO: validar oid?
@@ -72,36 +51,40 @@ const std::vector<ObjectIdentifier>& ExtendedKeyUsageExtension::getUsages() cons
 	return this->usages;
 }
 
+std::string ExtendedKeyUsageExtension::extValue2Xml(const std::string& tab) const
+{
+	std::string ret;
+	for (auto usage : this->usages) {
+		ret += tab + "<usage>" + usage.getName() + "</usage>\n";
+	}
+	return ret;
+}
+
 X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 {
-	X509_EXTENSION *ret = NULL;
-	ASN1_OBJECT *asn1Obj = NULL;
-	STACK_OF(ASN1_OBJECT) *extKeyUsages = NULL;
-	int rc = 0;
-
-	extKeyUsages = sk_ASN1_OBJECT_new_null();
-	if (extKeyUsages == NULL) {
-		throw CertificationException(CertificationException::SK_TYPE_NEW_NULL_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
-	}
+	STACK_OF(ASN1_OBJECT) *sslObjectStack = sk_ASN1_OBJECT_new_null();
+	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
 
 	for (auto usage : this->usages)	{
-		asn1Obj = usage.getObjectIdentifier();
-		if (asn1Obj == NULL) {
-			throw CertificationException(CertificationException::OBJ_DUP_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
+		ASN1_OBJECT *sslObject = NULL;
+
+		try {
+			sslObject = usage.getObjectIdentifier();
+		} catch (...) {
+			sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
+			throw;
 		}
 
-		rc = sk_ASN1_OBJECT_push(extKeyUsages, asn1Obj);
-		if (rc == 0) {
-			throw CertificationException(CertificationException::SK_TYPE_PUSH_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
-		}
+		int rc = sk_ASN1_OBJECT_push(sslObjectStack, sslObject);
+		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+				ASN1_OBJECT_free(sslObject);
+				sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
+		);
 	}
 
-	ret = X509V3_EXT_i2d(NID_ext_key_usage, this->critical ? 1 : 0, (void *) extKeyUsages);
-	if (ret == NULL) {
-		throw CertificationException(CertificationException::X509V3_EXT_I2D_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
-	}
-
-	sk_ASN1_OBJECT_pop_free(extKeyUsages, ASN1_OBJECT_free);
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_ext_key_usage, this->critical ? 1 : 0, (void *) sslObjectStack);
+	sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
+	THROW_EXTENSION_ENCODE_IF(ret == 0);
 
 	return ret;
 }

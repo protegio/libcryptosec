@@ -16,36 +16,31 @@ AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() :
 AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	ASN1_OBJECT *object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::AUTHORITY_KEY_IDENTIFIER);
+
+	AUTHORITY_KEYID *sslObject = (AUTHORITY_KEYID *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+
+	try{
+		if (sslObject->keyid) {
+			this->keyIdentifier = ByteArray(sslObject->keyid->data, sslObject->keyid->length);
+		}
+
+		if (sslObject->issuer) {
+			this->authorityCertIssuer = GeneralNames(sslObject->issuer);
+		}
+
+		if (sslObject->serial) {
+			this->serialNumber = BigInteger(sslObject->serial);
+		} else {
+			this->serialNumber = BigInteger(-1);
+		}
+	} catch (...) {
+		AUTHORITY_KEYID_free(sslObject);
+		throw;
 	}
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_authority_key_identifier) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "AuthorityInformationAccessExtension::AuthorityInformationAccessExtension");
-	}
-
-	AUTHORITY_KEYID *authKeyId = (AUTHORITY_KEYID *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (authKeyId == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	if (authKeyId->keyid) {
-		this->keyIdentifier = ByteArray(authKeyId->keyid->data, authKeyId->keyid->length);
-	}
-
-	if (authKeyId->issuer) {
-		this->authorityCertIssuer = GeneralNames(authKeyId->issuer);
-	}
-
-	if (authKeyId->serial) {
-		this->serialNumber = BigInteger(authKeyId->serial);
-	} else {
-		this->serialNumber = BigInteger(-1);
-	}
-
-	AUTHORITY_KEYID_free(authKeyId);
+	AUTHORITY_KEYID_free(sslObject);
 }
 
 AuthorityKeyIdentifierExtension::~AuthorityKeyIdentifierExtension()
@@ -82,34 +77,6 @@ const BigInteger& AuthorityKeyIdentifierExtension::getAuthorityCertSerialNumber(
 	return this->serialNumber;
 }
 
-std::string AuthorityKeyIdentifierExtension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-
-	ret = tab + "<authorityKeyIdentifier>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->critical)?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>\n";
-			if (this->keyIdentifier.getSize() > 0) {
-				ret += tab + "\t\t<keyIdentifier>" + Base64::encode(this->keyIdentifier) + "</keyIdentifier>\n";
-			}
-
-			if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
-				ret += tab + "\t\t<authorityCertIssuer>\n";
-				ret += this->authorityCertIssuer.getXmlEncoded(tab + "\t\t\t");
-				ret += tab + "\t\t</authorityCertIssuer>\n";
-			}
-
-			if (this->serialNumber >= 0) {
-				ret += tab + "\t\t<authorityCertSerialNumber>" + this->serialNumber.toDec() + "</authorityCertSerialNumber>\n";
-			}
-		ret += tab + "\t</extnValue>\n";
-	ret += tab + "</authorityKeyIdentifier>\n";
-
-	return ret;
-}
-
 std::string AuthorityKeyIdentifierExtension::extValue2Xml(const std::string& tab) const
 {
 	std::string ret, string;
@@ -133,25 +100,29 @@ std::string AuthorityKeyIdentifierExtension::extValue2Xml(const std::string& tab
 
 X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension() const
 {
-	AUTHORITY_KEYID *authKeyId = AUTHORITY_KEYID_new();
-	if (authKeyId == NULL) {
-		throw CertificationException("" /* TODO */);
+	AUTHORITY_KEYID *sslObject = AUTHORITY_KEYID_new();
+	THROW_EXTENSION_ENCODE_IF(sslObject == NULL);
+
+	try {
+		if (this->keyIdentifier.getSize() > 0) {
+			sslObject->keyid = this->keyIdentifier.getAsn1OctetString();
+		}
+
+		if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
+			sslObject->issuer = this->authorityCertIssuer.getInternalGeneralNames();
+		}
+
+		if (this->serialNumber >= 0) {
+			sslObject->serial = this->serialNumber.getASN1Value();
+		}
+	} catch (...) {
+		AUTHORITY_KEYID_free(sslObject);
+		throw;
 	}
 
-	if (this->keyIdentifier.getSize() > 0) {
-		authKeyId->keyid = this->keyIdentifier.getAsn1OctetString();
-	}
-
-	if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
-		authKeyId->issuer = this->authorityCertIssuer.getInternalGeneralNames();
-	}
-
-	if (this->serialNumber >= 0) {
-		authKeyId->serial = this->serialNumber.getASN1Value();
-	}
-
-	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_authority_key_identifier, this->critical ? 1 : 0, (void*) authKeyId);
-	AUTHORITY_KEYID_free(authKeyId);
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_authority_key_identifier, this->critical ? 1 : 0, (void*) sslObject);
+	AUTHORITY_KEYID_free(sslObject);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 
 	return ret;
 }

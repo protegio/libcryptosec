@@ -30,6 +30,8 @@ public:
 		X509_CRL_DUP_ERROR,
 		X509_CRL_SET_VERSION_ERROR,
 		X509_CRL_GET_ISSUER_ERROR,
+		ENCODE_ERROR,
+		DECODE_ERROR
 	};
     CertificationException(const std::string& where)
     {
@@ -133,6 +135,12 @@ public:
     			break;
     		case X509_CRL_GET_ISSUER_ERROR:
     			ret = "X509 CRL get issuer error";
+    			break;
+    		case ENCODE_ERROR:
+    			ret = "Encode error";
+    			break;
+    		case DECODE_ERROR:
+    			ret = "Decode Error";
     			break;
     	}
     	return ret;

@@ -73,7 +73,6 @@ CertificateRequest::~CertificateRequest()
 std::string CertificateRequest::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, string;
-	unsigned int i;
 	RDNSequence subject;
 	std::vector<Extension *> extensions;
 	ByteArray publicKeyInfo;
@@ -105,10 +104,10 @@ std::string CertificateRequest::getXmlEncoded(const std::string& tab) const
 
 		ret += tab + "\t<extensions>\n";
 		extensions = this->getExtensions();
-		for (i=0;i<extensions.size();i++)
+		for (auto extension : extensions)
 		{
-			ret += extensions.at(i)->getXmlEncoded(tab + "\t\t");
-			delete extensions.at(i);
+			ret += extension->toXml(tab + "\t\t");
+			delete extension;
 		}
 		ret += tab + "\t</extensions>\n";
 

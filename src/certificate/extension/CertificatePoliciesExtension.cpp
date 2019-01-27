@@ -11,28 +11,28 @@ CertificatePoliciesExtension::CertificatePoliciesExtension() :
 CertificatePoliciesExtension::CertificatePoliciesExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	ASN1_OBJECT *object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::CERTIFICATE_POLICIES);
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_certificate_policies) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "CertificatePoliciesExtension::CertificatePoliciesExtension");
-	}
+	CERTIFICATEPOLICIES *sslObjectStack = (CERTIFICATEPOLICIES*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
 
-	CERTIFICATEPOLICIES *certificatePolicies = (CERTIFICATEPOLICIES*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (certificatePolicies == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	int num = sk_POLICYINFO_num(certificatePolicies);
+	int num = sk_POLICYINFO_num(sslObjectStack);
 	for (int i = 0; i < num; i++) {
-		PolicyInformation policyInformation(sk_POLICYINFO_value(certificatePolicies, i));
-		this->policiesInformation.push_back(std::move(policyInformation));
+		const POLICYINFO *sslObject = sk_POLICYINFO_value(sslObjectStack, i);
+		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+				CERTIFICATEPOLICIES_free(sslObjectStack);
+		);
+
+		try {
+			PolicyInformation policyInformation(sslObject);
+			this->policiesInformation.push_back(std::move(policyInformation));
+		} catch (...) {
+			CERTIFICATEPOLICIES_free(sslObjectStack);
+			throw;
+		}
 	}
 
-	CERTIFICATEPOLICIES_free(certificatePolicies);
+	CERTIFICATEPOLICIES_free(sslObjectStack);
 }
 
 CertificatePoliciesExtension::~CertificatePoliciesExtension()
@@ -49,24 +49,6 @@ const std::vector<PolicyInformation>& CertificatePoliciesExtension::getPoliciesI
 	return this->policiesInformation;
 }
 
-
-std::string CertificatePoliciesExtension::getXmlEncoded(const std::string& tab) const
-{
-	unsigned int i;
-	std::string ret, string;
-	ret = tab + "<certificatePolicies>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>\n";
-			for (auto policeInformation : this->policiesInformation) {
-				ret += policeInformation.getXmlEncoded(tab + "\t\t");
-			}
-		ret += tab + "\t</extnValue>\n";
-	ret += tab + "</certificatePolicies>\n";
-	return ret;
-}
-
 std::string CertificatePoliciesExtension::extValue2Xml(const std::string& tab) const
 {
 	std::string ret, string;
@@ -78,21 +60,29 @@ std::string CertificatePoliciesExtension::extValue2Xml(const std::string& tab) c
 
 X509_EXTENSION* CertificatePoliciesExtension::getX509Extension() const
 {
-	CERTIFICATEPOLICIES *certificatePolicies = CERTIFICATEPOLICIES_new();
-	if (certificatePolicies == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	CERTIFICATEPOLICIES *sslObjectStack = CERTIFICATEPOLICIES_new();
+	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
 
 	for (auto policeInformation : this->policiesInformation) {
-		sk_POLICYINFO_push(certificatePolicies, policeInformation.getPolicyInfo());
+		POLICYINFO *sslObject = NULL;
+
+		try {
+			sslObject = policeInformation.getPolicyInfo();
+		} catch (...) {
+			CERTIFICATEPOLICIES_free(sslObjectStack);
+			throw;
+		}
+
+		int rc = sk_POLICYINFO_push(sslObjectStack, sslObject);
+		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+				POLICYINFO_free(sslObject);
+				CERTIFICATEPOLICIES_free(sslObjectStack);
+		);
 	}
 
-	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_certificate_policies, this->critical ? 1 : 0, (void*) certificatePolicies);
-	if (ret == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	sk_POLICYINFO_pop_free(certificatePolicies, POLICYINFO_free);
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_certificate_policies, this->critical ? 1 : 0, (void*) sslObjectStack);
+	CERTIFICATEPOLICIES_free(sslObjectStack);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 
 	return ret;
 }

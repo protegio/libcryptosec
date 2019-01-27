@@ -5,6 +5,8 @@
 
 #include <libcryptosec/OpenSSLErrorHandler.h>
 
+#include <libcryptosec/Macros.h>
+
 class LibCryptoSecException : public std::exception
 {
 public:
@@ -23,5 +25,7 @@ protected:
     std::string where;
     std::string details;
 };
+
+#define THROW(exception, reason) throw exception(reason, AT_FUNCTION)
 
 #endif /*LIBCRYPTOSECEXCEPTION_H_*/

@@ -51,33 +51,6 @@ public:
 	virtual ~Extension();
 	
 	/**
-	 * @deprecated
-	 * Retorna o conteudo da extensão em formato XML.
-	 * Esta função será substituida por toXml().
-	 * */
-	virtual std::string getXmlEncoded(const std::string& tab = "") const;
-
-	/**
-	 * @brief Retorna a extensão codificada em XML.
-	 *
-	 * @param tab A string para ser usada como identação do XML.
-	 * @return A string XML.
-	 */
-	std::string toXml(const std::string& tab = "") const;
-
-	/**
-	 * @brief Retorna o valor da extensão codificada em XML.
-	 *
-	 * Classes que extendem Extension podem implementar essa
-	 * função para tornar o valor da extensão legível no XML
-	 * retornado pela função toXML().
-	 *
-	 * @param tab A string para ser usada como identação do XML.
-	 * @return A string XML.
-	 */
-	virtual std::string extValue2Xml(const std::string& tab = "") const;
-
-	/**
 	 * @return Retorna o OID da extensão.
 	 */
 	const ObjectIdentifier& getObjectIdentifier() const;
@@ -105,6 +78,44 @@ public:
 	bool isCritical() const;
 
 	/**
+	 * @brief Retorna o nome da extensão.
+	 *
+	 * Retorna 'undefined' se for uma extensão desconhecida.
+	 *
+	 * @return O nome da extensão.
+	 */
+	std::string getNameString() const;
+
+	/**
+	 * @brief Retorna o identificador da extensão.
+	 *
+	 * Retorna 'Extension::UNKNOWN' se for uma extensão desconhecida.
+	 *
+	 * @return O identificador da extensão.
+	 */
+	Extension::Name getName() const;
+
+	/**
+	 * @brief Retorna a extensão codificada em XML.
+	 *
+	 * @param tab A string para ser usada como identação do XML.
+	 * @return A string XML.
+	 */
+	std::string toXml(const std::string& tab = "") const;
+
+	/**
+	 * @brief Retorna o valor da extensão codificada em XML.
+	 *
+	 * Classes que extendem Extension podem implementar essa
+	 * função para tornar o valor da extensão legível no XML
+	 * retornado pela função toXML().
+	 *
+	 * @param tab A string para ser usada como identação do XML.
+	 * @return A string XML.
+	 */
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
+
+	/**
 	 * @brief Constrói uma estutura X509_EXTENSION baseada na extensão.
 	 *
 	 * A extensão precisa ser desalocada por quem chamou a função.
@@ -116,24 +127,6 @@ public:
 	virtual X509_EXTENSION* getX509Extension() const;
 
 	/**
-	 * @brief Retorna o nome da extensão.
-	 *
-	 * Retorna 'undefined' se for uma extensão desconhecida.
-	 *
-	 * @return O nome da extensão.
-	 */
-	std::string getName() const;
-
-	/**
-	 * @brief Retorna o identificador da extensão.
-	 *
-	 * Retorna 'Extension::UNKNOWN' se for uma extensão desconhecida.
-	 *
-	 * @return O identificador da extensão.
-	 */
-	Extension::Name getTypeName() const;
-
-	/**
 	 * @return O identificador de extensão correspondente ao nid passado.
 	 */
 	static Extension::Name getName(int nid);
@@ -141,7 +134,7 @@ public:
 	/**
 	 * @return O identificador de extensão correspondente à extensão passada.
 	 */
-	static Extension::Name getName(X509_EXTENSION *ext);
+	static Extension::Name getName(const X509_EXTENSION *ext);
 
 protected:
 	/**
@@ -153,5 +146,35 @@ protected:
 	bool critical;						// A criticidade da extensão
 	ByteArray value;					// O valor da extensão
 };
+
+#define THROW_EXTENSION_ENCODE_IF(exp)\
+do {\
+	if ((exp)) {\
+		THROW(CertificationException, CertificationException::ENCODE_ERROR);\
+	}\
+} while(false)
+
+#define THROW_EXTENSION_ENCODE_AND_FREE_IF(exp, to_free)\
+do {\
+	if ((exp)) {\
+		to_free\
+		THROW(CertificationException, CertificationException::ENCODE_ERROR);\
+	}\
+} while(false)
+
+#define THROW_EXTENSION_DECODE_IF(exp)\
+do {\
+	if ((exp)) {\
+		THROW(CertificationException, CertificationException::DECODE_ERROR);\
+	}\
+} while(false)
+
+#define THROW_EXTENSION_DECODE_AND_FREE_IF(exp, to_free)\
+do {\
+	if ((exp)) {\
+		to_free\
+		THROW(CertificationException, CertificationException::DECODE_ERROR);\
+	}\
+} while(false)
 
 #endif /*EXTENSION_H_*/

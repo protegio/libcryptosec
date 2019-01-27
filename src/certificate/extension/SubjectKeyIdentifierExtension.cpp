@@ -13,24 +13,19 @@ SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension() :
 SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	const ASN1_OBJECT* object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::SUBJECT_KEY_IDENTIFIER);
+
+	ASN1_OCTET_STRING *sslObject = (ASN1_OCTET_STRING*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+
+	try {
+		this->keyIdentifier = ByteArray(sslObject->data, sslObject->length);
+	} catch (...) {
+		ASN1_OCTET_STRING_free(sslObject);
+		throw;
 	}
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_subject_key_identifier) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension");
-	}
-
-	ASN1_OCTET_STRING *octetString = (ASN1_OCTET_STRING*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (octetString == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	this->keyIdentifier = std::move(ByteArray(octetString->data, octetString->length));
-
-	ASN1_OCTET_STRING_free(octetString);
+	ASN1_OCTET_STRING_free(sslObject);
 }
 
 SubjectKeyIdentifierExtension::~SubjectKeyIdentifierExtension()
@@ -47,18 +42,6 @@ const ByteArray& SubjectKeyIdentifierExtension::getKeyIdentifier() const
 	return this->keyIdentifier;
 }
 
-std::string SubjectKeyIdentifierExtension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-	ret = tab + "<subjectKeyIdentifier>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->critical ? "yes" : "no");
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>" + Base64::encode(this->keyIdentifier) + "</extnValue>\n";
-	ret += tab + "</subjectKeyIdentifier>\n";
-	return ret;
-}
-
 std::string SubjectKeyIdentifierExtension::extValue2Xml(const std::string& tab) const
 {
 	std::string ret;
@@ -68,20 +51,9 @@ std::string SubjectKeyIdentifierExtension::extValue2Xml(const std::string& tab) 
 
 X509_EXTENSION* SubjectKeyIdentifierExtension::getX509Extension() const
 {
-	ASN1_OCTET_STRING *octetString = ASN1_OCTET_STRING_new();
-	if (octetString == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	int rc = ASN1_OCTET_STRING_set(octetString, this->keyIdentifier.getConstDataPointer(), this->keyIdentifier.getSize());
-	if (rc == 0) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_subject_key_identifier, this->critical ? 1 : 0, (void*) octetString);
-	if (ret == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
+	ASN1_OCTET_STRING *sslObject = this->keyIdentifier.getAsn1OctetString();
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_subject_key_identifier, this->critical ? 1 : 0, (void*) sslObject);
+	ASN1_OCTET_STRING_free(sslObject);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 	return ret;
 }

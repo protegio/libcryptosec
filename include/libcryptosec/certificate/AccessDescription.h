@@ -8,6 +8,7 @@
 class AccessDescription {
 public:
 	AccessDescription();
+	AccessDescription(ACCESS_DESCRIPTION* accessDescription);
 	AccessDescription(const ACCESS_DESCRIPTION* accessDescription);
 
 	virtual ~AccessDescription();

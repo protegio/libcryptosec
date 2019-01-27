@@ -12,33 +12,28 @@ AuthorityInformationAccessExtension::AuthorityInformationAccessExtension() :
 AuthorityInformationAccessExtension::AuthorityInformationAccessExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	ASN1_OBJECT *object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	if (object == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::AUTHORITY_INFORMATION_ACCESS);
 
-	int nid = OBJ_obj2nid(object);
-	if (nid != NID_info_access) {
-		throw CertificationException(CertificationException::INVALID_TYPE, "AuthorityInformationAccessExtension::AuthorityInformationAccessExtension");
-	}
+	AUTHORITY_INFO_ACCESS *sslObjectStack = (AUTHORITY_INFO_ACCESS*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
 
-	AUTHORITY_INFO_ACCESS *authorityInfoAccess = (AUTHORITY_INFO_ACCESS *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	if (authorityInfoAccess == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
-
-	int num = sk_ACCESS_DESCRIPTION_num(authorityInfoAccess);
+	int num = sk_ACCESS_DESCRIPTION_num(sslObjectStack);
 	for (int i = 0; i < num; i++) {
-		ACCESS_DESCRIPTION *sslAccessDescription = (ACCESS_DESCRIPTION *) sk_ACCESS_DESCRIPTION_value(authorityInfoAccess, i);
-		if (sslAccessDescription == NULL) {
-			throw CertificationException("" /* TODO */);
-		}
+		const ACCESS_DESCRIPTION *sslObject = (const ACCESS_DESCRIPTION*) sk_ACCESS_DESCRIPTION_value(sslObjectStack, i);
+		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+				AUTHORITY_INFO_ACCESS_free(sslObjectStack);
+		);
 
-		AccessDescription accessDescription(sslAccessDescription);
-		this->accessDescriptions.push_back(accessDescription);
+		try {
+			AccessDescription accessDescription(sslObject);
+			this->accessDescriptions.push_back(std::move(accessDescription));
+		} catch (...) {
+			AUTHORITY_INFO_ACCESS_free(sslObjectStack);
+			throw;
+		}
 	}
 
-	AUTHORITY_INFO_ACCESS_free(authorityInfoAccess);
+	AUTHORITY_INFO_ACCESS_free(sslObjectStack);
 }
 
 AuthorityInformationAccessExtension::~AuthorityInformationAccessExtension() {
@@ -55,25 +50,6 @@ const std::vector<AccessDescription>& AuthorityInformationAccessExtension::getAc
 	return this->accessDescriptions;
 }
 
-std::string AuthorityInformationAccessExtension::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-	ret = tab + "<authorityInformationAccess>\n";
-		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
-		string = (this->isCritical())?"yes":"no";
-		ret += tab + "\t<critical>" + string + "</critical>\n";
-		ret += tab + "\t<extnValue>\n";
-			ret += tab + "\t\t<accessDescriptions>\n";
-			for (auto accessDescription : this->accessDescriptions) {
-				string = accessDescription.getXmlEncoded(tab + "\t\t\t");
-				ret += string;
-			}
-			ret += tab + "\t\t</accessDescriptions>\n";
-		ret += tab + "\t</extnValue>\n";
-	ret += tab + "</authorityInformationAccess>\n";
-	return ret;
-}
-
 std::string AuthorityInformationAccessExtension::extValue2Xml(const std::string& tab) const
 {
 	std::string ret, string;
@@ -88,20 +64,29 @@ std::string AuthorityInformationAccessExtension::extValue2Xml(const std::string&
 
 X509_EXTENSION* AuthorityInformationAccessExtension::getX509Extension() const
 {
-	AUTHORITY_INFO_ACCESS *authorityInfoAccess = AUTHORITY_INFO_ACCESS_new();
-	if (authorityInfoAccess == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	AUTHORITY_INFO_ACCESS *sslObjectStack = AUTHORITY_INFO_ACCESS_new();
+	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
 
 	for (auto accessDescription : this->accessDescriptions) {
-		sk_ACCESS_DESCRIPTION_push(authorityInfoAccess, accessDescription.getAccessDescription());
+		ACCESS_DESCRIPTION *sslObject = NULL;
+
+		try {
+			sslObject = accessDescription.getAccessDescription();
+		} catch (...) {
+			AUTHORITY_INFO_ACCESS_free(sslObjectStack);
+			throw;
+		}
+
+		int rc = sk_ACCESS_DESCRIPTION_push(sslObjectStack, sslObject);
+		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+				ACCESS_DESCRIPTION_free(sslObject);
+				AUTHORITY_INFO_ACCESS_free(sslObjectStack);
+		);
 	}
 
-	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_info_access, this->critical?1:0, (void *)authorityInfoAccess);
-	if (ret == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_info_access, this->critical ? 1 : 0, (void*) sslObjectStack);
+	AUTHORITY_INFO_ACCESS_free(sslObjectStack);
+	THROW_EXTENSION_ENCODE_IF(ret == NULL);
 
-	AUTHORITY_INFO_ACCESS_free(authorityInfoAccess);
 	return ret;
 }

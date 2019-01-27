@@ -4,7 +4,7 @@ PolicyInformation::PolicyInformation()
 {
 }
 
-PolicyInformation::PolicyInformation(POLICYINFO *policyInfo)
+PolicyInformation::PolicyInformation(const POLICYINFO *policyInfo)
 {
 	int i, num;
 	PolicyQualifierInfo policyQualifierInfo;

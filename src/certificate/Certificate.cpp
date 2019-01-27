@@ -127,7 +127,6 @@ std::string Certificate::getXmlEncoded(const std::string& tab) const
 	char temp[15];
 	long value;
 	std::vector<Extension *> extensions;
-	unsigned int i;
 
 	ret = "<?xml version=\"1.0\"?>\n";
 	ret += "<certificate>\n";
@@ -225,10 +224,9 @@ std::string Certificate::getXmlEncoded(const std::string& tab) const
 
 		ret += "\t\t<extensions>\n";
 		extensions = this->getExtensions();
-		for (i=0;i<extensions.size();i++)
-		{
-			ret += extensions.at(i)->getXmlEncoded("\t\t\t");
-			delete extensions.at(i);
+		for (auto extension : extensions) {
+			ret += extension->toXml("\t\t\t");
+			delete extension;
 		}
 		ret += "\t\t</extensions>\n";
 
