@@ -25,10 +25,10 @@ public:
 		REGISTERED_ID,
 	};
 	GeneralName();
-	GeneralName(GENERAL_NAME *generalName);
+	GeneralName(const GENERAL_NAME *generalName);
 //	GeneralName(const GeneralName& generalName);
 	virtual ~GeneralName();
-	std::string getXmlEncoded(const std::string& tab) const;
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void setOtherName(std::string oid, std::string data);
 	std::pair<std::string, std::string> getOtherName() const;
 	void setRfc822Name(std::string data);

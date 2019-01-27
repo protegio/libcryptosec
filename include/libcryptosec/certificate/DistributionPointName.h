@@ -21,14 +21,14 @@ public:
 	DistributionPointName();
 	DistributionPointName(DIST_POINT_NAME *dpn);
 	virtual ~DistributionPointName();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void setNameRelativeToCrlIssuer(RDNSequence &rdnSequence);
 	RDNSequence getNameRelativeToCrlIssuer();
 	void setFullName(GeneralNames &generalNames);
 	GeneralNames getFullName();
 	DistributionPointName::Type getType() const;
-	DIST_POINT_NAME* getDistPointName();
+	DIST_POINT_NAME* getDistPointName() const;
 protected:
 	GeneralNames fullName;
 	RDNSequence relativeName;

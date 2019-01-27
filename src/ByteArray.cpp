@@ -316,3 +316,17 @@ void ByteArray::burn(bool useRandomBytes) {
 		}
 	}
 }
+
+ASN1_OCTET_STRING* ByteArray::getAsn1OctetString() const
+{
+	ASN1_OCTET_STRING *ret = ASN1_OCTET_STRING_new();
+	if (ret == NULL) {
+		throw ByteArrayException(/* TODO */);
+	}
+
+	int rc = ASN1_OCTET_STRING_set(ret, this->m_data, this->size);
+	if (rc == 0) {
+		throw ByteArrayException(/* TODO */);
+	}
+	return ret;
+}

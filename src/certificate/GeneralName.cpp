@@ -33,7 +33,7 @@ GeneralName::GeneralName()
 //	}
 //}
 
-GeneralName::GeneralName(GENERAL_NAME *generalName) {
+GeneralName::GeneralName(const GENERAL_NAME* generalName) {
 	std::string data, oid;
 	unsigned char *temp;
 	RDNSequence directoryName;

@@ -12,7 +12,6 @@ Extension::Extension() :
 }
 
 Extension::Extension(const X509_EXTENSION *ext) :
-		// TODO: esse cast do X509_EXTENSION é ok?
 		objectIdentifier((const ASN1_OBJECT*) X509_EXTENSION_get_object((X509_EXTENSION*) ext)),
 		critical(X509_EXTENSION_get_critical(ext) ? true : false)
 {
@@ -20,7 +19,6 @@ Extension::Extension(const X509_EXTENSION *ext) :
 		throw CertificationException(CertificationException::INVALID_EXTENSION, "Extension::Extension");
 	}
 
-	// TODO: esse cast do argumento é ok?
 	const ASN1_OCTET_STRING* value = X509_EXTENSION_get_data((X509_EXTENSION*) ext);
 	if (value == NULL) {
 		throw CertificationException(CertificationException::INVALID_EXTENSION, "Extension::Extension");

@@ -178,11 +178,6 @@ CertificateBuilder& CertificateBuilder::operator=(CertificateBuilder&& builder)
 	return *this;
 }
 
-std::string CertificateBuilder::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
 std::string CertificateBuilder::getXmlEncoded(const std::string& tab)
 {
 	std::string ret, string;

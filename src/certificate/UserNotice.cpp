@@ -50,12 +50,7 @@ UserNotice::~UserNotice()
 {
 }
 
-std::string UserNotice::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string UserNotice::getXmlEncoded(std::string tab)
+std::string UserNotice::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	std::string ints;

@@ -43,7 +43,7 @@ public:
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	std::string getXmlEncoded();
+	
 	std::string getXmlEncoded(const std::string& tab);
 	virtual std::string toXml(const std::string& tab = "");
 

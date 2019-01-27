@@ -4,8 +4,6 @@
 #include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 
-#include <openssl/x509.h>
-
 #include <vector>
 
 /**
@@ -26,17 +24,12 @@ public:
 	 * @throw CertificationException se a estrutura X509_EXTENSION não representar
 	 * 	uma extensão do tipo Extended Key Usage.
 	 */
-	ExtendedKeyUsageExtension(X509_EXTENSION *ext);
+	ExtendedKeyUsageExtension(const X509_EXTENSION *ext);
 
 	/**
 	 * @brief Destrutor padrão.
 	 */
 	virtual ~ExtendedKeyUsageExtension();
-
-	/**
-	 * @return Retorna apenas o valor da extensão codificado em XML.
-	 */
-	virtual std::string extValue2Xml(const std::string& tab = "") const;
 
 	/**
 	 * @brief Adiciona um OID na lista de extended key usage.
@@ -50,12 +43,17 @@ public:
 	/**
 	 * @return Retorna uma cópia da lista e extended key usage.
 	 */
-	std::vector<ObjectIdentifier> getUsages() const;
+	const std::vector<ObjectIdentifier>& getUsages() const;
+
+	/**
+	 * @return Retorna apenas o valor da extensão codificado em XML.
+	 */
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
 
 	/**
 	 * @return Retorna a extensão representada em uma estrutura X509_EXTENSION.
 	 */
-	X509_EXTENSION* getX509Extension() const;
+	virtual X509_EXTENSION* getX509Extension() const;
 
 protected:
 	std::vector<ObjectIdentifier> usages;

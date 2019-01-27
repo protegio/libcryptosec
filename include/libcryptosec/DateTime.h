@@ -89,7 +89,7 @@ public:
 	 * Obtem representação da data em formato Xml
 	 * @return data em formato Xml
 	 */	
-	std::string getXmlEncoded(std::string tab = "") const;
+	std::string getXmlEncoded(const std::string& tab = "") const;
 
 	/**
 	 * Define a data do objeto DateTime.

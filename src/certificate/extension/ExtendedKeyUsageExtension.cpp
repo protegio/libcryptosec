@@ -12,28 +12,30 @@ ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() :
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_ext_key_usage);
 }
 
-ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext) :
+ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(const X509_EXTENSION *ext) :
 		Extension(ext)
 {
-	ObjectIdentifier objectIdentifier;
-	STACK_OF(ASN1_OBJECT) *extKeyUsages = NULL;
-	ASN1_OBJECT *asn1Obj = NULL;
-	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
-	std::string value;
-	int nid;
+	ASN1_OBJECT* object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
+	if (object == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
 
-	if (OBJ_obj2nid(object) != NID_ext_key_usage) {
+	int nid = OBJ_obj2nid(object);
+	if (nid != NID_ext_key_usage) {
 		throw CertificationException(CertificationException::INVALID_TYPE, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
 	}
 
-	extKeyUsages = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i(ext);
-	if (extKeyUsages == 0) {
+	STACK_OF(ASN1_OBJECT) *extKeyUsages = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	if (extKeyUsages == NULL) {
 		throw CertificationException(CertificationException::X509V3_EXT_D2I_ERROR, "ExtendedKeyUsageExtension::ExtendedKeyUsageExtension");
 	}
 
-	while(sk_ASN1_OBJECT_num(extKeyUsages) > 0)
-	{
-		asn1Obj = sk_ASN1_OBJECT_pop(extKeyUsages);
+	while(sk_ASN1_OBJECT_num(extKeyUsages) > 0) {
+		ASN1_OBJECT *asn1Obj = sk_ASN1_OBJECT_pop(extKeyUsages);
+		if (asn1Obj == NULL) {
+			throw CertificationException("" /* TODO */);
+		}
+
 		nid = OBJ_obj2nid(asn1Obj);
 		if (nid == NID_undef) {
 			// TODO: ok to skip? should we throw an exception?
@@ -43,6 +45,7 @@ ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(X509_EXTENSION *ext) :
 		ObjectIdentifier item(asn1Obj);
 		this->usages.push_back(std::move(item));
 	}
+
 	sk_ASN1_OBJECT_free(extKeyUsages);
 }
 
@@ -64,7 +67,7 @@ void ExtendedKeyUsageExtension::addUsage(const ObjectIdentifier& oid)
 	this->usages.push_back(oid);
 }
 
-std::vector<ObjectIdentifier> ExtendedKeyUsageExtension::getUsages() const
+const std::vector<ObjectIdentifier>& ExtendedKeyUsageExtension::getUsages() const
 {
 	return this->usages;
 }
@@ -82,7 +85,7 @@ X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 	}
 
 	for (auto usage : this->usages)	{
-		asn1Obj = OBJ_dup(usage.getObjectIdentifier());
+		asn1Obj = usage.getObjectIdentifier();
 		if (asn1Obj == NULL) {
 			throw CertificationException(CertificationException::OBJ_DUP_ERROR, "ExtendedKeyUsageExtension::getX509Extension");
 		}

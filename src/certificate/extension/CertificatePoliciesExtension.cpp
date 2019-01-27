@@ -2,28 +2,36 @@
 
 #include <libcryptosec/exception/CertificationException.h>
 
-CertificatePoliciesExtension::CertificatePoliciesExtension() : Extension()
+CertificatePoliciesExtension::CertificatePoliciesExtension() :
+		Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_certificate_policies);
 }
 
-CertificatePoliciesExtension::CertificatePoliciesExtension(X509_EXTENSION *ext) : Extension(ext)
+CertificatePoliciesExtension::CertificatePoliciesExtension(const X509_EXTENSION* ext) :
+		Extension(ext)
 {
-	CERTIFICATEPOLICIES *certificatePolicies;
-	PolicyInformation policyInformation;
-	int i, num;
-	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
-	if (OBJ_obj2nid(object) != NID_certificate_policies)
-	{
+	ASN1_OBJECT *object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
+	if (object == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	int nid = OBJ_obj2nid(object);
+	if (nid != NID_certificate_policies) {
 		throw CertificationException(CertificationException::INVALID_TYPE, "CertificatePoliciesExtension::CertificatePoliciesExtension");
 	}
-	certificatePolicies = (CERTIFICATEPOLICIES *)X509V3_EXT_d2i(ext);
-	num = sk_POLICYINFO_num(certificatePolicies);
-	for (i=0;i<num;i++)
-	{
-		policyInformation = PolicyInformation(sk_POLICYINFO_value(certificatePolicies, i));
-		this->policiesInformation.push_back(policyInformation);
+
+	CERTIFICATEPOLICIES *certificatePolicies = (CERTIFICATEPOLICIES*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	if (certificatePolicies == NULL) {
+		throw CertificationException("" /* TODO */);
 	}
+
+	int num = sk_POLICYINFO_num(certificatePolicies);
+	for (int i = 0; i < num; i++) {
+		PolicyInformation policyInformation(sk_POLICYINFO_value(certificatePolicies, i));
+		this->policiesInformation.push_back(std::move(policyInformation));
+	}
+
 	CERTIFICATEPOLICIES_free(certificatePolicies);
 }
 
@@ -31,25 +39,18 @@ CertificatePoliciesExtension::~CertificatePoliciesExtension()
 {
 }
 
-std::string CertificatePoliciesExtension::extValue2Xml(std::string tab)
+void CertificatePoliciesExtension::addPolicyInformation(const PolicyInformation& policyInformation)
 {
-	unsigned int i;
-	std::string ret, string;
-	
-	for (i=0;i<this->policiesInformation.size();i++)
-	{
-		ret += (this->policiesInformation.at(i)).getXmlEncoded(tab);
-	}
-
-	return ret;
+	this->policiesInformation.push_back(policyInformation);
 }
 
-std::string CertificatePoliciesExtension::getXmlEncoded()
+const std::vector<PolicyInformation>& CertificatePoliciesExtension::getPoliciesInformation() const
 {
-	return this->getXmlEncoded("");
+	return this->policiesInformation;
 }
 
-std::string CertificatePoliciesExtension::getXmlEncoded(std::string tab)
+
+std::string CertificatePoliciesExtension::getXmlEncoded(const std::string& tab) const
 {
 	unsigned int i;
 	std::string ret, string;
@@ -58,43 +59,40 @@ std::string CertificatePoliciesExtension::getXmlEncoded(std::string tab)
 		string = (this->isCritical())?"yes":"no";
 		ret += tab + "\t<critical>" + string + "</critical>\n";
 		ret += tab + "\t<extnValue>\n";
-			for (i=0;i<this->policiesInformation.size();i++)
-			{
-				ret += (this->policiesInformation.at(i)).getXmlEncoded(tab + "\t\t");
+			for (auto policeInformation : this->policiesInformation) {
+				ret += policeInformation.getXmlEncoded(tab + "\t\t");
 			}
 		ret += tab + "\t</extnValue>\n";
 	ret += tab + "</certificatePolicies>\n";
 	return ret;
 }
 
-void CertificatePoliciesExtension::addPolicyInformation(PolicyInformation &policyInformation)
+std::string CertificatePoliciesExtension::extValue2Xml(const std::string& tab) const
 {
-	this->policiesInformation.push_back(policyInformation);
-}
-
-std::vector<PolicyInformation> CertificatePoliciesExtension::getPoliciesInformation()
-{
-	return this->policiesInformation;
-}
-
-X509_EXTENSION* CertificatePoliciesExtension::getX509Extension()
-{
-	X509_EXTENSION *ret;
-	CERTIFICATEPOLICIES *certificatePolicies;
-//	POLICYINFO *policyInformation;
-	unsigned int i;
-	certificatePolicies = CERTIFICATEPOLICIES_new();
-	for (i=0;i<this->policiesInformation.size();i++)
-	{
-		sk_POLICYINFO_push(certificatePolicies, this->policiesInformation.at(i).getPolicyInfo());
+	std::string ret, string;
+	for (auto policeInformation : this->policiesInformation) {
+		ret += policeInformation.getXmlEncoded(tab);
 	}
-	ret = X509V3_EXT_i2d(NID_certificate_policies, this->critical?1:0, (void *)certificatePolicies);
-//	for (i=0;i<this->policiesInformation.size();i++)
-//	{
-//		policyInformation = sk_POLICYINFO_value(certificatePolicies, i);
-//		sk_POLICYINFO_pop_free(policyInformation->qualifiers, POLICYQUALINFO_free);
-//		policyInformation->qualifiers = NULL;
-//	}
+	return ret;
+}
+
+X509_EXTENSION* CertificatePoliciesExtension::getX509Extension() const
+{
+	CERTIFICATEPOLICIES *certificatePolicies = CERTIFICATEPOLICIES_new();
+	if (certificatePolicies == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	for (auto policeInformation : this->policiesInformation) {
+		sk_POLICYINFO_push(certificatePolicies, policeInformation.getPolicyInfo());
+	}
+
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_certificate_policies, this->critical ? 1 : 0, (void*) certificatePolicies);
+	if (ret == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
 	sk_POLICYINFO_pop_free(certificatePolicies, POLICYINFO_free);
+
 	return ret;
 }

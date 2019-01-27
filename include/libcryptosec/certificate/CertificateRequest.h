@@ -29,19 +29,18 @@ public:
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	virtual std::string toXml(std::string tab = "");
 	std::string getPemEncoded();
 	ByteArray getDerEncoded() const;
 	MessageDigest::Algorithm getMessageDigestAlgorithm();
 	void setVersion(long version);
-	long getVersion();
+	long getVersion() const;
 	void setPublicKey(PublicKey &publicKey);
 	PublicKey* getPublicKey() const;
-	ByteArray getPublicKeyInfo();
+	ByteArray getPublicKeyInfo() const;
 	void setSubject(RDNSequence &name);
-	RDNSequence getSubject();
+	RDNSequence getSubject() const;
 	void addExtension(Extension &extension);
 	void addExtensions(std::vector<Extension *> &extensions);
 	void replaceExtension(Extension &extension);

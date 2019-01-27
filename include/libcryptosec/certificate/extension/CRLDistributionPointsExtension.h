@@ -9,20 +9,23 @@ class CRLDistributionPointsExtension : public Extension
 {
 public:
 	CRLDistributionPointsExtension();
-	CRLDistributionPointsExtension(X509_EXTENSION *ext);
+	CRLDistributionPointsExtension(const X509_EXTENSION *ext);
+
 	virtual ~CRLDistributionPointsExtension();
 	
+	void addDistributionPoint(const DistributionPoint& distributionPoint);
+	const std::vector<DistributionPoint>& getDistributionPoints() const;
+
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	virtual std::string extValue2Xml(std::string tab = "");
-	void addDistributionPoint(DistributionPoint &distributionPoint);
-	std::vector<DistributionPoint> getDistributionPoints();
-	X509_EXTENSION* getX509Extension();
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
+
+	virtual X509_EXTENSION* getX509Extension() const;
+
 protected:
 	std::vector<DistributionPoint> distributionPoints;
 };

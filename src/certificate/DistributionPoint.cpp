@@ -43,12 +43,7 @@ DistributionPoint::~DistributionPoint()
 {
 }
 
-std::string DistributionPoint::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string DistributionPoint::getXmlEncoded(std::string tab)
+std::string DistributionPoint::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, string, reasonValue;
 	int i;
@@ -161,7 +156,7 @@ GeneralNames DistributionPoint::getCrlIssuer()
 	return this->crlIssuer;
 }
 
-DIST_POINT* DistributionPoint::getDistPoint()
+DIST_POINT* DistributionPoint::getDistPoint() const
 {
 	DIST_POINT *ret;
 	bool anyReasons;

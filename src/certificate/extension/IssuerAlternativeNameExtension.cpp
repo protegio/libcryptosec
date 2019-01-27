@@ -3,21 +3,31 @@
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 #include <libcryptosec/exception/CertificationException.h>
 
-IssuerAlternativeNameExtension::IssuerAlternativeNameExtension() : Extension()
+IssuerAlternativeNameExtension::IssuerAlternativeNameExtension() :
+		Extension()
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_issuer_alt_name);
 }
 
-IssuerAlternativeNameExtension::IssuerAlternativeNameExtension(X509_EXTENSION *ext) : Extension(ext)
+IssuerAlternativeNameExtension::IssuerAlternativeNameExtension(const X509_EXTENSION *ext) :
+		Extension(ext)
 {
-	GENERAL_NAMES *generalNames;
-	ASN1_OBJECT* object = X509_EXTENSION_get_object(ext);
-	if (OBJ_obj2nid(object) != NID_issuer_alt_name)
-	{
+	ASN1_OBJECT* object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
+	if (object == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	int nid = OBJ_obj2nid(object);
+	if (nid != NID_issuer_alt_name){
 		throw CertificationException(CertificationException::INVALID_TYPE, "IssuerAlternativeNameExtension::IssuerAlternativeNameExtension");
 	}
-	generalNames = (GENERAL_NAMES *)X509V3_EXT_d2i(ext);
-	this->issuerAltName = GeneralNames(generalNames);
+
+	GENERAL_NAMES *generalNames = (GENERAL_NAMES*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	if (generalNames == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	this->issuerAltName = std::move(GeneralNames(generalNames));
 	sk_GENERAL_NAME_free(generalNames);
 }
 
@@ -25,17 +35,17 @@ IssuerAlternativeNameExtension::~IssuerAlternativeNameExtension()
 {
 }
 
-std::string IssuerAlternativeNameExtension::extValue2Xml(std::string tab)
-{	
-	return this->issuerAltName.getXmlEncoded(tab);
-}
-
-std::string IssuerAlternativeNameExtension::getXmlEncoded()
+void IssuerAlternativeNameExtension::setIssuerAltName(const GeneralNames& generalNames)
 {
-	return this->getXmlEncoded("");
+	this->issuerAltName = generalNames;
 }
 
-std::string IssuerAlternativeNameExtension::getXmlEncoded(std::string tab)
+const GeneralNames& IssuerAlternativeNameExtension::getIssuerAltName() const
+{
+	return this->issuerAltName;
+}
+
+std::string IssuerAlternativeNameExtension::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, string;
 	ret = tab + "<issuerAlternativeName>\n";
@@ -43,31 +53,29 @@ std::string IssuerAlternativeNameExtension::getXmlEncoded(std::string tab)
 		string = (this->critical)?"yes":"no";
 		ret += tab + "\t<critical>" + string + "</critical>\n";
 		ret += tab + "\t<extnValue>\n";
-
-
 			ret += this->issuerAltName.getXmlEncoded(tab + "\t\t");
-
 		ret += tab + "\t</extnValue>\n";
 	ret += tab + "</issuerAlternativeName>\n";
 	return ret;
 }
 
-void IssuerAlternativeNameExtension::setIssuerAltName(GeneralNames &generalNames)
+std::string IssuerAlternativeNameExtension::extValue2Xml(const std::string& tab) const
 {
-	this->issuerAltName = generalNames;
+	return this->issuerAltName.getXmlEncoded(tab);
 }
 
-GeneralNames IssuerAlternativeNameExtension::getIssuerAltName()
+X509_EXTENSION* IssuerAlternativeNameExtension::getX509Extension() const
 {
-	return this->issuerAltName;
-}
+	GENERAL_NAMES *generalNames = this->issuerAltName.getInternalGeneralNames();
+	if (generalNames == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
 
-X509_EXTENSION* IssuerAlternativeNameExtension::getX509Extension()
-{
-	X509_EXTENSION *ret;
-	GENERAL_NAMES *generalNames;
-	generalNames = this->issuerAltName.getInternalGeneralNames();
-	ret = X509V3_EXT_i2d(NID_issuer_alt_name, this->critical?1:0, (void *)generalNames);
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_issuer_alt_name, this->critical?1:0, (void *)generalNames);
+	if (ret == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
 	sk_GENERAL_NAME_free(generalNames);
 	return ret;
 }

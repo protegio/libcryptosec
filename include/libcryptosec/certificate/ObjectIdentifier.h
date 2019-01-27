@@ -27,7 +27,7 @@ public:
 	std::string getOid() const;
 	int getNid() const;
 	std::string getName() const;
-	const ASN1_OBJECT* getObjectIdentifier() const;
+	ASN1_OBJECT* getObjectIdentifier() const;
 
 protected:
 	ASN1_OBJECT *asn1Object;

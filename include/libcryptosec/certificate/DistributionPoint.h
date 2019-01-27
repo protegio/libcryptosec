@@ -20,15 +20,15 @@ public:
 	DistributionPoint();
 	DistributionPoint(DIST_POINT *distPoint);
 	virtual ~DistributionPoint();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void setDistributionPointName(DistributionPointName &dpn);
 	DistributionPointName getDistributionPointName();
 	void setReasonFlag(DistributionPoint::ReasonFlags reason, bool value);
 	bool getReasonFlag(DistributionPoint::ReasonFlags reason);
 	void setCrlIssuer(GeneralNames &crlIssuer);
 	GeneralNames getCrlIssuer();
-	DIST_POINT* getDistPoint();
+	DIST_POINT* getDistPoint() const;
 	static std::string reasonFlag2Name(DistributionPoint::ReasonFlags reason);
 protected:
 	DistributionPointName distributionPointName;

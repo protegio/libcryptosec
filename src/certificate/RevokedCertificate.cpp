@@ -45,12 +45,7 @@ RevokedCertificate::~RevokedCertificate()
 {
 }
 
-std::string RevokedCertificate::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string RevokedCertificate::getXmlEncoded(std::string tab)
+std::string RevokedCertificate::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	

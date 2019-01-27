@@ -5,27 +5,26 @@
 
 #include <libcryptosec/BigInteger.h>
 
-#include <openssl/x509.h>
-
 class CRLNumberExtension : public Extension
 {
 public:
-	CRLNumberExtension(const BigInteger& serial);
+	CRLNumberExtension(const BigInteger& serial = 0);
 	CRLNumberExtension(const X509_EXTENSION* ext);
 
 	virtual ~CRLNumberExtension();
+
+	void setSerial(const BigInteger& serial);
+	const BigInteger& getSerial() const;
 
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	virtual std::string getXmlEncoded(const std::string& tab = "");
-	virtual std::string extValue2Xml(const std::string& tab = "");
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
 
-	void setSerial(unsigned long serial); //TODO
-	const BigInteger& getSerial() const; //TODO
-	X509_EXTENSION* getX509Extension(); //TODO
+	virtual X509_EXTENSION* getX509Extension() const; //TODO
 	
 protected:
 	BigInteger serial;

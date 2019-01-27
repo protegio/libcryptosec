@@ -25,10 +25,10 @@ public:
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	virtual std::string getXmlEncoded(const std::string& tab) const;
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
 	virtual std::string extValue2Xml(const std::string& tab = "") const;
 
-	X509_EXTENSION* getX509Extension() const;
+	virtual X509_EXTENSION* getX509Extension() const;
 
 protected:
 	GeneralNames subjectAltName;

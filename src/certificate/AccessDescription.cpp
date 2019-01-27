@@ -3,50 +3,43 @@
 AccessDescription::AccessDescription() {
 }
 
-AccessDescription::AccessDescription(ACCESS_DESCRIPTION *accessDescription) {
+AccessDescription::AccessDescription(const ACCESS_DESCRIPTION* accessDescription) {
 	if(accessDescription->method) {
-		accessMethod = ObjectIdentifier(OBJ_dup(accessDescription->method));
+		const ASN1_OBJECT *oid = accessDescription->method;
+		this->accessMethod = ObjectIdentifier(oid);
 	}
+
 	if(accessDescription->location) {
-		accessLocation = GeneralName(accessDescription->location);
+		const GENERAL_NAME *generalName = accessDescription->location;
+		this->accessLocation = GeneralName(generalName);
 	}
 }
 
-ACCESS_DESCRIPTION* AccessDescription::getAccessDescription() const {
-	ACCESS_DESCRIPTION* accessDescription = ACCESS_DESCRIPTION_new();
-
-	accessDescription->method = OBJ_dup(accessMethod.getObjectIdentifier());
-	accessDescription->location = accessLocation.getGeneralName();
-
-	return accessDescription;
+AccessDescription::~AccessDescription() {
 }
 
-GeneralName AccessDescription::getAccessLocation()
-{
-    return accessLocation;
-}
 
-ObjectIdentifier AccessDescription::getAccessMethod()
-{
-    return accessMethod;
-}
-
-void AccessDescription::setAccessLocation(GeneralName accessLocation)
+void AccessDescription::setAccessLocation(const GeneralName& accessLocation)
 {
     this->accessLocation = accessLocation;
 }
 
-void AccessDescription::setAccessMethod(ObjectIdentifier accessMethod)
+void AccessDescription::setAccessMethod(const ObjectIdentifier& accessMethod)
 {
     this->accessMethod = accessMethod;
 }
 
-std::string AccessDescription::getXmlEncoded()
+const GeneralName& AccessDescription::getAccessLocation() const
 {
-	return this->getXmlEncoded("");
+    return accessLocation;
 }
 
-std::string AccessDescription::getXmlEncoded(std::string tab)
+const ObjectIdentifier& AccessDescription::getAccessMethod() const
+{
+    return accessMethod;
+}
+
+std::string AccessDescription::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	ret = tab + "<accessDescription>\n";
@@ -56,5 +49,10 @@ std::string AccessDescription::getXmlEncoded(std::string tab)
 	return ret;
 }
 
-AccessDescription::~AccessDescription() {
+ACCESS_DESCRIPTION* AccessDescription::getAccessDescription() const {
+	ACCESS_DESCRIPTION* accessDescription = ACCESS_DESCRIPTION_new();
+	accessDescription->method = accessMethod.getObjectIdentifier();
+	accessDescription->location = accessLocation.getGeneralName();
+	return accessDescription;
 }
+

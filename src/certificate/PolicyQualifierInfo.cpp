@@ -36,12 +36,7 @@ PolicyQualifierInfo::~PolicyQualifierInfo()
 {
 }
 
-std::string PolicyQualifierInfo::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string PolicyQualifierInfo::getXmlEncoded(std::string tab)
+std::string PolicyQualifierInfo::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	ret = tab + "<policyQualifierInfo>\n";

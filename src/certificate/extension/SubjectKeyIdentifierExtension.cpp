@@ -4,9 +4,6 @@
 #include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 #include <libcryptosec/Base64.h>
 
-#include <openssl/asn1.h>
-#include <openssl/x509v3.h>
-
 SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension() :
 		Extension()
 {
@@ -36,42 +33,9 @@ SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(const X509_EXTENSIO
 	ASN1_OCTET_STRING_free(octetString);
 }
 
-SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(const SubjectKeyIdentifierExtension& ext) :
-		Extension(ext), keyIdentifier(ext.keyIdentifier)
-{
-
-}
-
-SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(SubjectKeyIdentifierExtension&& ext) :
-		Extension(std::move(ext)), keyIdentifier(std::move(ext.keyIdentifier))
-{
-
-}
-
 SubjectKeyIdentifierExtension::~SubjectKeyIdentifierExtension()
 {
 }
-
-SubjectKeyIdentifierExtension& SubjectKeyIdentifierExtension::operator=(const SubjectKeyIdentifierExtension& ext)
-{
-	if (&ext == this) {
-		return *this;
-	}
-
-	this->keyIdentifier = ext.keyIdentifier;
-	return static_cast<SubjectKeyIdentifierExtension&>(Extension::operator=(ext));
-}
-
-SubjectKeyIdentifierExtension& SubjectKeyIdentifierExtension::operator=(SubjectKeyIdentifierExtension&& ext)
-{
-	if (&ext == this) {
-		return *this;
-	}
-
-	this->keyIdentifier = std::move(ext.keyIdentifier);
-	return static_cast<SubjectKeyIdentifierExtension&>(Extension::operator=(std::move(ext)));
-}
-
 
 void SubjectKeyIdentifierExtension::setKeyIdentifier(const ByteArray& keyIdentifier)
 {

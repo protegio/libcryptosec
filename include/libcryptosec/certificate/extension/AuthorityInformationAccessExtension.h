@@ -12,20 +12,26 @@ public:
 		CA_ISSUER = NID_ad_ca_issuers,
 		OCSP = NID_ad_OCSP,
 	};
+
 	AuthorityInformationAccessExtension();
-	AuthorityInformationAccessExtension(X509_EXTENSION *ext);
+	AuthorityInformationAccessExtension(const X509_EXTENSION *ext);
+
 	virtual ~AuthorityInformationAccessExtension();
-	X509_EXTENSION* getX509Extension();
-	void addAccessDescription(AccessDescription& accessDescription);
-	std::vector<AccessDescription> getAccessDescriptions();
+
+	void addAccessDescription(const AccessDescription& accessDescription);
+	const std::vector<AccessDescription>& getAccessDescriptions() const;
+
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	virtual std::string extValue2Xml(std::string tab = "");
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
+
+	// TODO: implementar
+	virtual X509_EXTENSION* getX509Extension() const;
+
 protected:
 	std::vector<AccessDescription> accessDescriptions;
 };

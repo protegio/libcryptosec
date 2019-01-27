@@ -7,36 +7,44 @@
 #include <openssl/asn1.h>
 #include <openssl/x509v3.h>
 
-AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() : Extension()
+AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() :
+		Extension(), serialNumber(-1)
 {
 	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_authority_key_identifier);
-	this->serialNumber = -1;
 }
 
-AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(X509_EXTENSION *ext) : Extension(ext)
+AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(const X509_EXTENSION* ext) :
+		Extension(ext)
 {
-	AUTHORITY_KEYID *authKeyId;
-	if (this->objectIdentifier.getNid() != NID_authority_key_identifier)
-	{
-		throw CertificationException(CertificationException::INVALID_TYPE, "AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension");
+	ASN1_OBJECT *object = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
+	if (object == NULL) {
+		throw CertificationException("" /* TODO */);
 	}
-	authKeyId = (AUTHORITY_KEYID *)X509V3_EXT_d2i(ext);
-	if (authKeyId->keyid)
-	{
+
+	int nid = OBJ_obj2nid(object);
+	if (nid != NID_authority_key_identifier) {
+		throw CertificationException(CertificationException::INVALID_TYPE, "AuthorityInformationAccessExtension::AuthorityInformationAccessExtension");
+	}
+
+	AUTHORITY_KEYID *authKeyId = (AUTHORITY_KEYID *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
+	if (authKeyId == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	if (authKeyId->keyid) {
 		this->keyIdentifier = ByteArray(authKeyId->keyid->data, authKeyId->keyid->length);
 	}
-	if (authKeyId->issuer)
-	{
+
+	if (authKeyId->issuer) {
 		this->authorityCertIssuer = GeneralNames(authKeyId->issuer);
 	}
-	if (authKeyId->serial)
-	{
-		this->serialNumber = ASN1_INTEGER_get(authKeyId->serial);
+
+	if (authKeyId->serial) {
+		this->serialNumber = BigInteger(authKeyId->serial);
+	} else {
+		this->serialNumber = BigInteger(-1);
 	}
-	else
-	{
-		this->serialNumber = -1;
-	}
+
 	AUTHORITY_KEYID_free(authKeyId);
 }
 
@@ -44,124 +52,106 @@ AuthorityKeyIdentifierExtension::~AuthorityKeyIdentifierExtension()
 {
 }
 
-std::string AuthorityKeyIdentifierExtension::extValue2Xml(std::string tab)
+void AuthorityKeyIdentifierExtension::setKeyIdentifier(const ByteArray& keyIdentifier)
 {
-	std::string ret, string;
-	char temp[15];
-
-	if (this->keyIdentifier.getSize() > 0)
-	{
-		ret += tab + "<keyIdentifier>" + Base64::encode(this->keyIdentifier) + "</keyIdentifier>\n";
-	}
-	
-	if (this->authorityCertIssuer.getNumberOfEntries() > 0)
-	{
-		ret += tab + "<authorityCertIssuer>\n";
-		ret += this->authorityCertIssuer.getXmlEncoded(tab + "\t");
-		ret += tab + "</authorityCertIssuer>\n";
-	}
-	
-	if (this->serialNumber > 0)
-	{
-		sprintf(temp, "%d", (int)this->serialNumber);
-		string = temp;
-		ret += tab + "<authorityCertSerialNumber>" + string + "</authorityCertSerialNumber>\n";
-	}
-			
-	return ret;
+	this->keyIdentifier = keyIdentifier;
 }
 
-std::string AuthorityKeyIdentifierExtension::getXmlEncoded()
+const ByteArray& AuthorityKeyIdentifierExtension::getKeyIdentifier() const
 {
-	return this->getXmlEncoded("");
+	return this->keyIdentifier;
 }
 
-std::string AuthorityKeyIdentifierExtension::getXmlEncoded(std::string tab)
+void AuthorityKeyIdentifierExtension::setAuthorityCertIssuer(const GeneralNames& generalNames)
+{
+	this->authorityCertIssuer = generalNames;
+}
+
+const GeneralNames& AuthorityKeyIdentifierExtension::getAuthorityCertIssuer() const
+{
+	return this->authorityCertIssuer;
+}
+
+void AuthorityKeyIdentifierExtension::setAuthorityCertSerialNumber(const BigInteger& serialNumber)
+{
+	this->serialNumber = serialNumber;
+}
+
+const BigInteger& AuthorityKeyIdentifierExtension::getAuthorityCertSerialNumber() const
+{
+	return this->serialNumber;
+}
+
+std::string AuthorityKeyIdentifierExtension::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, string;
-	char temp[15];
+
 	ret = tab + "<authorityKeyIdentifier>\n";
 		ret += tab + "\t<extnID>" + this->getName() + "</extnID>\n";
 		string = (this->critical)?"yes":"no";
 		ret += tab + "\t<critical>" + string + "</critical>\n";
 		ret += tab + "\t<extnValue>\n";
-
-			if (this->keyIdentifier.getSize() > 0)
-			{
+			if (this->keyIdentifier.getSize() > 0) {
 				ret += tab + "\t\t<keyIdentifier>" + Base64::encode(this->keyIdentifier) + "</keyIdentifier>\n";
 			}
-			
-			if (this->authorityCertIssuer.getNumberOfEntries() > 0)
-			{
+
+			if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
 				ret += tab + "\t\t<authorityCertIssuer>\n";
 				ret += this->authorityCertIssuer.getXmlEncoded(tab + "\t\t\t");
 				ret += tab + "\t\t</authorityCertIssuer>\n";
 			}
-			
-			if (this->serialNumber > 0)
-			{
-				sprintf(temp, "%d", (int)this->serialNumber);
-				string = temp;
-				ret += tab + "\t\t<authorityCertSerialNumber>" + string + "</authorityCertSerialNumber>\n";
+
+			if (this->serialNumber >= 0) {
+				ret += tab + "\t\t<authorityCertSerialNumber>" + this->serialNumber.toDec() + "</authorityCertSerialNumber>\n";
 			}
-			
 		ret += tab + "\t</extnValue>\n";
 	ret += tab + "</authorityKeyIdentifier>\n";
+
 	return ret;
 }
 
-void AuthorityKeyIdentifierExtension::setKeyIdentifier(ByteArray keyIdentifier)
+std::string AuthorityKeyIdentifierExtension::extValue2Xml(const std::string& tab) const
 {
-	this->keyIdentifier = keyIdentifier;
-}
+	std::string ret, string;
 
-ByteArray AuthorityKeyIdentifierExtension::getKeyIdentifier()
-{
-	return this->keyIdentifier;
-}
-
-void AuthorityKeyIdentifierExtension::setAuthorityCertIssuer(GeneralNames &generalNames)
-{
-	this->authorityCertIssuer = generalNames;
-}
-
-GeneralNames AuthorityKeyIdentifierExtension::getAuthorityCertIssuer()
-{
-	return this->authorityCertIssuer;
-}
-
-void AuthorityKeyIdentifierExtension::setAuthorityCertSerialNumber(long serialNumber)
-{
-	this->serialNumber = serialNumber;
-}
-
-long AuthorityKeyIdentifierExtension::getAuthorityCertSerialNumber()
-{
-	return this->serialNumber;
-}
-
-X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension()
-{
-	X509_EXTENSION *ret;
-	AUTHORITY_KEYID *authKeyId;
-	ByteArray temp;
-	authKeyId = AUTHORITY_KEYID_new();
-	if (this->keyIdentifier.getSize() > 0)
-	{
-		authKeyId->keyid = ASN1_OCTET_STRING_new();
-		temp = this->keyIdentifier;
-		ASN1_OCTET_STRING_set(authKeyId->keyid, temp.getDataPointer(), temp.getSize());
+	if (this->keyIdentifier.getSize() > 0) {
+		ret += tab + "<keyIdentifier>" + Base64::encode(this->keyIdentifier) + "</keyIdentifier>\n";
 	}
-	if (this->authorityCertIssuer.getNumberOfEntries() > 0)
-	{
+
+	if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
+		ret += tab + "<authorityCertIssuer>\n";
+		ret += this->authorityCertIssuer.getXmlEncoded(tab + "\t");
+		ret += tab + "</authorityCertIssuer>\n";
+	}
+
+	if (this->serialNumber >= 0) {
+		ret += tab + "<authorityCertSerialNumber>" + this->serialNumber.toDec() + "</authorityCertSerialNumber>\n";
+	}
+
+	return ret;
+}
+
+X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension() const
+{
+	AUTHORITY_KEYID *authKeyId = AUTHORITY_KEYID_new();
+	if (authKeyId == NULL) {
+		throw CertificationException("" /* TODO */);
+	}
+
+	if (this->keyIdentifier.getSize() > 0) {
+		authKeyId->keyid = this->keyIdentifier.getAsn1OctetString();
+	}
+
+	if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
 		authKeyId->issuer = this->authorityCertIssuer.getInternalGeneralNames();
 	}
-	if (this->serialNumber >= 0)
-	{
-		authKeyId->serial = ASN1_INTEGER_new();
-		ASN1_INTEGER_set(authKeyId->serial, this->serialNumber);
+
+	if (this->serialNumber >= 0) {
+		authKeyId->serial = this->serialNumber.getASN1Value();
 	}
-	ret = X509V3_EXT_i2d(NID_authority_key_identifier, this->critical?1:0, (void *)authKeyId);
+
+	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_authority_key_identifier, this->critical ? 1 : 0, (void*) authKeyId);
 	AUTHORITY_KEYID_free(authKeyId);
+
 	return ret;
 }

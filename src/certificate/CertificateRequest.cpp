@@ -70,12 +70,7 @@ CertificateRequest::~CertificateRequest()
 	X509_REQ_free(this->req);
 }
 
-std::string CertificateRequest::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string CertificateRequest::getXmlEncoded(std::string tab)
+std::string CertificateRequest::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret, string;
 	unsigned int i;
@@ -234,7 +229,7 @@ void CertificateRequest::setVersion(long version)
 	X509_REQ_set_version(this->req, version);
 }
 
-long CertificateRequest::getVersion()
+long CertificateRequest::getVersion() const
 {
 	return X509_REQ_get_version(this->req);
 }
@@ -274,7 +269,7 @@ PublicKey* CertificateRequest::getPublicKey() const
 	return ret;
 }
 
-ByteArray CertificateRequest::getPublicKeyInfo()
+ByteArray CertificateRequest::getPublicKeyInfo() const
 {
 	throw std::exception();
 	// TODO: openssl não provê uma função para pegar os bits da chave pública
@@ -306,7 +301,7 @@ void CertificateRequest::setSubject(RDNSequence &name)
 	X509_NAME_free(subject);
 }
 
-RDNSequence CertificateRequest::getSubject()
+RDNSequence CertificateRequest::getSubject() const
 {
 	RDNSequence ret;
 	if (this->req)

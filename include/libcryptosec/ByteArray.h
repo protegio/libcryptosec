@@ -1,6 +1,8 @@
 #ifndef BYTEARRAY_H_
 #define BYTEARRAY_H_
 
+#include <openssl/asn1.h>
+
 #include <sstream>
 #include <string>
 
@@ -244,6 +246,8 @@ public:
      */
     virtual std::string toHex(char separator) const;
     
+    ASN1_OCTET_STRING* getAsn1OctetString() const;
+
     /**
      * @brief Sobrescreve os dados do ByteArray.
      *

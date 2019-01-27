@@ -19,8 +19,8 @@ public:
 	PolicyInformation();
 	PolicyInformation(POLICYINFO *policyInfo);
 	virtual ~PolicyInformation();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void setPolicyIdentifier(ObjectIdentifier policyIdentifier);
 	ObjectIdentifier getPolicyIdentifier();
 	void addPolicyQualifierInfo(PolicyQualifierInfo &policyQualifierInfo);

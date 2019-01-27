@@ -24,12 +24,7 @@ PolicyInformation::~PolicyInformation()
 {
 }
 
-std::string PolicyInformation::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string PolicyInformation::getXmlEncoded(std::string tab)
+std::string PolicyInformation::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	unsigned int i;

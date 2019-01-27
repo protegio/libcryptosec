@@ -15,8 +15,8 @@ public:
 	UserNotice();
 	UserNotice(USERNOTICE *userNotice);
 	virtual ~UserNotice();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void setNoticeReference(std::string organization, std::vector<long> noticeNumbers);
 	std::pair<std::string, std::vector<long> > getNoticeReference();
 	void setExplicitText(std::string explicitText);

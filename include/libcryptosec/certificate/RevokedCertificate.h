@@ -27,8 +27,8 @@ public:
 	RevokedCertificate();
 	RevokedCertificate(const X509_REVOKED *revoked);
 	virtual ~RevokedCertificate();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	void setCertificateSerialNumber(long certificateSerialNumber);
 	void setCertificateSerialNumber(BigInteger certificateSerialNumber);
 	long getCertificateSerialNumber();

@@ -25,8 +25,8 @@ public:
 	PolicyQualifierInfo();
 	PolicyQualifierInfo(POLICYQUALINFO *policyQualInfo);
 	virtual ~PolicyQualifierInfo();
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
+	
+	std::string getXmlEncoded(const std::string& tab = "") const;
 	ObjectIdentifier getObjectIdentifier();
 	void setCpsUri(std::string cpsUri);
 	std::string getCpsUri();

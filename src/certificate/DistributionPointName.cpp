@@ -30,12 +30,7 @@ DistributionPointName::~DistributionPointName()
 {
 }
 
-std::string DistributionPointName::getXmlEncoded()
-{
-	return this->getXmlEncoded("");
-}
-
-std::string DistributionPointName::getXmlEncoded(std::string tab)
+std::string DistributionPointName::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	GeneralNames gns;
@@ -120,7 +115,7 @@ DistributionPointName::Type DistributionPointName::getType() const
 	return this->type;
 }
 
-DIST_POINT_NAME* DistributionPointName::getDistPointName()
+DIST_POINT_NAME* DistributionPointName::getDistPointName() const
 {
 	DIST_POINT_NAME *ret;
 	X509_NAME *name;

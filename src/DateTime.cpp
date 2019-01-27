@@ -169,7 +169,7 @@ time_t DateTime::getDateTime() const
 	return static_cast<time_t>(this->seconds.getValue());
 }
 
-std::string DateTime::getXmlEncoded(std::string tab) const
+std::string DateTime::getXmlEncoded(const std::string& tab) const
 {	
 	ASN1_TIME* gt;
 	std::string str;

@@ -3,25 +3,31 @@
 
 #include <libcryptosec/certificate/extension/Extension.h>
 
+#include <libcryptosec/BigInteger.h>
+
 class DeltaCRLIndicatorExtension : public Extension
 {
 public:
-	DeltaCRLIndicatorExtension(unsigned long baseCrlNumber);
-	DeltaCRLIndicatorExtension(X509_EXTENSION *ext);
+	DeltaCRLIndicatorExtension(const BigInteger& baseCrlNumber = 0);
+	DeltaCRLIndicatorExtension(const X509_EXTENSION* ext);
+
 	virtual ~DeltaCRLIndicatorExtension();
+
+	void setSerial(const BigInteger& serial);
+	const BigInteger& getSerial() const;
+
 	/**
 	 * @deprecated
 	 * Retorna o conteudo da extensão em formato XML.
 	 * Esta função será substituida por toXml().
 	 * */
-	std::string getXmlEncoded();
-	std::string getXmlEncoded(std::string tab);
-	virtual std::string extValue2Xml(std::string tab = "");
-	X509_EXTENSION* getX509Extension();
-	void setSerial(unsigned long serial); //TODO
-	const long getSerial() const; //TODO
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
+
+	virtual X509_EXTENSION* getX509Extension() const;
+
 protected:
-	unsigned long baseCrlNumber;
+	BigInteger baseCrlNumber;
 };
 
 #endif /*DELTACRLINDICATOREXTENSION_H_*/

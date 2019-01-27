@@ -1,21 +1,15 @@
 #ifndef BASICCONSTRAINTSEXTENSION_H_
 #define BASICCONSTRAINTSEXTENSION_H_
 
-#include <openssl/x509.h>
-
 #include <libcryptosec/certificate/extension/Extension.h>
-
-#include <string>
 
 class BasicConstraintsExtension : public Extension
 {
 public:
 	BasicConstraintsExtension();
-	BasicConstraintsExtension(X509_EXTENSION *ext);
-	virtual ~BasicConstraintsExtension();
+	BasicConstraintsExtension(const X509_EXTENSION* ext);
 
-	virtual std::string extValue2Xml(const std::string& tab = "");
-	virtual std::string getXmlEncoded(const std::string& tab = "");
+	virtual ~BasicConstraintsExtension();
 
 	void setCa(bool value);
 	bool isCa() const;
@@ -23,7 +17,10 @@ public:
 	void setPathLen(long value);
 	long getPathLen() const;
 
-	X509_EXTENSION* getX509Extension() const;
+	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string extValue2Xml(const std::string& tab = "") const;
+
+	virtual X509_EXTENSION* getX509Extension() const;
 
 protected:
 	bool ca;
