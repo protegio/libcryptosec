@@ -13,10 +13,10 @@ SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension() :
 SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::SUBJECT_KEY_IDENTIFIER);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::SUBJECT_KEY_IDENTIFIER);
 
 	ASN1_OCTET_STRING *sslObject = (ASN1_OCTET_STRING*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+	THROW_DECODE_ERROR_IF(sslObject == NULL);
 
 	try {
 		this->keyIdentifier = ByteArray(sslObject->data, sslObject->length);
@@ -54,6 +54,6 @@ X509_EXTENSION* SubjectKeyIdentifierExtension::getX509Extension() const
 	ASN1_OCTET_STRING *sslObject = this->keyIdentifier.getAsn1OctetString();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_subject_key_identifier, this->critical ? 1 : 0, (void*) sslObject);
 	ASN1_OCTET_STRING_free(sslObject);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 	return ret;
 }

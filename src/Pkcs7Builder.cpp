@@ -4,6 +4,7 @@ Pkcs7Builder::Pkcs7Builder()
 {
 	this->pkcs7 = PKCS7_new();
 	this->p7bio = NULL;
+	this->state = Pkcs7Builder::NO_INIT;
 }
 
 Pkcs7Builder::~Pkcs7Builder()

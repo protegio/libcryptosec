@@ -16,10 +16,10 @@ AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() :
 AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::AUTHORITY_KEY_IDENTIFIER);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::AUTHORITY_KEY_IDENTIFIER);
 
 	AUTHORITY_KEYID *sslObject = (AUTHORITY_KEYID *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+	THROW_DECODE_ERROR_IF(sslObject == NULL);
 
 	try{
 		if (sslObject->keyid) {
@@ -101,7 +101,7 @@ std::string AuthorityKeyIdentifierExtension::extValue2Xml(const std::string& tab
 X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension() const
 {
 	AUTHORITY_KEYID *sslObject = AUTHORITY_KEYID_new();
-	THROW_EXTENSION_ENCODE_IF(sslObject == NULL);
+	THROW_ENCODE_ERROR_IF(sslObject == NULL);
 
 	try {
 		if (this->keyIdentifier.getSize() > 0) {
@@ -122,7 +122,7 @@ X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension() const
 
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_authority_key_identifier, this->critical ? 1 : 0, (void*) sslObject);
 	AUTHORITY_KEYID_free(sslObject);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	return ret;
 }

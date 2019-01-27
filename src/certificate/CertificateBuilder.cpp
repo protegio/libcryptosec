@@ -184,8 +184,7 @@ std::string CertificateBuilder::getXmlEncoded(const std::string& tab)
 	ByteArray data;
 	char temp[15];
 	long value;
-	std::vector<Extension *> extensions;
-	unsigned int i;
+	std::vector<Extension*> extensions;
 
 	ret = "<?xml version=\"1.0\"?>\n";
 	ret += "<certificate>\n";

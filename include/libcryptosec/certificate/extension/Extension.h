@@ -147,34 +147,4 @@ protected:
 	ByteArray value;					// O valor da extensão
 };
 
-#define THROW_EXTENSION_ENCODE_IF(exp)\
-do {\
-	if ((exp)) {\
-		THROW(CertificationException, CertificationException::ENCODE_ERROR);\
-	}\
-} while(false)
-
-#define THROW_EXTENSION_ENCODE_AND_FREE_IF(exp, to_free)\
-do {\
-	if ((exp)) {\
-		to_free\
-		THROW(CertificationException, CertificationException::ENCODE_ERROR);\
-	}\
-} while(false)
-
-#define THROW_EXTENSION_DECODE_IF(exp)\
-do {\
-	if ((exp)) {\
-		THROW(CertificationException, CertificationException::DECODE_ERROR);\
-	}\
-} while(false)
-
-#define THROW_EXTENSION_DECODE_AND_FREE_IF(exp, to_free)\
-do {\
-	if ((exp)) {\
-		to_free\
-		THROW(CertificationException, CertificationException::DECODE_ERROR);\
-	}\
-} while(false)
-
 #endif /*EXTENSION_H_*/

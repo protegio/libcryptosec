@@ -11,15 +11,15 @@ CertificatePoliciesExtension::CertificatePoliciesExtension() :
 CertificatePoliciesExtension::CertificatePoliciesExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::CERTIFICATE_POLICIES);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::CERTIFICATE_POLICIES);
 
 	CERTIFICATEPOLICIES *sslObjectStack = (CERTIFICATEPOLICIES*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
+	THROW_DECODE_ERROR_IF(sslObjectStack == NULL);
 
 	int num = sk_POLICYINFO_num(sslObjectStack);
 	for (int i = 0; i < num; i++) {
 		const POLICYINFO *sslObject = sk_POLICYINFO_value(sslObjectStack, i);
-		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+		THROW_DECODE_ERROR_AND_FREE_IF(sslObject == NULL,
 				CERTIFICATEPOLICIES_free(sslObjectStack);
 		);
 
@@ -61,7 +61,7 @@ std::string CertificatePoliciesExtension::extValue2Xml(const std::string& tab) c
 X509_EXTENSION* CertificatePoliciesExtension::getX509Extension() const
 {
 	CERTIFICATEPOLICIES *sslObjectStack = CERTIFICATEPOLICIES_new();
-	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
+	THROW_ENCODE_ERROR_IF(sslObjectStack == NULL);
 
 	for (auto policeInformation : this->policiesInformation) {
 		POLICYINFO *sslObject = NULL;
@@ -74,7 +74,7 @@ X509_EXTENSION* CertificatePoliciesExtension::getX509Extension() const
 		}
 
 		int rc = sk_POLICYINFO_push(sslObjectStack, sslObject);
-		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
 				POLICYINFO_free(sslObject);
 				CERTIFICATEPOLICIES_free(sslObjectStack);
 		);
@@ -82,7 +82,7 @@ X509_EXTENSION* CertificatePoliciesExtension::getX509Extension() const
 
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_certificate_policies, this->critical ? 1 : 0, (void*) sslObjectStack);
 	CERTIFICATEPOLICIES_free(sslObjectStack);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	return ret;
 }

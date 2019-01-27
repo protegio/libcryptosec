@@ -15,10 +15,10 @@ Extension::Extension(const X509_EXTENSION *ext) :
 		objectIdentifier((const ASN1_OBJECT*) X509_EXTENSION_get_object((X509_EXTENSION*) ext)),
 		critical(X509_EXTENSION_get_critical(ext) ? true : false)
 {
-	THROW_EXTENSION_DECODE_IF(ext == NULL);
+	THROW_DECODE_ERROR_IF(ext == NULL);
 
 	const ASN1_OCTET_STRING* value = X509_EXTENSION_get_data((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(value == NULL);
+	THROW_DECODE_ERROR_IF(value == NULL);
 
 	this->value = ByteArray(value->data, value->length);
 }
@@ -92,22 +92,22 @@ X509_EXTENSION* Extension::getX509Extension() const
 	int rc = 0;
 
 	X509_EXTENSION *ret = X509_EXTENSION_new();
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	ASN1_OCTET_STRING* value = ASN1_OCTET_STRING_new();
-	THROW_EXTENSION_ENCODE_IF(value == NULL);
+	THROW_ENCODE_ERROR_IF(value == NULL);
 
 	rc = ASN1_OCTET_STRING_set(value, this->value.getConstDataPointer(), this->value.getSize());
-	THROW_EXTENSION_ENCODE_IF(rc == 0);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_data(ret, value);
-	THROW_EXTENSION_ENCODE_IF(rc == 0);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_object(ret, this->objectIdentifier.getObjectIdentifier());
-	THROW_EXTENSION_ENCODE_IF(rc == 0);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_critical(ret, this->critical ? 1 : 0);
-	THROW_EXTENSION_ENCODE_IF(rc == 0);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	return ret;
 }
@@ -165,7 +165,7 @@ Extension::Name Extension::getName(int nid)
 Extension::Name Extension::getName(const X509_EXTENSION* ext)
 {
 	const ASN1_OBJECT *oid = X509_EXTENSION_get_object((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(oid == NULL);
+	THROW_DECODE_ERROR_IF(oid == NULL);
 
 	int nid = OBJ_obj2nid(oid);
 	return Extension::getName(nid);

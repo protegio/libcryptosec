@@ -12,15 +12,15 @@ AuthorityInformationAccessExtension::AuthorityInformationAccessExtension() :
 AuthorityInformationAccessExtension::AuthorityInformationAccessExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::AUTHORITY_INFORMATION_ACCESS);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::AUTHORITY_INFORMATION_ACCESS);
 
 	AUTHORITY_INFO_ACCESS *sslObjectStack = (AUTHORITY_INFO_ACCESS*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
+	THROW_DECODE_ERROR_IF(sslObjectStack == NULL);
 
 	int num = sk_ACCESS_DESCRIPTION_num(sslObjectStack);
 	for (int i = 0; i < num; i++) {
 		const ACCESS_DESCRIPTION *sslObject = (const ACCESS_DESCRIPTION*) sk_ACCESS_DESCRIPTION_value(sslObjectStack, i);
-		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+		THROW_DECODE_ERROR_AND_FREE_IF(sslObject == NULL,
 				AUTHORITY_INFO_ACCESS_free(sslObjectStack);
 		);
 
@@ -65,7 +65,7 @@ std::string AuthorityInformationAccessExtension::extValue2Xml(const std::string&
 X509_EXTENSION* AuthorityInformationAccessExtension::getX509Extension() const
 {
 	AUTHORITY_INFO_ACCESS *sslObjectStack = AUTHORITY_INFO_ACCESS_new();
-	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
+	THROW_ENCODE_ERROR_IF(sslObjectStack == NULL);
 
 	for (auto accessDescription : this->accessDescriptions) {
 		ACCESS_DESCRIPTION *sslObject = NULL;
@@ -78,7 +78,7 @@ X509_EXTENSION* AuthorityInformationAccessExtension::getX509Extension() const
 		}
 
 		int rc = sk_ACCESS_DESCRIPTION_push(sslObjectStack, sslObject);
-		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
 				ACCESS_DESCRIPTION_free(sslObject);
 				AUTHORITY_INFO_ACCESS_free(sslObjectStack);
 		);
@@ -86,7 +86,7 @@ X509_EXTENSION* AuthorityInformationAccessExtension::getX509Extension() const
 
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_info_access, this->critical ? 1 : 0, (void*) sslObjectStack);
 	AUTHORITY_INFO_ACCESS_free(sslObjectStack);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	return ret;
 }

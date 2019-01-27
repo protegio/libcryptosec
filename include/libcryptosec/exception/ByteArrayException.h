@@ -69,6 +69,9 @@ public:
     		case OUT_OF_BOUNDS:
     		    ret = "Out of bounds";
     		    break;
+    		case RANDOM_ERROR:
+    			ret = "Random error";
+    			break;
     	}
     	return ret;
     }

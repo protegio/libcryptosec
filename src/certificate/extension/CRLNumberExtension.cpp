@@ -15,10 +15,10 @@ CRLNumberExtension::CRLNumberExtension(const BigInteger& serial) :
 CRLNumberExtension::CRLNumberExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::CRL_NUMBER);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::CRL_NUMBER);
 
 	ASN1_INTEGER *sslObject = (ASN1_INTEGER*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+	THROW_DECODE_ERROR_IF(sslObject == NULL);
 
 	try {
 		this->serial = BigInteger(sslObject);
@@ -56,6 +56,6 @@ X509_EXTENSION* CRLNumberExtension::getX509Extension() const
 	ASN1_INTEGER *sslObject = this->serial.getASN1Value();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_crl_number, this->critical ? 1 : 0, (void*) sslObject);
 	ASN1_INTEGER_free(sslObject);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 	return ret;
 }

@@ -12,15 +12,15 @@ ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() :
 ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(const X509_EXTENSION *ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::EXTENDED_KEY_USAGE);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::EXTENDED_KEY_USAGE);
 
 	STACK_OF(ASN1_OBJECT) *sslObjectStack = (STACK_OF(ASN1_OBJECT) *) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObjectStack == NULL);
+	THROW_DECODE_ERROR_IF(sslObjectStack == NULL);
 
 	int num = sk_ASN1_OBJECT_num(sslObjectStack);
 	for (int i = 0; i < num; i++) {
 		const ASN1_OBJECT *sslObject = sk_ASN1_OBJECT_value(sslObjectStack, i);
-		THROW_EXTENSION_DECODE_AND_FREE_IF(sslObject == NULL,
+		THROW_DECODE_ERROR_AND_FREE_IF(sslObject == NULL,
 				sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
 		);
 
@@ -63,7 +63,7 @@ std::string ExtendedKeyUsageExtension::extValue2Xml(const std::string& tab) cons
 X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 {
 	STACK_OF(ASN1_OBJECT) *sslObjectStack = sk_ASN1_OBJECT_new_null();
-	THROW_EXTENSION_ENCODE_IF(sslObjectStack == NULL);
+	THROW_ENCODE_ERROR_IF(sslObjectStack == NULL);
 
 	for (auto usage : this->usages)	{
 		ASN1_OBJECT *sslObject = NULL;
@@ -76,7 +76,7 @@ X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 		}
 
 		int rc = sk_ASN1_OBJECT_push(sslObjectStack, sslObject);
-		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
 				ASN1_OBJECT_free(sslObject);
 				sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
 		);
@@ -84,7 +84,7 @@ X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_ext_key_usage, this->critical ? 1 : 0, (void *) sslObjectStack);
 	sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
-	THROW_EXTENSION_ENCODE_IF(ret == 0);
+	THROW_ENCODE_ERROR_IF(ret == 0);
 
 	return ret;
 }

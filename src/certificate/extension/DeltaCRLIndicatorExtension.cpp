@@ -13,10 +13,10 @@ DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(const BigInteger& baseCrl
 DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::DELTA_CRL_INDICATOR);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::DELTA_CRL_INDICATOR);
 
 	ASN1_INTEGER *sslObject = (ASN1_INTEGER*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+	THROW_DECODE_ERROR_IF(sslObject == NULL);
 
 	try{
 		this->baseCrlNumber = BigInteger(sslObject);
@@ -56,6 +56,6 @@ X509_EXTENSION* DeltaCRLIndicatorExtension::getX509Extension() const
 	ASN1_INTEGER *sslObject = this->baseCrlNumber.getASN1Value();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_delta_crl, this->critical ? 1 : 0, (void*) sslObject);
 	ASN1_INTEGER_free(sslObject);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 	return ret;
 }

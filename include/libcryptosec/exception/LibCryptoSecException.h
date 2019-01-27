@@ -26,6 +26,4 @@ protected:
     std::string details;
 };
 
-#define THROW(exception, reason) throw exception(reason, AT_FUNCTION)
-
 #endif /*LIBCRYPTOSECEXCEPTION_H_*/

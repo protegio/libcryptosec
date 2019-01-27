@@ -68,7 +68,7 @@ KeyPair::KeyPair(AsymmetricKey::Algorithm algorithm, int length) :
 }
 
 KeyPair::KeyPair(const Engine& engine, const std::string& keyId) :
-		engine(engine), keyId(keyId)
+		keyId(keyId), engine(engine)
 {
 	// TODO: esse cast é ok?
 	ENGINE *eng = (ENGINE*) this->engine.getEngine();

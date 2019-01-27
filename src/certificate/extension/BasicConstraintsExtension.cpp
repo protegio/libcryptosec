@@ -12,10 +12,10 @@ BasicConstraintsExtension::BasicConstraintsExtension() :
 BasicConstraintsExtension::BasicConstraintsExtension(const X509_EXTENSION* ext) :
 		Extension(ext)
 {
-	THROW_EXTENSION_DECODE_IF(this->getName() != Extension::BASIC_CONSTRAINTS);
+	THROW_DECODE_ERROR_IF(this->getName() != Extension::BASIC_CONSTRAINTS);
 
 	BASIC_CONSTRAINTS_st *sslObject = (BASIC_CONSTRAINTS_st*) X509V3_EXT_d2i((X509_EXTENSION*) ext);
-	THROW_EXTENSION_DECODE_IF(sslObject == NULL);
+	THROW_DECODE_ERROR_IF(sslObject == NULL);
 
 	this->ca = sslObject->ca ? true : false;
 
@@ -73,24 +73,24 @@ std::string BasicConstraintsExtension::extValue2Xml(const std::string& tab) cons
 X509_EXTENSION* BasicConstraintsExtension::getX509Extension() const
 {
 	BASIC_CONSTRAINTS_st *sslObject = BASIC_CONSTRAINTS_new();
-	THROW_EXTENSION_ENCODE_IF(sslObject == NULL);
+	THROW_ENCODE_ERROR_IF(sslObject == NULL);
 
 	sslObject->ca = this->ca ? 255 : 0;
 
 	if (this->pathLen >= 0) {
 		sslObject->pathlen = ASN1_INTEGER_new();
-		THROW_EXTENSION_ENCODE_AND_FREE_IF(sslObject->pathlen == NULL,
+		THROW_ENCODE_ERROR_AND_FREE_IF(sslObject->pathlen == NULL,
 				BASIC_CONSTRAINTS_free(sslObject);
 		);
 
 		int rc = ASN1_INTEGER_set(sslObject->pathlen, this->pathLen);
-		THROW_EXTENSION_ENCODE_AND_FREE_IF(rc == 0,
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
 				BASIC_CONSTRAINTS_free(sslObject););
 	}
 
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_basic_constraints, this->critical ? 1 : 0, (void*) sslObject);
 	BASIC_CONSTRAINTS_free(sslObject);
-	THROW_EXTENSION_ENCODE_IF(ret == NULL);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	return ret;
 }

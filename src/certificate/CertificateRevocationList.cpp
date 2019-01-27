@@ -100,7 +100,6 @@ std::string CertificateRevocationList::getXmlEncoded(const std::string& tab) con
 	ByteArray data;
 	char temp[11];
 	std::vector<RevokedCertificate> revokedCertificates;
-	unsigned int i;
 
 	ret = tab + "<certificateRevocationList>\n";
 	ret += tab + "\t<tbsCertList>\n";
