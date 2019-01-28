@@ -109,12 +109,12 @@ POLICYQUALINFO* PolicyQualifierInfo::getPolicyQualInfo() const
 	switch (this->type)
 	{
 		case PolicyQualifierInfo::CPS_URI:
-			ret->pqualid = OBJ_dup(this->objectIdentifier.getObjectIdentifier());
+			ret->pqualid = OBJ_dup(this->objectIdentifier.getSslObject());
 			ret->d.cpsuri = ASN1_IA5STRING_new();
 			ASN1_STRING_set(ret->d.cpsuri, this->cpsUri.c_str(), this->cpsUri.size());
 			break;
 		case PolicyQualifierInfo::USER_NOTICE:
-			ret->pqualid = OBJ_dup(this->objectIdentifier.getObjectIdentifier());
+			ret->pqualid = OBJ_dup(this->objectIdentifier.getSslObject());
 			ret->d.usernotice = this->userNotice.getUserNotice();
 			break;
 		default:

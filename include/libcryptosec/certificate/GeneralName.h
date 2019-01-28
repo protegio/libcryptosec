@@ -44,7 +44,7 @@ public:
 	void setRegisteredId(ObjectIdentifier objectIdentifier);
 	ObjectIdentifier getRegisteredId() const;
 	GeneralName::Type getType() const;
-	GENERAL_NAME* getGeneralName() const;
+	GENERAL_NAME* getSslObject() const;
 	static std::string type2Name(GeneralName::Type type);
 	GeneralName& operator=(const GeneralName& value);
 	static std::string  data2IpAddress(unsigned char *data);

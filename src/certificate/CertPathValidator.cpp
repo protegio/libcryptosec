@@ -74,22 +74,20 @@ bool CertPathValidator::verify()
 	certs = sk_X509_new_null();
 	
 	//popula pilha
-	for(unsigned int k = 0 ; k < this->untrustedChain.size() ; k++)
-	{
+	for(auto certificate : this->untrustedChain) {
 		/* ignorou-se o retorno do push na pilha. 
 		 * Retorno de erro (0) ocorreria no caso de falta de memoria. 
 		 * Ver funcao sk_insert do openssl
 		 */
-		sk_X509_push(certs, this->untrustedChain.at(k).getX509());
+		sk_X509_push(certs, (X509*) certificate.getX509());
 	}
 	
 	//define funcao de callback
 	X509_STORE_set_verify_cb_func(store, CertPathValidator::callback);
 	
 	//define certificados confiaveis
-	for(unsigned int i = 0 ;  i < this->trustedChain.size(); i++)
-	{
-		X509_STORE_add_cert(store, trustedChain.at(i).getX509());
+	for(auto certificate : this->trustedChain) {
+		X509_STORE_add_cert(store, (X509*) certificate.getX509());
 	}			
 	
 	//define flags
@@ -118,8 +116,7 @@ bool CertPathValidator::verify()
 	/* inicializa contexto
 	 * ignorou-se a possibilidade de falta de memoria
 	 */
-	X509_STORE_CTX_init(cert_ctx, store, this->untrusted.getX509(), certs);
-	
+	X509_STORE_CTX_init(cert_ctx, store, (X509*) this->untrusted.getX509(), certs);
 	
 	/* define a data para verificar os certificados da cadeia
 	* obs: o segundo parametro da funcao 

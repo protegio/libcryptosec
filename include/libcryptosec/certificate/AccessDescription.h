@@ -8,7 +8,6 @@
 class AccessDescription {
 public:
 	AccessDescription();
-	AccessDescription(ACCESS_DESCRIPTION* accessDescription);
 	AccessDescription(const ACCESS_DESCRIPTION* accessDescription);
 
 	virtual ~AccessDescription();
@@ -20,7 +19,7 @@ public:
 	const ObjectIdentifier& getAccessMethod() const;
 	
 	virtual std::string getXmlEncoded(const std::string& tab = "") const;
-	ACCESS_DESCRIPTION* getAccessDescription() const;
+	ACCESS_DESCRIPTION* getSslObject() const;
 
 private:
 	GeneralName accessLocation;

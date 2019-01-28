@@ -69,7 +69,7 @@ X509_EXTENSION* ExtendedKeyUsageExtension::getX509Extension() const
 		ASN1_OBJECT *sslObject = NULL;
 
 		try {
-			sslObject = usage.getObjectIdentifier();
+			sslObject = usage.getSslObject();
 		} catch (...) {
 			sk_ASN1_OBJECT_pop_free(sslObjectStack, ASN1_OBJECT_free);
 			throw;

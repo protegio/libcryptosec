@@ -39,7 +39,7 @@ void Pkcs7CertificateBundleBuilder::addCertificate(Certificate &cert)
 	{
 		throw InvalidStateException("Pkcs7CertificateBundleBuilder::addCertificate");
 	}
-	rc = sk_X509_push(this->certs, cert.getX509());
+	rc = sk_X509_push(this->certs, cert.getSslObject());
 	if(rc == 0)
 	{
 		throw Pkcs7Exception("Pkcs7CertificateBundleBuilder::addCertificate");

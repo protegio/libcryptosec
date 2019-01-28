@@ -76,7 +76,7 @@ Certificate::Certificate(const ByteArray& derEncoded)
 
 Certificate::Certificate(const Certificate& cert)
 {
-	this->cert = X509_dup(cert.getX509());
+	this->cert = X509_dup(cert.cert);
 }
 
 Certificate::Certificate(Certificate&& cert)
@@ -101,7 +101,7 @@ Certificate& Certificate::operator=(const Certificate& value)
 		X509_free(this->cert);
 	}
 
-	this->cert = X509_dup(value.getX509());
+	this->cert = X509_dup(value.cert);
     return *this;
 }
 
@@ -648,7 +648,12 @@ bool Certificate::verify(const PublicKey& publicKey) const
 	return (ok == 1);
 }
 
-X509* Certificate::getX509() const
+X509* Certificate::getSslObject() const
+{
+	return X509_dup(this->cert);
+}
+
+const X509* Certificate::getX509() const
 {
 	return this->cert;
 }

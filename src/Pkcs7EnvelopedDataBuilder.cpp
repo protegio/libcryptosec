@@ -20,7 +20,9 @@ Pkcs7EnvelopedDataBuilder::Pkcs7EnvelopedDataBuilder(Certificate &cert,
 		PKCS7_free(this->pkcs7);
 		throw Pkcs7Exception(Pkcs7Exception::INVALID_SYMMETRIC_CIPHER, "Pkcs7EnvelopedDataBuilder::Pkcs7EnvelopedDataBuilder");
 	}
-	if (!PKCS7_add_recipient(this->pkcs7, cert.getX509()))
+
+	// CAST: PKCS7_add_recipient não modifica o certificado
+	if (!PKCS7_add_recipient(this->pkcs7, (X509*) cert.getX509()))
 	{
 		PKCS7_free(this->pkcs7);
 		throw Pkcs7Exception(Pkcs7Exception::INVALID_CERTIFICATE, "Pkcs7EnvelopedDataBuilder::Pkcs7EnvelopedDataBuilder");
@@ -65,7 +67,9 @@ void Pkcs7EnvelopedDataBuilder::init(Certificate &cert,
 		this->pkcs7 = NULL;
 		throw Pkcs7Exception(Pkcs7Exception::INVALID_SYMMETRIC_CIPHER, "Pkcs7EnvelopedDataBuilder::init");
 	}
-	if (!PKCS7_add_recipient(this->pkcs7, cert.getX509()))
+
+	// CAST: PKCS7_add_recipient não modifica o certificado
+	if (!PKCS7_add_recipient(this->pkcs7, (X509*) cert.getX509()))
 	{
 		PKCS7_free(this->pkcs7);
 		this->pkcs7 = NULL;
@@ -80,7 +84,9 @@ void Pkcs7EnvelopedDataBuilder::addCipher(Certificate &certificate)
 	{
 		throw InvalidStateException("Pkcs7EnvelopedDataBuilder::addCipher");
 	}
-	if (!PKCS7_add_recipient(this->pkcs7, certificate.getX509()))
+
+	// CAST: PKCS7_add_recipient não modifica o certificado
+	if (!PKCS7_add_recipient(this->pkcs7, (X509*) certificate.getX509()))
 	{
 		this->state = Pkcs7Builder::NO_INIT;
 		PKCS7_free(this->pkcs7);

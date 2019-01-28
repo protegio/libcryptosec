@@ -724,7 +724,7 @@ void CertificateBuilder::alterSubject(const RDNSequence& name)
 					throw CertificationException("" /* TODO */);
 				}
 
-				rc = X509_NAME_ENTRY_set_object(newEntry, entry.first.getObjectIdentifier());
+				rc = X509_NAME_ENTRY_set_object(newEntry, entry.first.getSslObject());
 				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
@@ -742,7 +742,7 @@ void CertificateBuilder::alterSubject(const RDNSequence& name)
 				X509_NAME_ENTRY_free(newEntry);
 
 			} else {
-				rc = X509_NAME_ENTRY_set_object(newEntry, entry.first.getObjectIdentifier());
+				rc = X509_NAME_ENTRY_set_object(newEntry, entry.first.getSslObject());
 				if(rc == 0) {
 					throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
 				}
@@ -840,7 +840,7 @@ void CertificateBuilder::replaceExtension(const Extension &extension)
 	X509_EXTENSION *ext = NULL;
 	ObjectIdentifier oid = extension.getObjectIdentifier();
 
-	position = X509_get_ext_by_OBJ(this->cert, oid.getObjectIdentifier(), -1);
+	position = X509_get_ext_by_OBJ(this->cert, oid.getSslObject(), -1);
 	if (position >= 0) {
 		ext = extension.getX509Extension();
 		rc = X509_add_ext(this->cert, ext, position);
@@ -947,7 +947,7 @@ std::vector<Extension*> CertificateBuilder::removeExtension(const ObjectIdentifi
 		ext = X509_get_ext(this->cert, i);
 		obj = X509_EXTENSION_get_object(ext);
 
-		if (OBJ_cmp(obj, extOID.getObjectIdentifier()) == 0) {
+		if (OBJ_cmp(obj, extOID.getSslObject()) == 0) {
 			oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 			ext = X509_delete_ext(this->cert, i);

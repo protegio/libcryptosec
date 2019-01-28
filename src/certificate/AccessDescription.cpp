@@ -3,7 +3,10 @@
 AccessDescription::AccessDescription() {
 }
 
-AccessDescription::AccessDescription(const ACCESS_DESCRIPTION* accessDescription) {
+AccessDescription::AccessDescription(const ACCESS_DESCRIPTION* accessDescription)
+{
+	THROW_DECODE_ERROR_IF(accessDescription == NULL);
+
 	if(accessDescription->method) {
 		const ASN1_OBJECT *oid = accessDescription->method;
 		this->accessMethod = ObjectIdentifier(oid);
@@ -49,10 +52,11 @@ std::string AccessDescription::getXmlEncoded(const std::string& tab) const
 	return ret;
 }
 
-ACCESS_DESCRIPTION* AccessDescription::getAccessDescription() const {
-	ACCESS_DESCRIPTION* accessDescription = ACCESS_DESCRIPTION_new();
-	accessDescription->method = accessMethod.getObjectIdentifier();
-	accessDescription->location = accessLocation.getGeneralName();
-	return accessDescription;
+ACCESS_DESCRIPTION* AccessDescription::getSslObject() const {
+	ACCESS_DESCRIPTION* sslObject = ACCESS_DESCRIPTION_new();
+	THROW_ENCODE_ERROR_IF(sslObject == NULL);
+	sslObject->method = this->accessMethod.getSslObject();
+	sslObject->location = this->accessLocation.getSslObject();
+	return sslObject;
 }
 

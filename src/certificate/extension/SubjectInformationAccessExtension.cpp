@@ -67,7 +67,7 @@ X509_EXTENSION* SubjectInformationAccessExtension::getX509Extension() const {
 		ACCESS_DESCRIPTION *sslObject = NULL;
 
 		try {
-			sslObject = accessDescription.getAccessDescription();
+			sslObject = accessDescription.getSslObject();
 		} catch (...) {
 			sk_ACCESS_DESCRIPTION_pop_free(sslObjectStack, ACCESS_DESCRIPTION_free);
 			throw;

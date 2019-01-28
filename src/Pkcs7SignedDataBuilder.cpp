@@ -11,14 +11,18 @@ Pkcs7SignedDataBuilder::Pkcs7SignedDataBuilder(MessageDigest::Algorithm mesDigAl
 	{
 		PKCS7_set_detached(this->pkcs7, 1);
 	}
-	si = PKCS7_add_signature(this->pkcs7, cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm));
+
+	// CAST: PKCS7_add_signature não modifica o conteúdo do certificado
+	si = PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm));
 	if (!si)
 	{
 		PKCS7_free(this->pkcs7);
 		this->pkcs7 = NULL;
 		throw Pkcs7Exception(Pkcs7Exception::ADDING_SIGNER, "Pkcs7SignedDataBuilder::Pkcs7SignedDataBuilder", true);
 	}
-	rc = PKCS7_add_certificate(this->pkcs7, cert.getX509());
+
+	// CAST: PKCS7_add_certificate incrementa o contador de refrencias do certificado
+	rc = PKCS7_add_certificate(this->pkcs7, (X509*) cert.getX509());
 	if (!rc)
 	{
 		PKCS7_free(this->pkcs7);
@@ -52,13 +56,17 @@ void Pkcs7SignedDataBuilder::init(MessageDigest::Algorithm mesDigAlgorithm, Cert
 	{
 		PKCS7_set_detached(this->pkcs7, 1);
 	}
-	if (!PKCS7_add_signature(this->pkcs7, cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
+
+	// CAST: PKCS7_add_signature não modifica o conteúdo do certificado
+	if (!PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
 	{
 		PKCS7_free(this->pkcs7);
 		this->pkcs7 = NULL;
 		throw Pkcs7Exception(Pkcs7Exception::ADDING_SIGNER, "Pkcs7SignedDataBuilder::Pkcs7SignedDataBuilder", true);
 	}
-	rc = PKCS7_add_certificate(this->pkcs7, cert.getX509());
+
+	// CAST: PKCS7_add_certificate incrementa o contador de refrencias do certificado
+	rc = PKCS7_add_certificate(this->pkcs7, (X509*) cert.getX509());
 	if (!rc)//inversor adicionado (martin 28/11/07)
 	{
 		PKCS7_free(this->pkcs7);
@@ -75,13 +83,17 @@ void Pkcs7SignedDataBuilder::addSigner(MessageDigest::Algorithm mesDigAlgorithm,
 	{
 		throw InvalidStateException("Pkcs7SignedDataBuilder::addSigner");
 	}
-	if (!PKCS7_add_signature(this->pkcs7, cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
+
+	// CAST: PKCS7_add_signature não modifica o conteúdo do certificado
+	if (!PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
 	{
 		PKCS7_free(this->pkcs7);
 		this->pkcs7 = NULL;
 		throw Pkcs7Exception(Pkcs7Exception::ADDING_SIGNER, "Pkcs7SignedDataBuilder::addSigner", true);
 	}
-	rc = PKCS7_add_certificate(this->pkcs7, cert.getX509());
+
+	// CAST: PKCS7_add_certificate incrementa o contador de refrencias do certificado
+	rc = PKCS7_add_certificate(this->pkcs7, (X509*) cert.getX509());
 	if (!rc)//inversor adicionado (martin 28/11/07)
 	{
 		PKCS7_free(this->pkcs7);
@@ -98,7 +110,8 @@ void Pkcs7SignedDataBuilder::addCertificate(Certificate &cert)
 		throw InvalidStateException("Pkcs7SignedDataBuilder::addCertificate");
 	}
 
-	rc = PKCS7_add_certificate(this->pkcs7, cert.getX509());
+	// CAST: PKCS7_add_certificate incrementa o contador de refrencias do certificado
+	rc = PKCS7_add_certificate(this->pkcs7, (X509*) cert.getX509());
 	if (!rc)
 	{
 		PKCS7_free(this->pkcs7);

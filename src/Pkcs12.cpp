@@ -98,7 +98,7 @@ Certificate* Pkcs12::getCertificate(std::string password)
 		this->parse(password);
 	}
 	
-	return new Certificate(X509_dup(this->cert->getX509()));
+	return new Certificate(this->cert->getX509());
 }
 
 std::vector<Certificate*> Pkcs12::getAdditionalCertificates(std::string password)

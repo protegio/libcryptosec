@@ -71,7 +71,7 @@ X509_EXTENSION* AuthorityInformationAccessExtension::getX509Extension() const
 		ACCESS_DESCRIPTION *sslObject = NULL;
 
 		try {
-			sslObject = accessDescription.getAccessDescription();
+			sslObject = accessDescription.getSslObject();
 		} catch (...) {
 			AUTHORITY_INFO_ACCESS_free(sslObjectStack);
 			throw;

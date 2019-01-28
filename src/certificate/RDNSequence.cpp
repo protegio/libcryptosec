@@ -184,7 +184,7 @@ X509_NAME* RDNSequence::getX509Name() const
 			throw CertificationException("" /* TODO */);
 		}
 
-		rc = X509_NAME_ENTRY_set_object(entry, iterEntries.first.getObjectIdentifier());
+		rc = X509_NAME_ENTRY_set_object(entry, iterEntries.first.getSslObject());
 		if (rc == 0) {
 			throw CertificationException("" /* TODO */);
 		}

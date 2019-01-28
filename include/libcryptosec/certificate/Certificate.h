@@ -57,7 +57,8 @@ public:
 	std::vector<Extension*> getUnknownExtensions() const;
 	ByteArray getFingerPrint(MessageDigest::Algorithm algorithm) const;
 	bool verify(const PublicKey& publicKey) const;
-	X509* getX509() const;
+	X509* getSslObject() const;
+	const X509* getX509() const;
 
 	/**
 	 * create a new certificate request using the data from this certificate

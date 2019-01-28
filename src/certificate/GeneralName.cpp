@@ -209,7 +209,7 @@ GeneralName::Type GeneralName::getType() const
 	return this->type;
 }
 
-GENERAL_NAME* GeneralName::getGeneralName() const
+GENERAL_NAME* GeneralName::getSslObject() const
 {
 	GENERAL_NAME *ret;
 	unsigned char *ipAddress;
@@ -253,7 +253,7 @@ GENERAL_NAME* GeneralName::getGeneralName() const
 			break;
 		case GeneralName::REGISTERED_ID:
 			ret->type = GEN_RID;
-			ret->d.registeredID = OBJ_dup(this->registeredId.getObjectIdentifier());
+			ret->d.registeredID = this->registeredId.getSslObject();
 			break;
 		case GeneralName::UNDEFINED:
 			break;

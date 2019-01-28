@@ -139,7 +139,7 @@ protected:
      * @param cert certificado exportado.
      */
     void testStringCodificaton(int expectedCodification, Certificate& cert) {
-    	X509_NAME* after = X509_get_subject_name(cert.getX509());
+    	X509_NAME* after = X509_get_subject_name(cert.getSslObject());
     	for (int i = 0; i < X509_NAME_entry_count(after); i++) {
     		X509_NAME_ENTRY* entry = X509_NAME_get_entry(after, i);
     		if (OBJ_obj2nid(X509_NAME_ENTRY_get_object(entry)) != NID_countryName) {

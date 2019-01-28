@@ -405,7 +405,7 @@ void CertificateRevocationListBuilder::addExtensions(const std::vector<Extension
 void CertificateRevocationListBuilder::replaceExtension(const Extension& extension)
 {
 	ObjectIdentifier oid = extension.getObjectIdentifier();
-	int position = X509_CRL_get_ext_by_OBJ(this->crl, oid.getObjectIdentifier(), -1);
+	int position = X509_CRL_get_ext_by_OBJ(this->crl, oid.getSslObject(), -1);
 	if (position >= 0) {
 		X509_EXTENSION *ext = X509_CRL_delete_ext(this->crl, position);
 		X509_EXTENSION_free(ext);

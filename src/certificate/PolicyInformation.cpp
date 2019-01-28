@@ -65,7 +65,7 @@ POLICYINFO* PolicyInformation::getPolicyInfo() const
 	unsigned int i;
 	POLICYQUALINFO *policyQualInfo;
 	ret = POLICYINFO_new();
-	ret->policyid = OBJ_dup(this->policyIdentifier.getObjectIdentifier());
+	ret->policyid = OBJ_dup(this->policyIdentifier.getSslObject());
 	ret->qualifiers = sk_POLICYQUALINFO_new_null();
 	for (i=0;i<this->policyQualifiers.size();i++)
 	{

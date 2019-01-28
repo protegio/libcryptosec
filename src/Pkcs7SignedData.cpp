@@ -112,10 +112,12 @@ bool Pkcs7SignedData::verify(bool checkSignerCert, vector<Certificate> trustedCe
 		X509_STORE_set_verify_cb_func(store, Pkcs7SignedData::callback);
 		
 		//define certificados confiaveis
-		for(unsigned int i = 0 ;  i < trustedCerts.size(); i++)
-		{
-			X509_STORE_add_cert(store, trustedCerts.at(i).getX509());
-		}				
+		for(auto certificate : trustedCerts) {
+			// TODO: Pelo código do openssl, parece que o argumento certificate é
+			// desalocado internamente, portanto, passamos uma cópia e não a
+			// desalocamos após a chamadas
+			X509_STORE_add_cert(store, certificate.getSslObject());
+		}
 		
 		//define flags
 		for(unsigned int i = 0 ; i < vflags.size() ; i++)

@@ -30,5 +30,5 @@ ObjectIdentifier* Asn1Object::getValue() const throw()
 //faz copia
 void Asn1Object::setValue(const ObjectIdentifier obj) throw()
 {
-	ASN1_TYPE_set(this->asn1Type, V_ASN1_OBJECT, OBJ_dup(obj.getObjectIdentifier()));
+	ASN1_TYPE_set(this->asn1Type, V_ASN1_OBJECT, OBJ_dup(obj.getSslObject()));
 }

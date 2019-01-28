@@ -37,7 +37,9 @@ void Pkcs7EnvelopedData::decrypt(Certificate &certificate, PrivateKey &privateKe
 {
 	BIO *p7bio;
 	int size, maxSize;
-	p7bio = PKCS7_dataDecode(this->pkcs7, privateKey.getEvpPkey(), NULL, certificate.getX509());
+
+	// CAST: PKCS7_dataDecode não modifica o certificado
+	p7bio = PKCS7_dataDecode(this->pkcs7, privateKey.getEvpPkey(), NULL, (X509*) certificate.getX509());
 	if (!p7bio)
 	{
 		throw Pkcs7Exception(Pkcs7Exception::DECRYPTING, "Pkcs7EnvelopedData::decrypt");

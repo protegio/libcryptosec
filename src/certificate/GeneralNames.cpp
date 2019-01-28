@@ -60,16 +60,13 @@ int GeneralNames::getNumberOfEntries() const
 
 GENERAL_NAMES* GeneralNames::getInternalGeneralNames() const
 {
-	GENERAL_NAMES *ret;
-	GENERAL_NAME *generalName;
-	unsigned int i;
-	ret = GENERAL_NAMES_new();
-	for (i=0;i<this->generalNames.size();i++)
+	GENERAL_NAMES *sslObjectStack = GENERAL_NAMES_new();
+	for (auto generalName : this->generalNames)
 	{
-		generalName = this->generalNames.at(i).getGeneralName();
-		sk_GENERAL_NAME_push(ret, generalName);
+		GENERAL_NAME *sslObject = generalName.getSslObject();
+		sk_GENERAL_NAME_push(sslObjectStack, sslObject);
 	}
-	return ret;
+	return sslObjectStack;
 }
 
 /**

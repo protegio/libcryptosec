@@ -108,7 +108,7 @@ std::string ObjectIdentifier::getName() const
 	return ret;
 }
 
-ASN1_OBJECT* ObjectIdentifier::getObjectIdentifier() const
+ASN1_OBJECT* ObjectIdentifier::getSslObject() const
 {
 	return OBJ_dup(this->asn1Object);
 }

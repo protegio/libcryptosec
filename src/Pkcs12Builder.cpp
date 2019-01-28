@@ -69,14 +69,16 @@ Pkcs12 Pkcs12Builder::doFinal(const std::string& password)
 	//cria pilha de certificados
 	ca = sk_X509_new_null();
 	for(auto cert : this->certs) {
-		sk_X509_push(ca, cert.getX509());
+		sk_X509_push(ca, cert.getSslObject());
 	}
 	
 	//cria estruta PKCS12
 	Pkcs12 tmp(
+		/* CAST: PKCS12_create não modifica o certificado. */
+		/* TODO: o argumento ca não foi verificado */
 		PKCS12_create(
 			cpass, cname, this->key.getEvpPkey(),
-			this->cert.getX509(), ca,
+			(X509*) this->cert.getX509(), ca,
 			nid_key, nid_cert,
 			iter, mac_iter,
 			keytype

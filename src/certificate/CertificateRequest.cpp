@@ -367,7 +367,7 @@ void CertificateRequest::replaceExtension(Extension &extension)
 	}
 	else //pilha instanciada previamente
 	{
-		position =  X509v3_get_ext_by_OBJ(extensionsStack, extension.getObjectIdentifier().getObjectIdentifier(), -1);
+		position =  X509v3_get_ext_by_OBJ(extensionsStack, extension.getObjectIdentifier().getSslObject(), -1);
 		if (position >= 0)
 		{
 			if(sk_X509_EXTENSION_insert(extensionsStack, ext, position) == 0)
@@ -448,7 +448,7 @@ std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name ext
 
 std::vector<Extension *> CertificateRequest::removeExtension(ObjectIdentifier extOID)
 {
-	const ASN1_OBJECT* obj = extOID.getObjectIdentifier();
+	const ASN1_OBJECT* obj = extOID.getSslObject();
 	int nid = OBJ_obj2nid(obj);
 	return this->removeExtension(Extension::getName(nid));
 }

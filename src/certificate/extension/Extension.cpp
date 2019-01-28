@@ -103,7 +103,7 @@ X509_EXTENSION* Extension::getX509Extension() const
 	rc = X509_EXTENSION_set_data(ret, value);
 	THROW_ENCODE_ERROR_IF(rc == 0);
 
-	rc = X509_EXTENSION_set_object(ret, this->objectIdentifier.getObjectIdentifier());
+	rc = X509_EXTENSION_set_object(ret, this->objectIdentifier.getSslObject());
 	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	rc = X509_EXTENSION_set_critical(ret, this->critical ? 1 : 0);
