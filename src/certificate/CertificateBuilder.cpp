@@ -318,13 +318,21 @@ std::vector<Extension*> CertificateBuilder::removeExtension(Extension::Name exte
 
 	while(i < X509_get_ext_count(this->cert)) {
 		X509_EXTENSION *ext = X509_get_ext(this->cert, i);
-		THROW_ENCODE_ERROR_IF(ext == NULL);
+		THROW_ENCODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
 
 		if (Extension::getName(ext) == extensionName) {
 			Extension *oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 			ext = X509_delete_ext(this->cert, i);
-			THROW_ENCODE_ERROR_IF(ext == NULL);
+			THROW_ENCODE_ERROR_AND_FREE_IF(ext == NULL,
+					for (auto extension : ret) {
+						delete extension;
+					}
+			);
 			X509_EXTENSION_free(ext);
 			// nao incrementa i pois um elemento do array foi removido
 		} else {
@@ -338,43 +346,59 @@ std::vector<Extension*> CertificateBuilder::removeExtension(Extension::Name exte
 
 std::vector<Extension*> CertificateBuilder::removeExtension(const ObjectIdentifier& extOID)
 {
-	Extension *oneExt = NULL;
-	ASN1_OBJECT* obj = NULL;
-	X509_EXTENSION *ext = NULL;
-	std::vector<Extension *> ret;
+	ASN1_OBJECT *oid = extOID.getSslObject();
+	std::vector<Extension*> ret;
 	int i = 0;
 
 	while(i < X509_get_ext_count(this->cert)) {
-		ext = X509_get_ext(this->cert, i);
-		obj = X509_EXTENSION_get_object(ext);
+		X509_EXTENSION *ext = X509_get_ext(this->cert, i);
+		THROW_ENCODE_ERROR_AND_FREE_IF(ext == NULL,
+				ASN1_OBJECT_free(oid);
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
 
-		if (OBJ_cmp(obj, extOID.getSslObject()) == 0) {
-			oneExt = ExtensionFactory::getExtension(ext);
+		const ASN1_OBJECT *currentOid = X509_EXTENSION_get_object(ext);
+		THROW_ENCODE_ERROR_AND_FREE_IF(currentOid == NULL,
+				ASN1_OBJECT_free(oid);
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		if (OBJ_cmp(currentOid, oid) == 0) {
+			Extension *oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 			ext = X509_delete_ext(this->cert, i);
+			THROW_ENCODE_ERROR_AND_FREE_IF(ext == NULL,
+					ASN1_OBJECT_free(oid);
+					for (auto extension : ret) {
+						delete extension;
+					}
+			);
+
 			X509_EXTENSION_free(ext);
 			// nao incrementa i pois um elemento do array foi removido
 		} else {
 			i++;
 		}
 	}
+
+	ASN1_OBJECT_free(oid);
 	return ret;
 }
 
 Certificate CertificateBuilder::sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
 {
-	PublicKey pub = this->getPublicKey();
-	DateTime dateTime;
-	int rc;
+	const EVP_MD *md = MessageDigest::getMessageDigest(messageDigestAlgorithm);
 
-	// TODO: cast ok?
-	rc = X509_sign(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(),
-			MessageDigest::getMessageDigest(messageDigestAlgorithm));
-	if (!rc) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::sign");
-	}
+	int rc = X509_sign(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
+	THROW_IF(rc == 0, CertificationException, CertificationException::INTERNAL_ERROR); // TODO: check exception type
 
-	return Certificate((const X509*) this->cert);
+	// TODO: should we reset the builder after sign?
+	Certificate ret ((const X509*) this->cert);
+	return ret;
 }
 
 const X509* CertificateBuilder::getX509() const
@@ -390,14 +414,18 @@ void CertificateBuilder::setIncludeEcdsaParameters(bool includeEcdsaParameters) 
 	this->includeECDSAParameters = includeEcdsaParameters;
 }
 
+// TODO: a lógica para essas funções de includeEcdsaParameters está estranha
 void CertificateBuilder::includeEcdsaParameters() {
 	PublicKey publicKey = this->getPublicKey();
 
 	if(publicKey.getAlgorithm() == AsymmetricKey::EC && this->isIncludeEcdsaParameters()) {
-		// TODO: cast ok?
-		EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY((EVP_PKEY*) publicKey.getEvpPkey());
-		EC_KEY_set_asn1_flag(ec_key, 0);
+		const EC_KEY *ec_key = EVP_PKEY_get0_EC_KEY((EVP_PKEY*) publicKey.getEvpPkey());
+		THROW_ENCODE_ERROR_IF(ec_key == NULL);
+
+		// CAST: TODO
+		EC_KEY_set_asn1_flag((EC_KEY*) ec_key, 0);
 	}
+
 	this->setPublicKey(publicKey);
 }
 
