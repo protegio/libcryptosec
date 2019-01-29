@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-PrivateKey::PrivateKey(EVP_PKEY *key) : AsymmetricKey(key)
+PrivateKey::PrivateKey(const EVP_PKEY *key) : AsymmetricKey(key)
 {
 }
 

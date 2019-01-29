@@ -16,9 +16,8 @@
 ExtensionFactory::~ExtensionFactory() {
 }
 
-Extension* ExtensionFactory::getExtension(X509_EXTENSION* ext) {
+Extension* ExtensionFactory::getExtension(const X509_EXTENSION* ext) {
 	Extension *oneExt = NULL;
-
 	switch (Extension::getName(ext)) {
 		case Extension::KEY_USAGE:
 			oneExt = new KeyUsageExtension(ext);
@@ -57,6 +56,5 @@ Extension* ExtensionFactory::getExtension(X509_EXTENSION* ext) {
 			oneExt = new Extension(ext);
 			break;
 	}
-
 	return oneExt;
 }

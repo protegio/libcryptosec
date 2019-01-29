@@ -150,12 +150,14 @@ public:
 	 */	
 	ByteArray doFinal(const std::string& data);
 	
+	ByteArray doFinal(const unsigned char* data, unsigned int size);
+
 	/**
 	 * Retorna algoritmo de resumo selecionado.
 	 * @return algoritmo de resumo selecionado.
 	 * @throw InvalidStateException caso o objeto MessageDigest não tenha sido inicializado corretamente.
 	 */
-	MessageDigest::Algorithm getAlgorithm();
+	MessageDigest::Algorithm getAlgorithm() const;
 	
 	
 	/**
@@ -171,12 +173,6 @@ public:
 	 * @throw MessageDigestException caso o identificador passado seja inválido.
 	 */
 	static MessageDigest::Algorithm getMessageDigest(int algorithmNid);
-	
-	
-	/**
-	 * Carrega todos os algoritmos de resumo.
-	 */
-	static void loadMessageDigestAlgorithms();
 
 protected:
 

@@ -21,74 +21,40 @@
 
 #include <time.h>
 
-Certificate::Certificate(X509 *cert)
+Certificate::Certificate(const X509* cert) :
+		cert(X509_dup((X509*) cert))
 {
-	this->cert = cert;
-}
-
-Certificate::Certificate(const X509* cert) {
-	this->cert = X509_dup((X509*) cert);
+	THROW_DECODE_ERROR_IF(this->cert == NULL);
 }
 
 Certificate::Certificate(const std::string& pemEncoded)
 {
-	BIO *buffer;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "Certificate::Certificate");
-	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "Certificate::Certificate");
-	}
-	this->cert = PEM_read_bio_X509(buffer, NULL, NULL, NULL);
-	if (this->cert == NULL)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_DECODE, "Certificate::Certificate");
-	}
-	BIO_free(buffer);
+	DECODE_PEM(this->cert, pemEncoded, PEM_read_bio_X509);
 }
 
 Certificate::Certificate(const ByteArray& derEncoded)
 {
-	BIO *buffer;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "Certificate::Certificate");
-	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "Certificate::Certificate");
-	}
-	this->cert = d2i_X509_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->cert == NULL)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_DECODE, "Certificate::Certificate");
-	}
-	BIO_free(buffer);
+	DECODE_DER(this->cert, derEncoded, d2i_X509_bio);
 }
 
-Certificate::Certificate(const Certificate& cert)
+Certificate::Certificate(const Certificate& cert) :
+		cert(X509_dup(cert.cert))
 {
-	this->cert = X509_dup(cert.cert);
+	THROW_DECODE_ERROR_IF(this->cert == NULL);
 }
 
 Certificate::Certificate(Certificate&& cert)
 	: cert(cert.cert)
 {
+	THROW_DECODE_ERROR_IF(this->cert == NULL);
 	cert.cert = nullptr;
 }
 
 Certificate::~Certificate()
 {
-	X509_free(this->cert);
-	this->cert = NULL;
+	if (this->cert) {
+		X509_free(this->cert);
+	}
 }
 
 Certificate& Certificate::operator=(const Certificate& value)
@@ -102,10 +68,14 @@ Certificate& Certificate::operator=(const Certificate& value)
 	}
 
 	this->cert = X509_dup(value.cert);
+
+	THROW_DECODE_ERROR_IF(this->cert == NULL);
+
     return *this;
 }
 
-Certificate& Certificate::operator=(Certificate&& value) {
+Certificate& Certificate::operator=(Certificate&& value)
+{
 	if (&value == this) {
 		return *this;
 	}
@@ -117,7 +87,196 @@ Certificate& Certificate::operator=(Certificate&& value) {
 	this->cert = value.cert;
 	value.cert = nullptr;
 
+	THROW_DECODE_ERROR_IF(this->cert == NULL);
+
     return *this;
+}
+
+long int Certificate::getSerialNumber() const
+{
+	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
+	ASN1_INTEGER *asn1Int = X509_get_serialNumber(this->cert);
+	THROW_DECODE_ERROR_IF(asn1Int == NULL);
+	THROW_DECODE_ERROR_IF(asn1Int->data == NULL);
+
+	long ret = ASN1_INTEGER_get(asn1Int);
+	THROW_DECODE_ERROR_IF(ret < 0L);
+
+	return ret;
+}
+
+BigInteger Certificate::getSerialNumberBigInt() const
+{
+	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
+	const ASN1_INTEGER *asn1Int = X509_get_serialNumber(this->cert);
+	THROW_DECODE_ERROR_IF(asn1Int == NULL);
+	THROW_DECODE_ERROR_IF(asn1Int->data == NULL);
+
+	BigInteger ret(asn1Int);
+	return ret;
+}
+
+MessageDigest::Algorithm Certificate::getMessageDigestAlgorithm() const
+{
+	// Não verificamos o erro pois getMessageDigest já lança exceção se o nid for inválido
+	int nid = X509_get_signature_nid(this->cert);
+	MessageDigest::Algorithm ret = MessageDigest::getMessageDigest(nid);
+	return ret;
+}
+
+PublicKey Certificate::getPublicKey() const
+{
+	const EVP_PKEY *key = X509_get0_pubkey(this->cert);
+	THROW_DECODE_ERROR_IF(key == NULL);
+	PublicKey ret(key);
+	return ret;
+}
+
+ByteArray Certificate::getPublicKeyInfo() const
+{
+	const ASN1_BIT_STRING *pubKeyBits = X509_get0_pubkey_bitstr(this->cert);
+	THROW_DECODE_ERROR_IF(pubKeyBits == NULL);
+	MessageDigest md(MessageDigest::SHA1);
+	ByteArray ret = md.doFinal(pubKeyBits->data, pubKeyBits->length);
+	return ret;
+}
+
+long Certificate::getVersion() const
+{
+	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
+	long ret = X509_get_version(this->cert);
+	THROW_DECODE_ERROR_IF(ret < 0 || ret > 2);
+	return ret;
+}
+
+DateTime Certificate::getNotBefore() const
+{
+	const ASN1_TIME *asn1Time = X509_get0_notBefore(this->cert);
+	THROW_DECODE_ERROR_IF(asn1Time == NULL);
+	DateTime ret(asn1Time);
+	return ret;
+}
+
+DateTime Certificate::getNotAfter() const
+{
+	const ASN1_TIME *asn1Time = X509_get0_notAfter(this->cert);
+	THROW_DECODE_ERROR_IF(asn1Time == NULL);
+	DateTime ret(asn1Time);
+	return ret;
+}
+
+RDNSequence Certificate::getIssuer() const
+{
+	const X509_NAME *issuer = X509_get_issuer_name(this->cert);
+	THROW_DECODE_ERROR_IF(issuer == NULL);
+	RDNSequence name(issuer);
+	return name;
+}
+
+RDNSequence Certificate::getSubject() const
+{
+	const X509_NAME *issuer = X509_get_subject_name(this->cert);
+	THROW_DECODE_ERROR_IF(issuer == NULL);
+	RDNSequence name(issuer);
+	return name;
+}
+
+std::vector<Extension*> Certificate::getExtension(Extension::Name extensionName) const
+{
+	std::vector<Extension*> ret;
+	int num = X509_get_ext_count(this->cert);
+	for (int i = 0; i < num; i++) {
+		const X509_EXTENSION *ext = X509_get_ext(this->cert, i);
+		THROW_DECODE_ERROR_IF(ext == NULL);
+		if (Extension::getName(ext) == extensionName) {
+			Extension *oneExt = ExtensionFactory::getExtension(ext);
+			ret.push_back(oneExt);
+		}
+	}
+	return ret;
+}
+
+std::vector<Extension*> Certificate::getExtensions() const
+{
+	std::vector<Extension*> ret;
+	int num = X509_get_ext_count(this->cert);
+	for (int i = 0; i < num; i++) {
+		const X509_EXTENSION *ext = X509_get_ext(this->cert, i);
+		THROW_DECODE_ERROR_IF(ext == NULL);
+		Extension *oneExt = ExtensionFactory::getExtension(ext);
+		ret.push_back(oneExt);
+	}
+	return ret;
+}
+
+std::vector<Extension*> Certificate::getUnknownExtensions() const
+{
+	std::vector<Extension*> ret;
+	Extension *oneExt = NULL;
+	int num = X509_get_ext_count(this->cert);
+	for (int i = 0; i < num; i++) {
+		const X509_EXTENSION *ext = X509_get_ext(this->cert, i);
+		THROW_DECODE_ERROR_IF(ext == NULL);
+		switch (Extension::getName(ext))
+		{
+			case Extension::UNKNOWN:
+				oneExt = new Extension(ext);
+				ret.push_back(oneExt);
+				break;
+			default:
+				break;
+		}
+	}
+	return ret;
+}
+
+ByteArray Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
+{
+	MessageDigest messageDigest(algorithm);
+	ByteArray derEncoded = this->getDerEncoded();
+	ByteArray ret = messageDigest.doFinal(std::move(derEncoded));
+	return ret;
+}
+
+bool Certificate::verify(const PublicKey& publicKey) const
+{
+	// TODO: cast ok?
+	int ok = X509_verify(this->cert, (EVP_PKEY*) publicKey.getEvpPkey());
+	return (ok == 1);
+}
+
+CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm) const
+{
+	const EVP_MD *md = MessageDigest::getMessageDigest(algorithm);
+
+	// TODO: cast ok?
+	X509_REQ *sslReq = X509_to_X509_REQ(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
+
+	// TODO: check exception type
+	THROW_IF(sslReq == NULL, CertificationException, CertificationException::INTERNAL_ERROR);
+	CertificateRequest req(sslReq);
+	return req;
+}
+
+bool Certificate::operator==(const Certificate& value)
+{
+	int result = X509_cmp(this->cert, value.cert);
+	return result == 0;
+}
+
+bool Certificate::operator!=(const Certificate& value)
+{
+	return !this->operator==(value);
+}
+
+std::string Certificate::getPemEncoded() const
+{
+	ENCODE_PEM_AND_RETURN(this->cert, PEM_write_bio_X509);
+}
+
+ByteArray Certificate::getDerEncoded() const
+{
+	ENCODE_DER_AND_RETURN(this->cert, i2d_X509_bio);
 }
 
 std::string Certificate::getXmlEncoded(const std::string& tab) const
@@ -131,67 +290,49 @@ std::string Certificate::getXmlEncoded(const std::string& tab) const
 	ret = "<?xml version=\"1.0\"?>\n";
 	ret += "<certificate>\n";
 	ret += "\t<tbsCertificate>\n";
-		try /* version */
-		{
+		try { /* version */
 			value = this->getVersion();
-			sprintf(temp, "%d", (int)value);
+			sprintf(temp, "%d", (int) value);
 			string = temp;
 			ret += "\t\t<version>" + string + "</version>\n";
+		} catch (...){
 		}
-		catch (...)
-		{
-		}
-		try /* Serial Number */
-		{
-			value = this->getSerialNumber();
-			sprintf(temp, "%d", (int)value);
-			string = temp;
-			ret += "\t\t<serialNumber>" + string + "</serialNumber>\n";
-		}
-		catch (...)
-		{
+
+		try { /* Serial Number */
+			BigInteger sn = this->getSerialNumberBigInt();
+			ret += "\t\t<serialNumber>" + sn.toDec() + "</serialNumber>\n";
+		} catch (...) {
 			//TODO: OK?
 		}
 
 		int signature_nid = X509_get_signature_nid(this->cert);
-
 		string = OBJ_nid2ln(signature_nid);
 		ret += "\t\t<signature>" + string + "</signature>\n";
 
 		ret += "\t\t<issuer>\n";
-			try
-			{
-				ret += (this->getIssuer()).getXmlEncoded("\t\t\t");
+			try {
+				ret += this->getIssuer().getXmlEncoded("\t\t\t");
+			} catch (...) {
 			}
-			catch (...)
-			{
-			}
+
 		ret += "\t\t</issuer>\n";
 
 		ret += "\t\t<validity>\n";
-			try
-			{
-				ret += "\t\t\t<notBefore>" + ((this->getNotBefore()).getXmlEncoded()) + "</notBefore>\n";
+			try {
+				ret += "\t\t\t<notBefore>" + this->getNotBefore().getXmlEncoded() + "</notBefore>\n";
+			} catch (...) {
 			}
-			catch (...)
-			{
-			}
-			try
-			{
-				ret += "\t\t\t<notAfter>" + ((this->getNotAfter()).getXmlEncoded()) + "</notAfter>\n";
-			}
-			catch (...)
-			{
+
+			try {
+				ret += "\t\t\t<notAfter>" + this->getNotAfter().getXmlEncoded() + "</notAfter>\n";
+			} catch (...) {
 			}
 		ret += "\t\t</validity>\n";
 
 		ret += "\t\t<subject>\n";
-			try
-			{
-				ret += (this->getSubject()).getXmlEncoded("\t\t\t");
-			}
-			catch (...)
-			{
+			try {
+				ret += this->getSubject().getXmlEncoded("\t\t\t");
+			} catch (...) {
 			}
 		ret += "\t\t</subject>\n";
 
@@ -209,14 +350,13 @@ std::string Certificate::getXmlEncoded(const std::string& tab) const
 		const ASN1_BIT_STRING *issuerUID, *subjectUID;
 		X509_get0_uids(this->cert, &subjectUID, &issuerUID);
 
-		if (issuerUID)
-		{
+		if (issuerUID) {
 			data = ByteArray(issuerUID->data, issuerUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
 		}
-		if (subjectUID)
-		{
+
+		if (subjectUID) {
 			data = ByteArray(subjectUID->data, subjectUID->length);
 			string = Base64::encode(data);
 			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
@@ -371,315 +511,14 @@ std::string Certificate::toXml(const std::string& tab) const
 
 }
 
-std::string Certificate::getPemEncoded() const
-{
-	BIO *buffer;
-	int ndata, wrote;
-	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "Certificate::getPemEncoded");
-	}
-	wrote = PEM_write_bio_X509(buffer, this->cert);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_ENCODE, "Certificate::getPemEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "Certificate::getPemEncoded");
-	}
-	retTemp = new ByteArray(data, ndata);
-	ret = retTemp->toString();
-	delete retTemp;
-	BIO_free(buffer);
-	return ret;
-}
-
-ByteArray Certificate::getDerEncoded() const
-{
-	BIO *buffer;
-	int ndata, wrote;
-	unsigned char *data;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "Certificate::getDerEncoded");
-	}
-	wrote = i2d_X509_bio(buffer, this->cert);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_ENCODE, "Certificate::getDerEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "Certificate::getDerEncoded");
-	}
-
-	ByteArray ret(data, ndata);
-	BIO_free(buffer);
-	return std::move(ret);
-}
-
-long int Certificate::getSerialNumber() const
-{
-	ASN1_INTEGER *asn1Int;
-	long ret;
-	if (this->cert == NULL)
-	{
-		throw CertificationException(CertificationException::INVALID_CERTIFICATE, "Certificate::getSerialNumber");
-	}
-	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
-	asn1Int = X509_get_serialNumber(this->cert);
-	if (asn1Int == NULL)
-	{
-		throw CertificationException(CertificationException::SET_NO_VALUE, "Certificate::getSerialNumber");
-	}
-	if (asn1Int->data == NULL)
-	{
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getSerialNumber");
-	}
-	ret = ASN1_INTEGER_get(asn1Int);
-	if (ret < 0L)
-	{
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getSerialNumber");
-	}
-	return ret;
-}
-
-BigInteger Certificate::getSerialNumberBigInt() const
-{
-	ASN1_INTEGER *asn1Int;
-	BigInteger ret;
-	if (this->cert == NULL)
-	{
-		throw CertificationException(CertificationException::INVALID_CERTIFICATE, "Certificate::getSerialNumberBytes");
-	}
-	/* Here, we have a problem!!! the return value -1 can be error and a valid value. */
-	asn1Int = X509_get_serialNumber(this->cert);
-	if (asn1Int == NULL)
-	{
-		throw CertificationException(CertificationException::SET_NO_VALUE, "Certificate::getSerialNumberBytes");
-	}
-	if (asn1Int->data == NULL)
-	{
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getSerialNumberBytes");
-	}
-	ret = BigInteger(asn1Int);
-	return ret;
-}
-
-MessageDigest::Algorithm Certificate::getMessageDigestAlgorithm() const
-{
-	MessageDigest::Algorithm ret;
-	ret = MessageDigest::getMessageDigest(X509_get_signature_nid(this->cert));
-	return ret;
-}
-
-PublicKey* Certificate::getPublicKey() const
-{
-	EVP_PKEY *key;
-	PublicKey *ret;
-	if (this->cert == NULL)
-	{
-		throw CertificationException(CertificationException::INVALID_CERTIFICATE, "Certificate::getPublicKey");
-	}
-	key = X509_get_pubkey(this->cert);
-	if (key == NULL)
-	{
-		throw CertificationException(CertificationException::SET_NO_VALUE, "Certificate::getPublicKey");
-	}
-	try
-	{
-		ret = new PublicKey(key);
-	}
-	catch (...)
-	{
-		EVP_PKEY_free(key);
-		throw;
-	}
-	return ret;
-}
-
-ByteArray Certificate::getPublicKeyInfo() const
-{
-	ByteArray ret;
-	unsigned int size;
-	ASN1_BIT_STRING *pubKeyBits = X509_get0_pubkey_bitstr(this->cert);
-	if (!pubKeyBits)
-	{
-		throw CertificationException(CertificationException::SET_NO_VALUE, "Certificate::getPublicKeyInfo");
-	}
-	ret = ByteArray(EVP_MAX_MD_SIZE);
-	EVP_Digest(pubKeyBits->data, pubKeyBits->length, ret.getDataPointer(), &size, EVP_sha1(), NULL);
-	ret = ByteArray(ret.getDataPointer(), size);
-	return ret;
-}
-
-long Certificate::getVersion() const
-{
-	long ret;
-	/* Here, we have a problem!!! the return value 0 can be error and a valid value. */
-	if (this->cert == NULL)
-	{
-		throw CertificationException(CertificationException::INVALID_CERTIFICATE, "Certificate::getVersion");
-	}
-	ret = X509_get_version(this->cert);
-	if (ret < 0 || ret > 2)
-	{
-		throw CertificationException(CertificationException::SET_NO_VALUE, "Certificate::getVersion");
-	}
-	return ret;
-}
-
-DateTime Certificate::getNotBefore() const
-{
-	ASN1_TIME *asn1Time;
-	asn1Time = X509_get_notBefore(this->cert);
-	return DateTime(asn1Time);
-}
-
-DateTime Certificate::getNotAfter() const
-{
-	ASN1_TIME *asn1Time;
-	asn1Time = X509_get_notAfter(this->cert);
-	return DateTime(asn1Time);
-}
-
-RDNSequence Certificate::getIssuer() const
-{
-	RDNSequence name;
-	if (this->cert)
-	{
-		name = RDNSequence(X509_get_issuer_name(this->cert));
-	}
-	return name;
-}
-
-RDNSequence Certificate::getSubject() const
-{
-	RDNSequence name;
-	if (this->cert)
-	{
-		name = RDNSequence(X509_get_subject_name(this->cert));
-	}
-	return name;
-}
-
-std::vector<Extension*> Certificate::getExtension(Extension::Name extensionName) const
-{
-	int next, i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
-	next = X509_get_ext_count(this->cert);
-	for (i=0;i<next;i++)
-	{
-		ext = X509_get_ext(this->cert, i);
-		if (Extension::getName(ext) == extensionName)
-		{
-			oneExt = ExtensionFactory::getExtension(ext);
-			ret.push_back(oneExt);
-		}
-	}
-	return ret;
-}
-
-std::vector<Extension*> Certificate::getExtensions() const
-{
-	int next, i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
-	next = X509_get_ext_count(this->cert);
-	for (i=0;i<next;i++)
-	{
-		ext = X509_get_ext(this->cert, i);
-		oneExt = ExtensionFactory::getExtension(ext);
-		ret.push_back(oneExt);
-	}
-	return ret;
-}
-
-std::vector<Extension*> Certificate::getUnknownExtensions() const
-{
-	int next, i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
-	next = X509_get_ext_count(this->cert);
-	for (i=0;i<next;i++)
-	{
-		ext = X509_get_ext(this->cert, i);
-		switch (Extension::getName(ext))
-		{
-			case Extension::UNKNOWN:
-				oneExt = new Extension(ext);
-				ret.push_back(oneExt);
-				break;
-			default:
-				break;
-		}
-	}
-	return ret;
-}
-
-ByteArray Certificate::getFingerPrint(MessageDigest::Algorithm algorithm) const
-{
-	MessageDigest messageDigest(algorithm);
-	ByteArray derEncoded = this->getDerEncoded();
-	ByteArray ret = messageDigest.doFinal(std::move(derEncoded));
-	return ret;
-}
-
-bool Certificate::verify(const PublicKey& publicKey) const
-{
-	// TODO: cast ok?
-	int ok = X509_verify(this->cert, (EVP_PKEY*) publicKey.getEvpPkey());
-	return (ok == 1);
-}
-
 X509* Certificate::getSslObject() const
 {
-	return X509_dup(this->cert);
+	X509 *sslObject = X509_dup(this->cert);
+	THROW_DECODE_ERROR_IF(sslObject == NULL);
+	return sslObject;
 }
 
 const X509* Certificate::getX509() const
 {
 	return this->cert;
-}
-
-CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &privateKey, MessageDigest::Algorithm algorithm) const
-{
-	X509_REQ *req = NULL;
-	const EVP_MD *md = NULL;
-
-	md = MessageDigest::getMessageDigest(algorithm);
-
-	// TODO: cast ok?
-	req = X509_to_X509_REQ(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
-	if (!req) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "Certificate::getNewCertificateRequest");
-	}
-
-	return CertificateRequest(req);
-}
-
-bool Certificate::operator ==(const Certificate& value)
-{
-	return X509_cmp(this->cert, value.getX509()) == 0;
-}
-
-bool Certificate::operator !=(const Certificate& value)
-{
-	return !this->operator==(value);
 }

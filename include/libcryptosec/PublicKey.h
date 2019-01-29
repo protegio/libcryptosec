@@ -27,7 +27,7 @@ public:
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	PublicKey(EVP_PKEY* key);
+	PublicKey(const EVP_PKEY* key);
 
 	/**
 	 * Construtor recebendo a representação da chave pública no formato DER.

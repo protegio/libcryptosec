@@ -6,7 +6,7 @@
 
 #include <openssl/pem.h>
 
-PublicKey::PublicKey(EVP_PKEY* evpPkey) : AsymmetricKey(evpPkey)
+PublicKey::PublicKey(const EVP_PKEY* evpPkey) : AsymmetricKey(evpPkey)
 {
 	//TODO: testar se é mesmo uma chave publica
 }

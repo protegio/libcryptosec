@@ -122,7 +122,7 @@ public:
 	 * @throw AsymmetricKeyException Caso a estrutura EVP_PKEY não seja uma estrutura
 	 * 		válida ou ocorra algum problema na sua carga.
 	 */
-	AsymmetricKey(EVP_PKEY* evpPkey);
+	AsymmetricKey(const EVP_PKEY* evpPkey);
 
 	/**
 	 * @brief Carrega uma chave assimétrica a partir da sua equivalente codificada em DER.
@@ -218,7 +218,7 @@ protected:
 	 *
 	 * @param evpPkey A estrutura EVP_PKEY.
 	 */
-	void setEvpPkey(EVP_PKEY* evpPkey);
+	void setEvpPkey(const EVP_PKEY* evpPkey);
 
 protected:
 

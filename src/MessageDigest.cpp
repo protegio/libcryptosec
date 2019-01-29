@@ -1,7 +1,6 @@
 #include <libcryptosec/MessageDigest.h>
 
 #include <libcryptosec/Engine.h>
-
 #include <libcryptosec/exception/MessageDigestException.h>
 #include <libcryptosec/exception/InvalidStateException.h>
 
@@ -26,122 +25,101 @@ INITIALIZE_ENUM( MessageDigest::State, 3,
 	UPDATE
 );
 
-MessageDigest::MessageDigest()
+MessageDigest::MessageDigest() :
+		algorithm(MessageDigest::NO_ALGORITHM),
+		state(MessageDigest::NO_INIT),
+		ctx(EVP_MD_CTX_new())
 {
-	this->state = MessageDigest::NO_INIT;
-	this->algorithm = MessageDigest::NO_ALGORITHM;
-	this->ctx = EVP_MD_CTX_new();
+	THROW_IF(this->ctx == NULL, MessageDigestException, MessageDigestException::UNKNOWN);
 }
 
-MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm)
+MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm) :
+		algorithm(algorithm),
+		state(MessageDigest::INIT),
+		ctx(EVP_MD_CTX_new())
 {
-	int rc;
-	const EVP_MD *md = 0;
-
-	this->state = MessageDigest::INIT;
-	this->algorithm = algorithm;
-	this->ctx = EVP_MD_CTX_new();
-
-	md = MessageDigest::getMessageDigest(this->algorithm);
-	rc = EVP_DigestInit_ex(this->ctx, md, NULL);
-	if (!rc)
-	{
-		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::MessageDigest");
-	}
+	THROW_IF(this->ctx == NULL, MessageDigestException, MessageDigestException::UNKNOWN);
+	const EVP_MD *md = MessageDigest::getMessageDigest(this->algorithm);
+	int rc = EVP_DigestInit_ex(this->ctx, md, NULL);
+	THROW_AND_FREE_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_INIT,
+			EVP_MD_CTX_free(this->ctx);
+	);
 }
 
-MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine)
+MessageDigest::MessageDigest(MessageDigest::Algorithm algorithm, Engine &engine) :
+		algorithm(algorithm),
+		state(MessageDigest::INIT),
+		ctx(EVP_MD_CTX_new())
 {
-	int rc;
-	const EVP_MD *md = 0;
+	const EVP_MD *md = MessageDigest::getMessageDigest(this->algorithm);
 
-	this->state = MessageDigest::INIT;
-	this->algorithm = algorithm;
-	this->ctx = EVP_MD_CTX_new();
-
-	md = MessageDigest::getMessageDigest(this->algorithm);
-	EVP_MD_CTX_init(this->ctx);
-
-	// TODO: esse cast da engine é ok?
-	rc = EVP_DigestInit_ex(this->ctx, md, (ENGINE*) engine.getEngine());
-	if (!rc)
-	{
-		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::MessageDigest");
-	}
+	// CAST: TODO: esse cast da engine é ok?
+	int rc = EVP_DigestInit_ex(this->ctx, md, (ENGINE*) engine.getEngine());
+	THROW_AND_FREE_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_INIT,
+			EVP_MD_CTX_free(this->ctx);
+	);
 }
 
 MessageDigest::~MessageDigest()
 {
-	EVP_MD_CTX_reset(this->ctx);
-	EVP_MD_CTX_free(this->ctx);
+	if (this->ctx == NULL) {
+		EVP_MD_CTX_reset(this->ctx);
+		EVP_MD_CTX_free(this->ctx);
+	}
 }
 
 void MessageDigest::init(MessageDigest::Algorithm algorithm)
 {
-	int rc;
-	const EVP_MD *md;
-	if (this->state != MessageDigest::NO_INIT){
+	if (this->state != MessageDigest::NO_INIT) {
 		EVP_MD_CTX_reset(this->ctx);
 	}
+
 	this->algorithm = algorithm;
-	md = MessageDigest::getMessageDigest(this->algorithm);
-	rc = EVP_DigestInit(this->ctx, md);
-	if (!rc)
-	{
-		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::init");
-	}
+	const EVP_MD *md = MessageDigest::getMessageDigest(this->algorithm);
+
+	int rc = EVP_DigestInit(this->ctx, md);
+	THROW_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_INIT);
 	this->state = MessageDigest::INIT;
 }
 
 void MessageDigest::init(MessageDigest::Algorithm algorithm, Engine &engine)
 {
-	int rc;
-	const EVP_MD *md;
-	if (this->state != MessageDigest::NO_INIT){
+	if (this->state != MessageDigest::NO_INIT) {
 		EVP_MD_CTX_reset(this->ctx);
 	}
+
 	this->algorithm = algorithm;
-	md = MessageDigest::getMessageDigest(this->algorithm);
-	EVP_MD_CTX_init(this->ctx);
+	const EVP_MD *md = MessageDigest::getMessageDigest(this->algorithm);
 
 	// TODO: esse cast da engine é ok?
-	rc = EVP_DigestInit_ex(this->ctx, md, (ENGINE*) engine.getEngine());
-	if (!rc)
-	{
-		throw MessageDigestException(MessageDigestException::CTX_INIT, "MessageDigest::init");
-	}
+	int rc = EVP_DigestInit_ex(this->ctx, md, (ENGINE*) engine.getEngine());
+	THROW_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_INIT);
 	this->state = MessageDigest::INIT;
 }
 
 void MessageDigest::update(const ByteArray &data)
 {
-	int rc;
-	if (this->state == MessageDigest::NO_INIT)
-	{
-		throw InvalidStateException("MessageDigest::update");
-	}
-	rc = EVP_DigestUpdate(this->ctx, data.getConstDataPointer(), data.getSize());
-	if (!rc)
-	{
-		throw MessageDigestException(MessageDigestException::CTX_UPDATE, "MessageDigest::update");
-	}
-	this->state = MessageDigest::UPDATE;
+	return this->update(data.getConstDataPointer(), data.getSize());
 }
 
 void MessageDigest::update(const std::string &data)
 {
-	ByteArray content(data);
-	this->update(content);
+	return this->update((const unsigned char*) data.c_str(), data.size() + 1);
+}
+
+void MessageDigest::update(const unsigned char* data, unsigned int size) {
+	THROW_NO_REASON_IF(this->state == MessageDigest::NO_INIT, InvalidStateException);
+	int rc = EVP_DigestUpdate(this->ctx, data, size);
+	THROW_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_UPDATE);
+	this->state = MessageDigest::UPDATE;
 }
 
 ByteArray MessageDigest::doFinal()
 {
 	ByteArray ret(EVP_MAX_MD_SIZE);
 	unsigned int size = 0;
-
 	this->doFinal(ret.getDataPointer(), &size);
 	ret.setSize(size);
-
 	return ret;
 }
 
@@ -157,34 +135,34 @@ ByteArray MessageDigest::doFinal(const std::string &data)
 	return this->doFinal();
 }
 
-void MessageDigest::doFinal(unsigned char* hash, unsigned int* size) {
-	int rc = 0;
-
-	if (this->state == MessageDigest::NO_INIT || this->state == MessageDigest::INIT) {
-		throw InvalidStateException("MessageDigest::doFinal");
-	}
-
-	rc = EVP_DigestFinal_ex(this->ctx, hash, size);
-	EVP_MD_CTX_reset(this->ctx);
-	this->state = MessageDigest::NO_INIT;
-	if (!rc) {
-		throw MessageDigestException(MessageDigestException::CTX_FINISH, "MessageDigest::doFinal");
-	}
+ByteArray MessageDigest::doFinal(const unsigned char* data, unsigned int size) {
+	this->update(data, size);
+	return this->doFinal();
 }
 
-MessageDigest::Algorithm MessageDigest::getAlgorithm()
+void MessageDigest::doFinal(unsigned char* hash, unsigned int* size) {
+	THROW_NO_REASON_IF(this->state == MessageDigest::NO_INIT || this->state == MessageDigest::INIT, InvalidStateException);
+
+	int rc = EVP_DigestFinal_ex(this->ctx, hash, size);
+	THROW_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_FINISH);
+
+	rc = EVP_MD_CTX_reset(this->ctx);
+	THROW_IF(rc == 0, MessageDigestException, MessageDigestException::CTX_FINISH);
+
+	this->state = MessageDigest::NO_INIT;
+}
+
+MessageDigest::Algorithm MessageDigest::getAlgorithm() const
 {
 	return this->algorithm;
 }
 
 const EVP_MD* MessageDigest::getMessageDigest(MessageDigest::Algorithm algorithm)
 {
-	const EVP_MD *md;
-	md = NULL;
-	switch (algorithm)
-	{
+	const EVP_MD *md = NULL;
+	switch (algorithm) {
 		case MessageDigest::NO_ALGORITHM:
-			throw MessageDigestException("MessageDigest::getMessageDigest");
+			THROW(MessageDigestException, MessageDigestException::INVALID_ALGORITHM);
 			break;
 		case MessageDigest::MD4:
 			md = EVP_md4();
@@ -220,8 +198,7 @@ const EVP_MD* MessageDigest::getMessageDigest(MessageDigest::Algorithm algorithm
 MessageDigest::Algorithm MessageDigest::getMessageDigest(int algorithmNid)
 {
 	MessageDigest::Algorithm ret;
-	switch (algorithmNid)
-	{
+	switch (algorithmNid) {
 		case NID_sha512WithRSAEncryption: case NID_ecdsa_with_SHA512: case NID_sha512:
 			ret = MessageDigest::SHA512;
 			break;
@@ -250,12 +227,7 @@ MessageDigest::Algorithm MessageDigest::getMessageDigest(int algorithmNid)
     		ret = MessageDigest::SHA;
     		break;
     	default:
-    		throw MessageDigestException(MessageDigestException::INVALID_ALGORITHM, "MessageDigest::getMessageDigest");
+    		THROW(MessageDigestException, MessageDigestException::INVALID_ALGORITHM);
 	}
 	return ret;
-}
-
-void MessageDigest::loadMessageDigestAlgorithms()
-{
-	OpenSSL_add_all_digests();
 }

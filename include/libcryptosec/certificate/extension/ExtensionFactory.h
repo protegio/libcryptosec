@@ -8,7 +8,7 @@ class Extension;
 class ExtensionFactory {
 public:
 	virtual ~ExtensionFactory();
-	static Extension* getExtension(X509_EXTENSION* ext);
+	static Extension* getExtension(const X509_EXTENSION* ext);
 };
 
 #endif /* SRC_CERTIFICATE_EXTENSIONFACTORY_H_ */

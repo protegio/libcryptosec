@@ -27,6 +27,7 @@ public:
 	CertificateBuilder(const std::string& pemEncoded);
 	CertificateBuilder(const ByteArray& derEncoded);
 	CertificateBuilder(const CertificateRequest& request);
+
 	CertificateBuilder(const CertificateBuilder& cert);
 	CertificateBuilder(CertificateBuilder&& cert);
 
@@ -34,18 +35,6 @@ public:
 
 	CertificateBuilder& operator=(const CertificateBuilder& value);
 	CertificateBuilder& operator=(CertificateBuilder&& builder);
-
-	std::string getPemEncoded();
-	ByteArray getDerEncoded();
-
-	/**
-	 * @deprecated
-	 * Retorna o conteudo da extensão em formato XML.
-	 * Esta função será substituida por toXml().
-	 * */
-	
-	std::string getXmlEncoded(const std::string& tab);
-	virtual std::string toXml(const std::string& tab = "");
 
 	void setSerialNumber(long serial);
 	void setSerialNumber(const BigInteger& serial);
@@ -107,6 +96,7 @@ public:
 	 */
 	void setSubject(X509_REQ* req);
 	RDNSequence getSubject();
+
 	void addExtension(const Extension& extension);
 	void addExtensions(const std::vector<Extension*>& extensions);
 	void replaceExtension(const Extension& extension);
@@ -115,11 +105,25 @@ public:
 	std::vector<Extension*> getExtension(Extension::Name extensionName);
 	std::vector<Extension*> getExtensions();
 	std::vector<Extension*> getUnknownExtensions();
-	Certificate sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
-	const X509* getX509() const;
+
 	bool isIncludeEcdsaParameters() const;
 	void setIncludeEcdsaParameters(bool includeEcdsaParameters);
 	void includeEcdsaParameters();
+
+	Certificate sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm);
+
+	const X509* getX509() const;
+
+	std::string getPemEncoded();
+	ByteArray getDerEncoded();
+
+	/**
+	 * @deprecated
+	 * Retorna o conteudo da extensão em formato XML.
+	 * Esta função será substituida por toXml().
+	 * */
+	std::string getXmlEncoded(const std::string& tab);
+	virtual std::string toXml(const std::string& tab = "");
 
 protected:
 	X509* cert;

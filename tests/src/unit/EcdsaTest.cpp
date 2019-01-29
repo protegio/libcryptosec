@@ -26,7 +26,6 @@ private:
 protected:
 	virtual void SetUp()
 	{
-		MessageDigest::loadMessageDigestAlgorithms();
 		SymmetricCipher::loadSymmetricCiphersAlgorithms();
 		this->prKey = nullptr;
 		this->pubKey = nullptr;

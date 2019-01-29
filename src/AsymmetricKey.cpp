@@ -10,15 +10,15 @@ AsymmetricKey::AsymmetricKey()
 {
 }
 
-AsymmetricKey::AsymmetricKey(EVP_PKEY *evpPkey)
-	: evpPkey(evpPkey)
+AsymmetricKey::AsymmetricKey(const EVP_PKEY *evpPkey)
+	: evpPkey((EVP_PKEY*) evpPkey)
 {
-	if (evpPkey == NULL) {
-		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE, "AsymmetricKey::AsymmetricKey");
-	}
+	THROW_IF(this->evpPkey == NULL, AsymmetricKeyException, AsymmetricKeyException::SET_NO_VALUE);
 
-	this->evpPkey = evpPkey;
-	EVP_PKEY_up_ref(this->evpPkey);
+	int rc = EVP_PKEY_up_ref(this->evpPkey);
+	THROW_AND_FREE_IF(rc == 0, AsymmetricKeyException, AsymmetricKeyException::SET_NO_VALUE,
+			this->evpPkey = NULL;
+	);
 
 	// Checks if it's a asymmetric key and throws an exception otherwise
 	this->getAlgorithm();
@@ -31,19 +31,18 @@ AsymmetricKey::~AsymmetricKey()
 	}
 }
 
-void AsymmetricKey::setEvpPkey(EVP_PKEY* evpPkey) {
+void AsymmetricKey::setEvpPkey(const EVP_PKEY* evpPkey) {
 
-	if (evpPkey == NULL) {
-		throw AsymmetricKeyException(AsymmetricKeyException::SET_NO_VALUE,
-				"AsymmetricKey::AsymmetricKey");
-	}
+	THROW_IF(evpPkey == NULL, AsymmetricKeyException, AsymmetricKeyException::SET_NO_VALUE);
+
+	int rc = EVP_PKEY_up_ref((EVP_PKEY*) evpPkey);
+	THROW_IF(rc == 0, AsymmetricKeyException, AsymmetricKeyException::SET_NO_VALUE);
 
 	if (this->evpPkey != NULL) {
 		EVP_PKEY_free(this->evpPkey);
 	}
 
-	this->evpPkey = evpPkey;
-	EVP_PKEY_up_ref(evpPkey);
+	this->evpPkey = (EVP_PKEY*) evpPkey;
 
 	// Checks if it's a asymmetric key and throws an exception otherwise
 	this->getAlgorithm();

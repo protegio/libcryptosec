@@ -31,7 +31,7 @@ public:
 	 * @throw AsymmetricKeyException Caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	PrivateKey(EVP_PKEY *key);
+	PrivateKey(const EVP_PKEY *key);
 
 	/**
 	 * @brief Constrói uma PrivateKey a partir de uma chave codifica em DER.
