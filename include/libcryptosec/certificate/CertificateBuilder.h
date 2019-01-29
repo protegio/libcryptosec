@@ -61,7 +61,7 @@ public:
 	 *
 	 * @param issuer issuer
 	 */
-	void setIssuer(X509* issuer);
+	void setIssuer(const X509* issuer);
 
 	/**
 	 * Altera o campo "subject" a partir de um RDNSequence, respeitando a
@@ -85,7 +85,7 @@ public:
 	 *
 	 * @param name subject
 	 */
-	void setSubject(X509_REQ* req);
+	void setSubject(const X509_REQ* req);
 
 	void addExtension(const Extension& extension);
 	void addExtensions(const std::vector<Extension*>& extensions);

@@ -93,6 +93,8 @@ int AsymmetricKey::getSizeBits() const
 
 EVP_PKEY* AsymmetricKey::getEvpPkey() const
 {
+	int rc = EVP_PKEY_up_ref(this->evpPkey);
+	THROW_IF(rc == 0, AsymmetricKeyException, AsymmetricKeyException::INTERNAL_ERROR); //TODO: check exception type
 	return this->evpPkey;
 }
 

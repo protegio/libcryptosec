@@ -95,19 +95,33 @@ X509_EXTENSION* Extension::getX509Extension() const
 	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	ASN1_OCTET_STRING* value = ASN1_OCTET_STRING_new();
-	THROW_ENCODE_ERROR_IF(value == NULL);
+	THROW_ENCODE_ERROR_AND_FREE_IF(value == NULL,
+			X509_EXTENSION_free(ret);
+	);
 
 	rc = ASN1_OCTET_STRING_set(value, this->value.getConstDataPointer(), this->value.getSize());
-	THROW_ENCODE_ERROR_IF(rc == 0);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_EXTENSION_free(ret);
+			ASN1_OCTET_STRING_free(value);
+	);
 
 	rc = X509_EXTENSION_set_data(ret, value);
-	THROW_ENCODE_ERROR_IF(rc == 0);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_EXTENSION_free(ret);
+			ASN1_OCTET_STRING_free(value);
+	);
 
-	rc = X509_EXTENSION_set_object(ret, this->objectIdentifier.getSslObject());
-	THROW_ENCODE_ERROR_IF(rc == 0);
+	ASN1_OBJECT *oid = this->objectIdentifier.getSslObject();
+	rc = X509_EXTENSION_set_object(ret, oid);
+	ASN1_OBJECT_free(oid);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_EXTENSION_free(ret);
+	);
 
 	rc = X509_EXTENSION_set_critical(ret, this->critical ? 1 : 0);
-	THROW_ENCODE_ERROR_IF(rc == 0);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_EXTENSION_free(ret);
+	);
 
 	return ret;
 }
