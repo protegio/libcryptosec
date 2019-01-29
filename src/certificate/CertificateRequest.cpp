@@ -246,25 +246,15 @@ void CertificateRequest::setPublicKey(PublicKey &publicKey)
 	X509_REQ_set_pubkey(this->req, (EVP_PKEY*) publicKey.getEvpPkey());
 }
 
-PublicKey* CertificateRequest::getPublicKey() const
+PublicKey CertificateRequest::getPublicKey() const
 {
 	// TODO check if function const modifier is ok
-	EVP_PKEY *key;
-	PublicKey *ret;
-	key = X509_REQ_get_pubkey(this->req);
-	if (key == NULL)
-	{
+	const EVP_PKEY *key = X509_REQ_get0_pubkey(this->req);
+	if (key == NULL) {
 		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRequest::getPublicKey");
 	}
-	try
-	{
-		ret = new PublicKey(key);
-	}
-	catch (...)
-	{
-		EVP_PKEY_free(key);
-		throw;
-	}
+
+	PublicKey ret(key);
 	return ret;
 }
 
@@ -528,12 +518,8 @@ ByteArray CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm)
 
 void CertificateRequest::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
 {
-	int rc;
-	PublicKey *pub;
-	pub = this->getPublicKey();
-	delete pub;
 	// TODO: cast ok?
-	rc = X509_REQ_sign(this->req, (EVP_PKEY*) privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
+	int rc = X509_REQ_sign(this->req, (EVP_PKEY*) privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
 	if (!rc)
 	{
 		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRequest::sign");
@@ -542,13 +528,11 @@ void CertificateRequest::sign(PrivateKey &privateKey, MessageDigest::Algorithm m
 
 bool CertificateRequest::verify()
 {
-	int rc;
-	PublicKey *pub;
-	pub = this->getPublicKey();
+	PublicKey pub = this->getPublicKey();
+
 	// TODO: cast ok?
-	rc = X509_REQ_verify(this->req, (EVP_PKEY*) pub->getEvpPkey());
-	delete pub;
-	return (rc==1?true:false);
+	int rc = X509_REQ_verify(this->req, (EVP_PKEY*) pub.getEvpPkey());
+	return (rc == 1 ? true : false);
 }
 
 bool CertificateRequest::isSigned() const throw()

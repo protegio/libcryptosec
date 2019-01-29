@@ -371,7 +371,7 @@ public:
 	 * */
 	virtual void setInvalidCertificate(Certificate *cert)
 	{
-		X509 *newCert = cert->getSslObject();
+		const X509 *newCert = cert->getX509();
 		this->invalidCert = new Certificate(newCert);
 	}
 	

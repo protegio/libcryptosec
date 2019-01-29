@@ -23,13 +23,13 @@ std::vector<Certificate *> Pkcs7SignedData::getCertificates()
 {
 	std::vector<Certificate *> ret;
 	int i, num;
-	X509 *oneCertificate;
+	const X509 *oneCertificate;
 	Certificate *certificate;
 	num = sk_X509_num(this->pkcs7->d.sign->cert);
 	for (i=0;i<num;i++)
 	{
 		oneCertificate = sk_X509_value(this->pkcs7->d.sign->cert, i);
-		certificate = new Certificate(X509_dup(oneCertificate));
+		certificate = new Certificate(oneCertificate);
 		ret.push_back(certificate);
 	}
 	return ret;
@@ -212,7 +212,8 @@ int Pkcs7SignedData::callback(int ok, X509_STORE_CTX *ctx)
 	{
 		if (X509_STORE_CTX_get_current_cert(ctx))
 		{
-			cert = new Certificate(X509_STORE_CTX_get_current_cert(ctx));
+			const X509* sslCert = X509_STORE_CTX_get_current_cert(ctx);
+			cert = new Certificate(sslCert);
 			Pkcs7SignedData::cpvr.setInvalidCertificate(cert);
 /*			X509_NAME_oneline(
 				X509_get_subject_name(X509_STORE_CTX_get_current_cert(ctx)),buf,

@@ -18,6 +18,9 @@ class Extension;
 
 class Certificate
 {
+protected:
+	Certificate(X509* cert);
+
 public:
 	Certificate(const X509* cert);
 	Certificate(const std::string& pemEncoded);

@@ -37,7 +37,7 @@ public:
 	void setVersion(long version);
 	long getVersion() const;
 	void setPublicKey(PublicKey &publicKey);
-	PublicKey* getPublicKey() const;
+	PublicKey getPublicKey() const;
 	ByteArray getPublicKeyInfo() const;
 	void setSubject(RDNSequence &name);
 	RDNSequence getSubject() const;

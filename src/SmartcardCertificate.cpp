@@ -30,7 +30,6 @@ std::string SmartcardCertificate::getSerial()
 
 Certificate* SmartcardCertificate::getCertificate()
 {
-	Certificate *ret;
-	ret = new Certificate(X509_dup(this->cert));
+	Certificate *ret = new Certificate((const X509*) this->cert);
 	return ret;
 }

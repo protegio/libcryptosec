@@ -44,13 +44,13 @@ std::vector<Certificate *> Pkcs7CertificateBundle::getCertificates()
 {
 	std::vector<Certificate *> ret;
 	int i, num;
-	X509 *oneCertificate;
+	const X509 *oneCertificate;
 	Certificate *certificate;
 	num = sk_X509_num(this->pkcs7->d.sign->cert);
 	for (i=0;i<num;i++)
 	{
 		oneCertificate = sk_X509_value(this->pkcs7->d.sign->cert, i);
-		certificate = new Certificate(X509_dup(oneCertificate));
+		certificate = new Certificate(oneCertificate);
 		ret.push_back(certificate);
 	}
 	return ret;

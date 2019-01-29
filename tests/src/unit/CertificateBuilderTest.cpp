@@ -505,6 +505,7 @@ TEST_F(CertificateBuilderTest, EncodingTest_NewRequestDefaultCodification) {
 	fillRDN();
 	req = new CertificateRequest();
 	req->setSubject(rdn);
+	req->setPublicKey(*(RSAKeyPair(1024).getPublicKey()));
 	certBuilder = new CertificateBuilder(*req);
 	int expectedCodification = getReqCodification();
 	certBuilder->alterSubject(rdn);

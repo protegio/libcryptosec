@@ -21,6 +21,11 @@
 
 #include <time.h>
 
+Certificate::Certificate(X509* cert) :
+		cert(cert)
+{
+}
+
 Certificate::Certificate(const X509* cert) :
 		cert(X509_dup((X509*) cert))
 {

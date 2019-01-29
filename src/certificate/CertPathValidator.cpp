@@ -181,7 +181,7 @@ int CertPathValidator::callback(int ok, X509_STORE_CTX *ctx)
 	{
 		int error = X509_STORE_CTX_get_error(ctx);
 		int error_depth = X509_STORE_CTX_get_error_depth(ctx);
-		X509* current_cert = X509_STORE_CTX_get_current_cert(ctx);
+		const X509* current_cert = X509_STORE_CTX_get_current_cert(ctx);
 
 		if (current_cert)
 		{

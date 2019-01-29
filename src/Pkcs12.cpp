@@ -124,7 +124,7 @@ void Pkcs12::parse(std::string password)
 	X509* cert = NULL;
 	STACK_OF(X509)* ca = NULL;
 	unsigned long opensslError = 0;
-	X509* tmp = NULL;
+	const X509* tmp = NULL;
 	
 	//Limpa fila de erros e carrega tabelas
 	ERR_clear_error();	
@@ -147,8 +147,8 @@ void Pkcs12::parse(std::string password)
 		}
 	}
 	
-	this->privKey = new PrivateKey(pkey);
-	this->cert = new Certificate(cert);
+	this->privKey = new PrivateKey((const EVP_PKEY*) pkey);
+	this->cert = new Certificate((const X509*) cert);
 			
 	for(int i = 0 ; i < sk_X509_num(ca) ; i ++)
 	{
@@ -156,5 +156,7 @@ void Pkcs12::parse(std::string password)
 		this->ca.push_back(new Certificate(tmp));
 	}
 	
-	sk_X509_free(ca);
+	EVP_PKEY_free(pkey); // FREE: check
+	X509_free(cert); // FREE: check
+	sk_X509_pop_free(ca, X509_free); // FREE: check
 }
