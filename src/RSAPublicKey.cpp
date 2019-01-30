@@ -3,7 +3,7 @@
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/exception/AsymmetricKeyException.h>
 
-RSAPublicKey::RSAPublicKey(EVP_PKEY *key) : PublicKey(key)
+RSAPublicKey::RSAPublicKey(const EVP_PKEY *key) : PublicKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::RSA) {

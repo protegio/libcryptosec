@@ -192,7 +192,11 @@ std::vector<Extension*> Certificate::getExtension(Extension::Name extensionName)
 	int num = X509_get_ext_count(this->cert);
 	for (int i = 0; i < num; i++) {
 		const X509_EXTENSION *ext = X509_get_ext(this->cert, i);
-		THROW_DECODE_ERROR_IF(ext == NULL);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
 		if (Extension::getName(ext) == extensionName) {
 			Extension *oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
@@ -207,7 +211,11 @@ std::vector<Extension*> Certificate::getExtensions() const
 	int num = X509_get_ext_count(this->cert);
 	for (int i = 0; i < num; i++) {
 		const X509_EXTENSION *ext = X509_get_ext(this->cert, i);
-		THROW_DECODE_ERROR_IF(ext == NULL);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
 		Extension *oneExt = ExtensionFactory::getExtension(ext);
 		ret.push_back(oneExt);
 	}
@@ -221,7 +229,11 @@ std::vector<Extension*> Certificate::getUnknownExtensions() const
 	int num = X509_get_ext_count(this->cert);
 	for (int i = 0; i < num; i++) {
 		const X509_EXTENSION *ext = X509_get_ext(this->cert, i);
-		THROW_DECODE_ERROR_IF(ext == NULL);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
 		switch (Extension::getName(ext))
 		{
 			case Extension::UNKNOWN:
@@ -259,7 +271,9 @@ CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &priva
 
 	// TODO: check exception type
 	THROW_IF(sslReq == NULL, CertificationException, CertificationException::INTERNAL_ERROR);
-	CertificateRequest req(sslReq);
+	CertificateRequest req((const X509_REQ*) sslReq);
+	X509_REQ_free(sslReq);
+
 	return req;
 }
 

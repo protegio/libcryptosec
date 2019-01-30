@@ -101,9 +101,8 @@ void CertificateBuilder::setSerialNumber(const BigInteger& serial)
 
 void CertificateBuilder::setPublicKey(const PublicKey& publicKey)
 {
-	EVP_PKEY *pkey = publicKey.getEvpPkey();
-	int rc = X509_set_pubkey(this->cert, pkey);
-	EVP_PKEY_free(pkey);
+	const EVP_PKEY *pkey = publicKey.getEvpPkey();
+	int rc = X509_set_pubkey(this->cert, (EVP_PKEY*) pkey);
 	THROW_ENCODE_ERROR_IF(rc == 0);
 }
 
@@ -432,17 +431,19 @@ void CertificateBuilder::includeEcdsaParameters() {
 int CertificateBuilder::getCodification(const RDNSequence& name){
 	int entryType = MBSTRING_ASC;
 
-	X509_NAME *subject = X509_get_subject_name(this->cert);
-	if(subject == NULL) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateBuilder::alterSubject");
-	}
+	const X509_NAME *subject = X509_get_subject_name(this->cert);
+	THROW_DECODE_ERROR_IF(subject == NULL);
 
 	const std::vector<std::pair<ObjectIdentifier, std::string>> &entries = name.getEntries();
 	for(auto entry : entries) {
-		int position = X509_NAME_get_index_by_NID(subject, entry.first.getNid(), -1);
+		int position = X509_NAME_get_index_by_NID((X509_NAME*) subject, entry.first.getNid(), -1);
 		if(position != -1 && entry.first.getNid() != NID_countryName) {
-			X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
-			ASN1_STRING* data = X509_NAME_ENTRY_get_data(oldEntry);
+			const X509_NAME_ENTRY* oldEntry = X509_NAME_get_entry(subject, position);
+			THROW_DECODE_ERROR_IF(oldEntry == NULL);
+
+			const ASN1_STRING* data = X509_NAME_ENTRY_get_data(oldEntry);
+			THROW_DECODE_ERROR_IF(data == NULL);
+
 			entryType = data->type;
 			if(entryType != MBSTRING_FLAG) {
 				return entryType;
@@ -451,253 +452,4 @@ int CertificateBuilder::getCodification(const RDNSequence& name){
 	}
 
 	return entryType;
-}
-
-
-std::string CertificateBuilder::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-	ByteArray data;
-	char temp[15];
-	long value;
-	std::vector<Extension*> extensions;
-
-	ret = "<?xml version=\"1.0\"?>\n";
-	ret += "<certificate>\n";
-	ret += "\t<tbsCertificate>\n";
-		try /* version */
-		{
-			value = this->getVersion();
-			sprintf(temp, "%d", (int)value);
-			string = temp;
-			ret += "\t\t<version>" + string + "</version>\n";
-		}
-		catch (...)
-		{
-		}
-		try /* Serial Number */
-		{
-			value = this->getSerialNumber();
-			sprintf(temp, "%d", (int)value);
-			string = temp;
-			ret += "\t\t<serialNumber>" + string + "</serialNumber>\n";
-		}
-		catch (...)
-		{
-		}
-//		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
-//		ret += "\t\t<signature>" + string + "</signature>\n";
-
-		//verifica se o issuer foi definido
-		if(X509_NAME_entry_count(X509_get_issuer_name(this->cert)) > 0)
-		{
-			ret += "\t\t<issuer>\n";
-				try
-				{
-					ret += (this->getIssuer()).getXmlEncoded("\t\t\t");
-				}
-				catch (...)
-				{
-				}
-			ret += "\t\t</issuer>\n";
-		}
-
-		ret += "\t\t<validity>\n";
-			try
-			{
-				ret += "\t\t\t<notBefore>" + ((this->getNotBefore()).getXmlEncoded()) + "</notBefore>\n";
-			}
-			catch (...)
-			{
-			}
-			try
-			{
-				ret += "\t\t\t<notAfter>" + ((this->getNotAfter()).getXmlEncoded()) + "</notAfter>\n";
-			}
-			catch (...)
-			{
-			}
-		ret += "\t\t</validity>\n";
-
-		ret += "\t\t<subject>\n";
-			try
-			{
-				ret += (this->getSubject()).getXmlEncoded("\t\t\t");
-			}
-			catch (...)
-			{
-			}
-		ret += "\t\t</subject>\n";
-
-		ret += "\t\t<subjectPublicKeyInfo>\n";
-			if (X509_get0_pubkey(this->cert)) {
-				string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
-				ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-				const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
-				data = ByteArray(public_key->data, public_key->length);
-				string = Base64::encode(data);
-				ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
-			}
-		ret += "\t\t</subjectPublicKeyInfo>\n";
-
-		const ASN1_BIT_STRING *issuerUID, *subjectUID;
-		X509_get0_uids(this->cert, &issuerUID, &subjectUID);
-
-		if (issuerUID)
-		{
-			data = ByteArray(issuerUID->data, issuerUID->length);
-			string = Base64::encode(data);
-			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
-		}
-		if (subjectUID)
-		{
-			data = ByteArray(subjectUID->data, subjectUID->length);
-			string = Base64::encode(data);
-			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
-		}
-
-		ret += "\t\t<extensions>\n";
-		extensions = this->getExtensions();
-		for (auto extension : extensions) {
-			ret += extension->toXml("\t\t\t");
-			delete extension;
-		}
-		ret += "\t\t</extensions>\n";
-
-	ret += "\t</tbsCertificate>\n";
-
-//	ret += "\t<signatureAlgorithm>\n";
-//		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
-//		ret += "\t\t<algorithm>" + string + "</algorithm>\n";
-//	ret += "\t</signatureAlgorithm>\n";
-//
-//	data = ByteArray(this->cert->signature->data, this->cert->signature->length);
-//	string = Base64::encode(data);
-//	ret += "\t<signatureValue>" + string + "</signatureValue>\n";
-
-	ret += "</certificate>\n";
-	return ret;
-}
-
-std::string CertificateBuilder::toXml(const std::string& tab) const
-{
-	std::string ret, string;
-	ByteArray data;
-	char temp[15];
-	long value;
-	std::vector<Extension *> extensions;
-	unsigned int i;
-
-	ret = "<?xml version=\"1.0\"?>\n";
-	ret += "<certificate>\n";
-	ret += "\t<tbsCertificate>\n";
-		try /* version */
-		{
-			value = this->getVersion();
-			sprintf(temp, "%d", (int)value);
-			string = temp;
-			ret += "\t\t<version>" + string + "</version>\n";
-		}
-		catch (...)
-		{
-		}
-		try /* Serial Number */
-		{
-			ret += "\t\t<serialNumber>" + this->getSerialNumberBigInt().toDec() + "</serialNumber>\n";
-		}
-		catch (...)
-		{
-		}
-//		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
-//		ret += "\t\t<signature>" + string + "</signature>\n";
-
-		ret += "\t\t<issuer>\n";
-			try
-			{
-				ret += (this->getIssuer()).getXmlEncoded("\t\t\t");
-			}
-			catch (...)
-			{
-			}
-		ret += "\t\t</issuer>\n";
-
-		ret += "\t\t<validity>\n";
-			try
-			{
-				ret += "\t\t\t<notBefore>" + ((this->getNotBefore()).getXmlEncoded()) + "</notBefore>\n";
-			}
-			catch (...)
-			{
-			}
-			try
-			{
-				ret += "\t\t\t<notAfter>" + ((this->getNotAfter()).getXmlEncoded()) + "</notAfter>\n";
-			}
-			catch (...)
-			{
-			}
-		ret += "\t\t</validity>\n";
-
-		ret += "\t\t<subject>\n";
-			try
-			{
-				ret += (this->getSubject()).getXmlEncoded("\t\t\t");
-			}
-			catch (...)
-			{
-			}
-		ret += "\t\t</subject>\n";
-
-		ret += "\t\t<subjectPublicKeyInfo>\n";
-			if (X509_get0_pubkey(this->cert))
-			{
-				string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
-				ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-
-				const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
-				data = ByteArray(public_key->data, public_key->length);
-				string = Base64::encode(data);
-				ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
-			}
-		ret += "\t\t</subjectPublicKeyInfo>\n";
-
-		const ASN1_BIT_STRING *issuerUID, *subjectUID;
-		X509_get0_uids(this->cert, &issuerUID, &subjectUID);
-
-		if (issuerUID)
-		{
-			data = ByteArray(issuerUID->data, issuerUID->length);
-			string = Base64::encode(data);
-			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
-		}
-		if (subjectUID)
-		{
-			data = ByteArray(subjectUID->data, subjectUID->length);
-			string = Base64::encode(data);
-			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
-		}
-
-		ret += "\t\t<extensions>\n";
-		extensions = this->getExtensions();
-		for (i=0;i<extensions.size();i++)
-		{
-			ret += extensions.at(i)->toXml("\t\t\t");
-			delete extensions.at(i);
-		}
-		ret += "\t\t</extensions>\n";
-
-	ret += "\t</tbsCertificate>\n";
-
-//	ret += "\t<signatureAlgorithm>\n";
-//		string = OBJ_nid2ln(OBJ_obj2nid(this->cert->sig_alg->algorithm));
-//		ret += "\t\t<algorithm>" + string + "</algorithm>\n";
-//	ret += "\t</signatureAlgorithm>\n";
-//
-//	data = ByteArray(this->cert->signature->data, this->cert->signature->length);
-//	string = Base64::encode(data);
-//	ret += "\t<signatureValue>" + string + "</signatureValue>\n";
-
-	ret += "</certificate>\n";
-	return ret;
-
 }

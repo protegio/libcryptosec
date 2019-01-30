@@ -86,7 +86,6 @@ PrivateKey* Pkcs12::getPrivKey(std::string password)
 	{
 		throw AsymmetricKeyException(AsymmetricKeyException::INVALID_TYPE, "Pkcs12::getPrivKey");
 	}
-	EVP_PKEY_up_ref(this->privKey->getEvpPkey());
 	
 	return ret;
 }

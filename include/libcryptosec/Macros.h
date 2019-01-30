@@ -67,12 +67,12 @@ do {\
 	THROW_DECODE_ERROR_IF(dst == NULL);\
 	} while(false)
 
-#define _ENCODE(dst, encode_foo)\
+#define _ENCODE(src, encode_foo)\
 	unsigned char *data;\
 	BIO *buffer = BIO_new(BIO_s_mem());\
 	THROW_ENCODE_ERROR_IF(buffer == NULL);\
 	\
-	int wrote = encode_foo(buffer, this->cert);\
+	int wrote = encode_foo(buffer, src);\
 	THROW_ENCODE_ERROR_AND_FREE_IF(wrote <= 0,\
 			BIO_free(buffer);\
 	);\
@@ -85,15 +85,15 @@ do {\
 	ByteArray ret(data, ndata);\
 	BIO_free(buffer)\
 
-#define ENCODE_PEM_AND_RETURN(dst, encode_foo)\
+#define ENCODE_PEM_AND_RETURN(src, encode_foo)\
 	do { \
-	_ENCODE(dst, encode_foo);\
+	_ENCODE(src, encode_foo);\
 	return ret.toString(); \
 	} while(false)
 
-#define ENCODE_DER_AND_RETURN(dst, encode_foo)\
+#define ENCODE_DER_AND_RETURN(src, encode_foo)\
 	do { \
-	_ENCODE(dst, encode_foo);\
+	_ENCODE(src, encode_foo);\
 	return ret; \
 	} while(false)
 

@@ -13,7 +13,8 @@ Pkcs7SignedDataBuilder::Pkcs7SignedDataBuilder(MessageDigest::Algorithm mesDigAl
 	}
 
 	// CAST: PKCS7_add_signature não modifica o conteúdo do certificado
-	si = PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm));
+	// CAST: TODO: verificar o cast da chave privada
+	si = PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), (EVP_PKEY*) privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm));
 	if (!si)
 	{
 		PKCS7_free(this->pkcs7);
@@ -58,7 +59,8 @@ void Pkcs7SignedDataBuilder::init(MessageDigest::Algorithm mesDigAlgorithm, Cert
 	}
 
 	// CAST: PKCS7_add_signature não modifica o conteúdo do certificado
-	if (!PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
+	// CAST: TODO: verificar o cast da chave privada
+	if (!PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), (EVP_PKEY*) privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
 	{
 		PKCS7_free(this->pkcs7);
 		this->pkcs7 = NULL;
@@ -85,7 +87,8 @@ void Pkcs7SignedDataBuilder::addSigner(MessageDigest::Algorithm mesDigAlgorithm,
 	}
 
 	// CAST: PKCS7_add_signature não modifica o conteúdo do certificado
-	if (!PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
+	// CAST: TODO: verificar o cast da chave privada
+	if (!PKCS7_add_signature(this->pkcs7, (X509*) cert.getX509(), (EVP_PKEY*) privKey.getEvpPkey(), MessageDigest::getMessageDigest(mesDigAlgorithm)))
 	{
 		PKCS7_free(this->pkcs7);
 		this->pkcs7 = NULL;

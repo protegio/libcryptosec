@@ -3,7 +3,7 @@
 #include <libcryptosec/AsymmetricKey.h>
 #include <libcryptosec/exception/AsymmetricKeyException.h>
 
-ECDSAPublicKey::ECDSAPublicKey(EVP_PKEY* evpPkey) : PublicKey(evpPkey)
+ECDSAPublicKey::ECDSAPublicKey(const EVP_PKEY* evpPkey) : PublicKey(evpPkey)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::EC) {

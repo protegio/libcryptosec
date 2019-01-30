@@ -101,16 +101,11 @@ public:
 
 	const X509* getX509() const;
 
-	std::string getXmlEncoded(const std::string& tab = "") const;
-	std::string toXml(const std::string& tab = "") const;
-
 protected:
 	bool includeECDSAParameters;
 
 private:
 	int getCodification(const RDNSequence& name);
-
-
 };
 
 #endif /*CERTIFICATEBUILDER_H_*/

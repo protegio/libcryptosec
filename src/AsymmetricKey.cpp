@@ -91,10 +91,15 @@ int AsymmetricKey::getSizeBits() const
 	return ret;
 }
 
-EVP_PKEY* AsymmetricKey::getEvpPkey() const
+EVP_PKEY* AsymmetricKey::getSslObject() const
 {
 	int rc = EVP_PKEY_up_ref(this->evpPkey);
 	THROW_IF(rc == 0, AsymmetricKeyException, AsymmetricKeyException::INTERNAL_ERROR); //TODO: check exception type
+	return this->evpPkey;
+}
+
+const EVP_PKEY* AsymmetricKey::getEvpPkey() const
+{
 	return this->evpPkey;
 }
 

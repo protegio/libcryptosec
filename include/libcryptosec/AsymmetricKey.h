@@ -149,12 +149,14 @@ public:
 	 */
 	virtual ~AsymmetricKey();
 
+	EVP_PKEY* getSslObject() const;
+
 	/**
 	 * @brief Retorna a estrutura OpenSSL interna.
 	 *
 	 * @return Um ponteiro para a estrutura OpenSSL interna à classe AsymmetricKey.
 	 */
-	EVP_PKEY* getEvpPkey() const;
+	const EVP_PKEY* getEvpPkey() const;
 
 	/**
 	 * @brief Retorna o algoritmo assimétrico que deve ser usado com a chave atual.

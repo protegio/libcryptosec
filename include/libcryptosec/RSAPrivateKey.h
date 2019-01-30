@@ -29,7 +29,7 @@ public:
 	 * @throw AsymmetricKeyException caso a estrutura EVP_PKEY não seja uma estrutura
 	 * OpenSSL válida ou ocorra algum problema na sua carga.
 	 **/
-	RSAPrivateKey(EVP_PKEY* key);
+	RSAPrivateKey(const EVP_PKEY* key);
 	
 	/**
 	 * @brief Construtor recebendo a representação da chave privada no formato DER.

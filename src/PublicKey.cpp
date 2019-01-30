@@ -84,7 +84,8 @@ std::string PublicKey::getPemEncoded()
 		throw EncodeException(EncodeException::BUFFER_CREATING, "PublicKey::getPemEncoded");
 	}
 
-	wrote = PEM_write_bio_PUBKEY(buffer, this->getEvpPkey());
+	// CAST: TODO: verificar o cast da chave privada
+	wrote = PEM_write_bio_PUBKEY(buffer, (EVP_PKEY*) this->getEvpPkey());
 	if (!wrote) {
 		BIO_free(buffer);
 		throw EncodeException(EncodeException::PEM_ENCODE, "PublicKey::getPemEncoded");

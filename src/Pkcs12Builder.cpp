@@ -74,10 +74,11 @@ Pkcs12 Pkcs12Builder::doFinal(const std::string& password)
 	
 	//cria estruta PKCS12
 	Pkcs12 tmp(
+		/* CAST: TODO: o argumento evp_pkey não foi verificado */
 		/* CAST: PKCS12_create não modifica o certificado. */
-		/* TODO: o argumento ca não foi verificado */
+		/* CAST: TODO: o argumento ca não foi verificado */
 		PKCS12_create(
-			cpass, cname, this->key.getEvpPkey(),
+			cpass, cname, (EVP_PKEY*) this->key.getEvpPkey(),
 			(X509*) this->cert.getX509(), ca,
 			nid_key, nid_cert,
 			iter, mac_iter,

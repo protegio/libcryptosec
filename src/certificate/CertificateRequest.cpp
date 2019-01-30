@@ -6,63 +6,46 @@
 
 #include <openssl/pem.h>
 
-CertificateRequest::CertificateRequest()
+#include <sstream>
+
+CertificateRequest::CertificateRequest() :
+		req(X509_REQ_new())
 {
-	this->req = X509_REQ_new();
+	THROW_DECODE_ERROR_IF(this->req == NULL);
 }
 
-CertificateRequest::CertificateRequest(X509_REQ *req)
+CertificateRequest::CertificateRequest(X509_REQ *req) :
+		req(req)
 {
-	this->req = req;
+	THROW_DECODE_ERROR_IF(this->req == NULL);
 }
 
-CertificateRequest::CertificateRequest(std::string &pemEncoded)
+CertificateRequest::CertificateRequest(const X509_REQ* req) :
+		req(X509_REQ_dup((X509_REQ*) req))
 {
-	BIO *buffer;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRequest::Certificate");
-	}
-	if ((unsigned int)(BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size())) != pemEncoded.size())
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateRequest::Certificate");
-	}
-	this->req = PEM_read_bio_X509_REQ(buffer, NULL, NULL, NULL);
-	if (this->req == NULL)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_DECODE, "CertificateRequest::Certificate");
-	}
-	BIO_free(buffer);
+	THROW_DECODE_ERROR_IF(this->req == NULL);
 }
 
-CertificateRequest::CertificateRequest(ByteArray &derEncoded)
+CertificateRequest::CertificateRequest(const std::string& pemEncoded)
 {
-	BIO *buffer;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRequest::Certificate");
-	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateRequest::Certificate");
-	}
-	this->req = d2i_X509_REQ_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->req == NULL)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_DECODE, "CertificateRequest::Certificate");
-	}
-	BIO_free(buffer);
+	DECODE_PEM(this->req, pemEncoded, PEM_read_bio_X509_REQ);
 }
 
-CertificateRequest::CertificateRequest(const CertificateRequest& req)
+CertificateRequest::CertificateRequest(const ByteArray& derEncoded)
 {
-	this->req = X509_REQ_dup(req.getX509Req());
+	DECODE_DER(this->req, derEncoded, d2i_X509_REQ_bio);
+}
+
+CertificateRequest::CertificateRequest(const CertificateRequest& req) :
+		req(X509_REQ_dup(req.req))
+{
+	THROW_DECODE_ERROR_IF(this->req == NULL);
+}
+
+CertificateRequest::CertificateRequest(CertificateRequest&& req) :
+		req(std::move(req.req))
+{
+	req.req = NULL;
 }
 
 CertificateRequest::~CertificateRequest()
@@ -70,162 +53,44 @@ CertificateRequest::~CertificateRequest()
 	X509_REQ_free(this->req);
 }
 
-std::string CertificateRequest::getXmlEncoded(const std::string& tab) const
+CertificateRequest& CertificateRequest::operator=(const CertificateRequest& req)
 {
-	std::string ret, string;
-	RDNSequence subject;
-	std::vector<Extension *> extensions;
-	ByteArray publicKeyInfo;
-	char temp[15];
-	long value;
+	if (&req == this) {
+		return *this;
+	}
 
-	ret = tab + "<certificateRequest>\n";
+	X509_REQ *clone = X509_REQ_dup(req.req);
+	THROW_DECODE_ERROR_IF(clone == NULL);
 
-		value = this->getVersion();
-		sprintf(temp, "%d", (int)value);
-		string = temp;
-		ret += tab + "\t<version>" + string + "</version>\n";
+	if (this->req != NULL) {
+		X509_REQ_free(this->req);
+	}
 
-		ret += tab + "\t<subject>\n";
-		subject = this->getSubject();
-		ret += subject.getXmlEncoded(tab + "\t\t");
-		ret += tab + "\t</subject>\n";
+	this->req = clone;
 
-		try
-		{
-			publicKeyInfo = this->getPublicKeyInfo();
-			ret += tab + "\t<publicKeyInfo>\n";
-			ret += tab + "\t\t" + Base64::encode(publicKeyInfo) + "\n";
-			ret += tab + "\t</publicKeyInfo>\n";
-		}
-		catch (...)
-		{
-		}
-
-		ret += tab + "\t<extensions>\n";
-		extensions = this->getExtensions();
-		for (auto extension : extensions)
-		{
-			ret += extension->toXml(tab + "\t\t");
-			delete extension;
-		}
-		ret += tab + "\t</extensions>\n";
-
-	ret += tab + "</certificateRequest>\n";
-
-	return ret;
+	return *this;
 }
 
-std::string CertificateRequest::toXml(std::string tab)
+CertificateRequest& CertificateRequest::operator=(CertificateRequest&& req)
 {
-	std::string ret, string;
-	unsigned int i;
-	RDNSequence subject;
-	std::vector<Extension *> extensions;
-	ByteArray publicKeyInfo;
-	char temp[15];
-	long value;
-
-	ret = tab + "<certificateRequest>\n";
-
-		value = this->getVersion();
-		sprintf(temp, "%d", (int)value);
-		string = temp;
-		ret += tab + "\t<version>" + string + "</version>\n";
-
-		ret += tab + "\t<subject>\n";
-		subject = this->getSubject();
-		ret += subject.getXmlEncoded(tab + "\t\t");
-		ret += tab + "\t</subject>\n";
-
-		try
-		{
-			publicKeyInfo = this->getPublicKeyInfo();
-			ret += tab + "\t<publicKeyInfo>\n";
-			ret += tab + "\t\t" + Base64::encode(publicKeyInfo) + "\n";
-			ret += tab + "\t</publicKeyInfo>\n";
-		}
-		catch (...)
-		{
-		}
-
-		ret += tab + "\t<extensions>\n";
-		extensions = this->getExtensions();
-		for (i=0;i<extensions.size();i++)
-		{
-			ret += extensions.at(i)->toXml(tab + "\t\t");
-			delete extensions.at(i);
-		}
-		ret += tab + "\t</extensions>\n";
-
-	ret += tab + "</certificateRequest>\n";
-
-	return ret;
-}
-
-std::string CertificateRequest::getPemEncoded()
-{
-	BIO *buffer;
-	int ndata, wrote;
-	std::string ret;
-	ByteArray *retTemp;
-	unsigned char *data;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRequest::getPemEncoded");
-	}
-	wrote = PEM_write_bio_X509_REQ(buffer, this->req);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_ENCODE, "CertificateRequest::getPemEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRequest::getPemEncoded");
-	}
-	retTemp = new ByteArray(data, ndata);
-	ret = retTemp->toString();
-	delete retTemp;
-	BIO_free(buffer);
-	return ret;
-}
-
-ByteArray CertificateRequest::getDerEncoded() const
-{
-	BIO *buffer;
-	int ndata, wrote;
-	unsigned char *data;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRequest::getDerEncoded");
-	}
-	wrote = i2d_X509_REQ_bio(buffer, this->req);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_ENCODE, "CertificateRequest::getDerEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRequest::getDerEncoded");
+	if (&req == this) {
+		return *this;
 	}
 
-	ByteArray ret(data, ndata);
-	BIO_free(buffer);
+	if (this->req != NULL) {
+		X509_REQ_free(this->req);
+	}
 
-	return ret;
+	this->req = std::move(req.req);
+	req.req = NULL;
+
+	return *this;
 }
 
 void CertificateRequest::setVersion(long version)
 {
-	X509_REQ_set_version(this->req, version);
+	int rc = X509_REQ_set_version(this->req, version);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 }
 
 long CertificateRequest::getVersion() const
@@ -233,27 +98,24 @@ long CertificateRequest::getVersion() const
 	return X509_REQ_get_version(this->req);
 }
 
-MessageDigest::Algorithm CertificateRequest::getMessageDigestAlgorithm()
+MessageDigest::Algorithm CertificateRequest::getMessageDigestAlgorithm() const
 {
-	MessageDigest::Algorithm ret;
-	ret = MessageDigest::getMessageDigest(X509_REQ_get_signature_nid(this->req));
+	int nid = X509_REQ_get_signature_nid(this->req);
+	MessageDigest::Algorithm ret = MessageDigest::getMessageDigest(nid);
 	return ret;
 }
 
-void CertificateRequest::setPublicKey(PublicKey &publicKey)
+void CertificateRequest::setPublicKey(const PublicKey& publicKey)
 {
-	// TODO: cast ok?
-	X509_REQ_set_pubkey(this->req, (EVP_PKEY*) publicKey.getEvpPkey());
+	const EVP_PKEY *pkey = publicKey.getEvpPkey();
+	int rc = X509_REQ_set_pubkey(this->req, (EVP_PKEY*) pkey);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 }
 
 PublicKey CertificateRequest::getPublicKey() const
 {
-	// TODO check if function const modifier is ok
 	const EVP_PKEY *key = X509_REQ_get0_pubkey(this->req);
-	if (key == NULL) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRequest::getPublicKey");
-	}
-
+	THROW_DECODE_ERROR_IF(key == NULL);
 	PublicKey ret(key);
 	return ret;
 }
@@ -282,153 +144,236 @@ ByteArray CertificateRequest::getPublicKeyInfo() const
 */
 }
 
-void CertificateRequest::setSubject(RDNSequence &name)
+void CertificateRequest::setSubject(const RDNSequence& name)
 {
-	X509_NAME *subject;
-	subject = name.getX509Name();
-	X509_REQ_set_subject_name(this->req, subject);
+	X509_NAME *subject = name.getX509Name();
+	int rc = X509_REQ_set_subject_name(this->req, subject);
 	X509_NAME_free(subject);
+	THROW_ENCODE_ERROR_IF(rc == 0);
 }
 
 RDNSequence CertificateRequest::getSubject() const
 {
-	RDNSequence ret;
-	if (this->req)
-	{
-		ret = RDNSequence(X509_REQ_get_subject_name(this->req));
-	}
+	const X509_NAME *name = X509_REQ_get_subject_name(this->req);
+	THROW_DECODE_ERROR_IF(name == NULL);
+	RDNSequence ret(name);
 	return ret;
 }
 
-void CertificateRequest::addExtension(Extension &extension)
+void CertificateRequest::addExtension(const Extension& extension)
 {
-	X509_EXTENSION *ext;
-	STACK_OF(X509_EXTENSION) *extensions;
-	int pos;
-	extensions = X509_REQ_get_extensions(this->req);
-	if (!extensions)
-	{
+	X509_ATTRIBUTE *attr = NULL;
+	// TODO: verificar - retorna uma cópia da lista de extensões da requisição
+	STACK_OF(X509_EXTENSION) *extensions = X509_REQ_get_extensions(this->req);
+
+	if (!extensions) {
 		extensions = sk_X509_EXTENSION_new_null();
+		THROW_ENCODE_ERROR_IF(extensions == NULL);
+	} else {
+		int pos = X509_REQ_get_attr_by_NID(this->req, NID_ext_req, -1);
+		THROW_ENCODE_ERROR_AND_FREE_IF(pos < 0,
+				sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+		);
+
+		attr = X509_REQ_delete_attr(this->req, pos);
+		THROW_ENCODE_ERROR_AND_FREE_IF(attr == NULL,
+				sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+		);
+
+		// não deletamos o atributo ainda para tentar reinseri-lo no caso
+		// de um erro futuro.
 	}
-	else
-	{
-		pos = X509_REQ_get_attr_by_NID(this->req, NID_ext_req, -1);
-		if (pos >= 0)
-		{
-			X509_REQ_delete_attr(this->req, pos);
-		}
-	}
-	ext = extension.getX509Extension();
-	sk_X509_EXTENSION_push(extensions, ext);
-	X509_REQ_add_extensions(this->req, extensions);
+
+	// Tenta inserir a extensão na stack
+	X509_EXTENSION *ext = extension.getX509Extension();
+	int rc = sk_X509_EXTENSION_push(extensions, ext);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_EXTENSION_free(ext);
+			sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+	);
+
+	// Tenta inserir a stack na requisição
+	rc = X509_REQ_add_extensions(this->req, extensions);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_REQ_add1_attr(this->req, attr);  // Tenta reinserir o atributo antigo
+			X509_ATTRIBUTE_free(attr);
+			sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+	);
+
+	X509_ATTRIBUTE_free(attr);
+
+	// TODO: verificar se X509_REQ_add_extensions move ou copia
+	// se mover, não podemos desalocar aqui
 	sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
 }
 
-void CertificateRequest::addExtensions(std::vector<Extension *> &extensions)
+void CertificateRequest::addExtensions(const std::vector<Extension*>& extensions)
 {
-	X509_EXTENSION *ext;
-	STACK_OF(X509_EXTENSION) *extensionsStack;
-	unsigned int i;
-	if (extensions.size() > 0)
-	{
-		extensionsStack = sk_X509_EXTENSION_new_null();
-		for (i=0;i<extensions.size();i++)
-		{
-			ext = extensions.at(i)->getX509Extension();
-			sk_X509_EXTENSION_push(extensionsStack, ext);
+	if (extensions.size() > 0) {
+		int rc = 0;
+
+		STACK_OF(X509_EXTENSION) *extensionsStack = sk_X509_EXTENSION_new_null();
+		THROW_ENCODE_ERROR_IF(extensionsStack == NULL);
+
+		for (auto extension : extensions) {
+			X509_EXTENSION *ext = extension->getX509Extension();
+			rc = sk_X509_EXTENSION_push(extensionsStack, ext);
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+					X509_EXTENSION_free(ext);
+			);
 		}
-		X509_REQ_add_extensions(this->req, extensionsStack);
+
+		rc = X509_REQ_add_extensions(this->req, extensionsStack);
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+		);
+
+		// TODO: verificar se X509_REQ_add_extensions copia ou move a stack
+		// Se mover, não modemos desalocar aqui
 		sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
 	}
 }
 
-void CertificateRequest::replaceExtension(Extension &extension)
+void CertificateRequest::replaceExtension(const Extension& extension)
 {
-	int position;
 	X509_EXTENSION *ext = extension.getX509Extension();
-	STACK_OF(X509_EXTENSION)* extensionsStack = NULL;
+	int rc = 0;
 
-	extensionsStack = X509_REQ_get_extensions(this->req); //pega uma copia da pilha de extencoes da req
+	// TODO: verificar - pega uma copia da pilha de extencoes da req
+	STACK_OF(X509_EXTENSION) *extensionsStack = X509_REQ_get_extensions(this->req);
 
-	if(extensionsStack == NULL) //pilha nao instanciada
-	{
+	if(extensionsStack == NULL) { //pilha nao instanciada
 		extensionsStack = sk_X509_EXTENSION_new_null();
-		sk_X509_EXTENSION_push(extensionsStack, ext);
+		THROW_ENCODE_ERROR_AND_FREE_IF(extensionsStack == NULL,
+				X509_EXTENSION_free(ext);
+		);
+
+		rc = sk_X509_EXTENSION_push(extensionsStack, ext);
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_EXTENSION_free(ext);
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+		);
+
+		rc = X509_REQ_add_extensions(this->req, extensionsStack);  // adiciona nova pilha a req
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+		);
+	} else { //pilha instanciada previamente
+		ASN1_OBJECT *oid = extension.getObjectIdentifier().getSslObject();
+		int position =  X509v3_get_ext_by_OBJ(extensionsStack, oid, -1);
+		ASN1_OBJECT_free(oid);
+
+		if (position >= 0) {
+			X509_EXTENSION *oldExt = sk_X509_EXTENSION_delete(extensionsStack, position);
+			THROW_ENCODE_ERROR_AND_FREE_IF(oldExt == NULL,
+					X509_EXTENSION_free(ext);
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+			);
+
+			X509_EXTENSION_free(oldExt);
+
+			rc = sk_X509_EXTENSION_insert(extensionsStack, ext, position);
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					X509_EXTENSION_free(ext);
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+			);
+		} else { //pilha vazia ou sem a extensao previamente adicionada
+			rc = sk_X509_EXTENSION_insert(extensionsStack, ext, -1);
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					X509_EXTENSION_free(ext);
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+			);
+		}
+
+		position = X509_REQ_get_attr_by_NID(this->req, NID_ext_req, -1);
+		THROW_ENCODE_ERROR_AND_FREE_IF(position < 0,
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+		);
+
+		X509_ATTRIBUTE *attr = X509_REQ_delete_attr(this->req, position);  // remove pilha antiga da req
+		THROW_ENCODE_ERROR_AND_FREE_IF(attr == NULL,
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+		);
+
+		rc = X509_REQ_add_extensions(this->req, extensionsStack);  // adiciona nova pilha a req
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_REQ_add1_attr(this->req, attr); // Tenta reinserir o atributo antigo
+				X509_ATTRIBUTE_free(attr);
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+		);
+		X509_ATTRIBUTE_free(attr);
 	}
-	else //pilha instanciada previamente
-	{
-		position =  X509v3_get_ext_by_OBJ(extensionsStack, extension.getObjectIdentifier().getSslObject(), -1);
-		if (position >= 0)
-		{
-			if(sk_X509_EXTENSION_insert(extensionsStack, ext, position) == 0)
-			{
-				throw CertificationException(CertificationException::ADDING_EXTENSION, "CertificateRequest::replaceExtension");
-			}
 
-			ext = sk_X509_EXTENSION_delete(extensionsStack, position + 1);
-			X509_EXTENSION_free(ext);
-		}
-		else //pilha vazia ou sem a extensao previamente adicionada
-		{
-			if(sk_X509_EXTENSION_insert(extensionsStack, ext, -1) == 0)
-			{
-				throw CertificationException(CertificationException::ADDING_EXTENSION, "CertificateRequest::replaceExtension");
-			}
-		}
-
-		position = X509_REQ_get_attr_by_NID(this->req, NID_ext_req, -1); //apaga pilha antiga da req
-		if (position >= 0)
-		{
-			X509_REQ_delete_attr(this->req, position);
-		}
-	}
-
-	//adiciona nova pilha a req
-	X509_REQ_add_extensions(this->req, extensionsStack);
+	// TODO: verificar se X509_REQ_add_extensions copia ou move
+	// Se mover, não podemos desalocar a stack
 	sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free); //apaga copia local da pilha
 }
 
-std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name extensionName)
+std::vector<Extension*> CertificateRequest::removeExtension(Extension::Name extensionName)
 {
-	int i, position;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
-	STACK_OF(X509_EXTENSION)* extensionsStack = NULL;
+	std::vector<Extension*> ret;
 	bool stackChange = false;
 
-	extensionsStack = X509_REQ_get_extensions(this->req); //pega uma copia da pilha de extencoes da req
+	// TODO: verificar
+	// pega uma copia da pilha de extencoes da req
+	STACK_OF(X509_EXTENSION) *extensionsStack = X509_REQ_get_extensions(this->req);
+	THROW_ENCODE_ERROR_IF(extensionsStack == NULL);
 
-	i = 0;
-	while(i < sk_X509_EXTENSION_num(extensionsStack))
-	{
-		ext = sk_X509_EXTENSION_value(extensionsStack, i);
+	int i = 0;
+	while(i < sk_X509_EXTENSION_num(extensionsStack)) {
+		X509_EXTENSION *ext = sk_X509_EXTENSION_value(extensionsStack, i);
+		THROW_ENCODE_ERROR_AND_FREE_IF(ext == NULL,
+				sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
 
-		if (Extension::getName(ext) == extensionName)
-		{
-			oneExt = ExtensionFactory::getExtension(ext);
+		if (Extension::getName(ext) == extensionName) {
+			Extension *oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
+
 			ext = sk_X509_EXTENSION_delete(extensionsStack, i);
+			THROW_ENCODE_ERROR_AND_FREE_IF(ext == NULL,
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+					for (auto extension : ret) {
+						delete extension;
+					}
+			);
+
 			X509_EXTENSION_free(ext);
+
 			//nao incrementa i pois um elemento do array foi removido
 			stackChange = true;
-		}
-		else
-		{
+		} else {
 			i++;
 		}
 	}
 
-	if(stackChange)
-	{
-		position = X509_REQ_get_attr_by_NID(this->req, NID_ext_req, -1); //apaga pilha antiga da req
-		if (position >= 0)
-		{
-			X509_REQ_delete_attr(this->req, position);
+	if(stackChange) {
+		int position = X509_REQ_get_attr_by_NID(this->req, NID_ext_req, -1);  // remove pilha antiga da req
+		if (position >= 0) {
+			X509_ATTRIBUTE *attr = X509_REQ_delete_attr(this->req, position);
+			THROW_ENCODE_ERROR_AND_FREE_IF(attr == NULL,
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+					for (auto extension : ret) {
+						delete extension;
+					}
+			);
 
-			//adiciona nova pilha a req
-			X509_REQ_add_extensions(this->req, extensionsStack);
-			sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free); //apaga copia local da pilha
+			// adiciona nova pilha a req
+			int rc = X509_REQ_add_extensions(this->req, extensionsStack);
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					X509_REQ_add1_attr(this->req, attr);  // tenta reinserir a stack anterior
+					X509_ATTRIBUTE_free(attr);
+					sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);
+					for (auto extension : ret) {
+						delete extension;
+					}
+			);
+			X509_ATTRIBUTE_free(attr);
+			sk_X509_EXTENSION_pop_free(extensionsStack, X509_EXTENSION_free);  // remove copia local da pilha
 		}
 	}
 
@@ -436,65 +381,95 @@ std::vector<Extension *> CertificateRequest::removeExtension(Extension::Name ext
 }
 
 
-std::vector<Extension *> CertificateRequest::removeExtension(ObjectIdentifier extOID)
+std::vector<Extension*> CertificateRequest::removeExtension(const ObjectIdentifier& extOID)
 {
-	const ASN1_OBJECT* obj = extOID.getSslObject();
-	int nid = OBJ_obj2nid(obj);
-	return this->removeExtension(Extension::getName(nid));
+	int nid = extOID.getNid();
+	Extension::Name name = Extension::getName(nid);
+	std::vector<Extension*> extensions = this->removeExtension(name);
+	return extensions;
 }
 
-std::vector<Extension *> CertificateRequest::getExtension(Extension::Name extensionName)
+std::vector<Extension*> CertificateRequest::getExtension(Extension::Name extensionName) const
 {
-	int i;
-	X509_EXTENSION *ext;
-	STACK_OF(X509_EXTENSION) *extensions;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
-	extensions = X509_REQ_get_extensions(this->req);
-	for (i=0;i<sk_X509_EXTENSION_num(extensions);i++)
-	{
-		ext = sk_X509_EXTENSION_value(extensions, i);
-		if (Extension::getName(ext) == extensionName)
-		{
-			oneExt = ExtensionFactory::getExtension(ext);
+	std::vector<Extension*> ret;
+
+	// TODO: verificar - retorna uma cópia da lista de extensões da requisição
+	STACK_OF(X509_EXTENSION) *extensions = X509_REQ_get_extensions(this->req);
+	if (extensions == NULL) {
+		return ret;
+	}
+
+	int num = sk_X509_EXTENSION_num(extensions);
+	for (int i = 0; i < num; i++) {
+		const X509_EXTENSION *ext = sk_X509_EXTENSION_value(extensions, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		if (Extension::getName(ext) == extensionName) {
+			Extension *oneExt = ExtensionFactory::getExtension(ext);
 			ret.push_back(oneExt);
 		}
 	}
+
+	sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
 	return ret;
 }
 
 std::vector<Extension*> CertificateRequest::getExtensions() const
 {
-	// TODO: check if function const modifier is ok
-	int i;
-	X509_EXTENSION *ext;
-	std::vector<Extension *> ret;
-	STACK_OF(X509_EXTENSION) *extensions;
-	Extension *oneExt;
-	extensions = X509_REQ_get_extensions(this->req);
-	for (i=0;i<sk_X509_EXTENSION_num(extensions);i++)
-	{
-		ext = sk_X509_EXTENSION_value(extensions, i);
-		oneExt = ExtensionFactory::getExtension(ext);
+	std::vector<Extension*> ret;
+	STACK_OF(X509_EXTENSION) *extensions = X509_REQ_get_extensions(this->req);
+	if (extensions == NULL) {
+		return ret;
+	}
+
+	int num = sk_X509_EXTENSION_num(extensions);
+	for (int i = 0; i < num; i++) {
+		const X509_EXTENSION *ext = sk_X509_EXTENSION_value(extensions, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		Extension *oneExt = ExtensionFactory::getExtension(ext);
 		ret.push_back(oneExt);
 	}
+
+	sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
 	return ret;
 }
 
-std::vector<Extension *> CertificateRequest::getUnknownExtensions()
+std::vector<Extension*> CertificateRequest::getUnknownExtensions() const
 {
-	int i;
-	X509_EXTENSION *ext;
-	STACK_OF(X509_EXTENSION) *extensions;
-	std::vector<Extension *> ret;
-	Extension *oneExt;
+	std::vector<Extension*> ret;
+	Extension *oneExt = NULL;
 
-	extensions = X509_REQ_get_extensions(this->req);
-	for (i=0;i<sk_X509_EXTENSION_num(extensions);i++)
-	{
-		ext = sk_X509_EXTENSION_value(extensions, i);
-		switch (Extension::getName(ext))
-		{
+	// TODO: verificar - retorna uma cópia da lista de extensões da requisição
+	STACK_OF(X509_EXTENSION) *extensions = X509_REQ_get_extensions(this->req);
+	if (extensions == NULL) {
+		return ret;
+	}
+
+	int num = sk_X509_EXTENSION_num(extensions);
+	for (int i = 0; i < num; i++) {
+		const X509_EXTENSION *ext = sk_X509_EXTENSION_value(extensions, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
+
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		switch (Extension::getName(ext)) {
 			case Extension::UNKNOWN:
 				oneExt = new Extension(ext);
 				ret.push_back(oneExt);
@@ -503,57 +478,103 @@ std::vector<Extension *> CertificateRequest::getUnknownExtensions()
 				break;
 		}
 	}
+
+	sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
 	return ret;
 }
 
 ByteArray CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm) const
 {
 	MessageDigest messageDigest(algorithm);
-
 	ByteArray derEncoded = this->getDerEncoded();
 	ByteArray ret = messageDigest.doFinal(std::move(derEncoded));
-
 	return ret;
 }
 
-void CertificateRequest::sign(PrivateKey &privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
+void CertificateRequest::sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
 {
-	// TODO: cast ok?
+	// CAST: TODO
 	int rc = X509_REQ_sign(this->req, (EVP_PKEY*) privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
-	if (!rc)
-	{
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRequest::sign");
-	}
+	THROW_IF(rc == 0, CertificationException, CertificationException::INTERNAL_ERROR); // TODO: check exception type
 }
 
-bool CertificateRequest::verify()
+bool CertificateRequest::verify() const
 {
 	PublicKey pub = this->getPublicKey();
-
-	// TODO: cast ok?
+	// CAST: TODO
 	int rc = X509_REQ_verify(this->req, (EVP_PKEY*) pub.getEvpPkey());
 	return (rc == 1 ? true : false);
 }
 
-bool CertificateRequest::isSigned() const throw()
+bool CertificateRequest::isSigned() const
 {
 	const ASN1_BIT_STRING* signature;
 	X509_REQ_get0_signature(this->req, &signature, 0);
-	return signature->data != 0 && signature->length > 0;
+	THROW_DECODE_ERROR_IF(signature == NULL);
+	return signature->data != NULL && signature->length > 0;
 }
 
+std::string CertificateRequest::toXml(const std::string& tab) const
+{
+	std::stringstream stream;
+	std::string ret, string;
+	RDNSequence subject;
+	std::vector<Extension *> extensions;
+	ByteArray publicKeyInfo;
+	long value;
 
-X509_REQ* CertificateRequest::getX509Req() const
+	ret = tab + "<certificateRequest>\n";
+
+		value = this->getVersion();
+		stream << value;
+		string = stream.str();
+
+		ret += tab + "\t<version>" + string + "</version>\n";
+
+		ret += tab + "\t<subject>\n";
+		subject = this->getSubject();
+		ret += subject.getXmlEncoded(tab + "\t\t");
+		ret += tab + "\t</subject>\n";
+
+		try {
+			publicKeyInfo = this->getPublicKeyInfo();
+			ret += tab + "\t<publicKeyInfo>\n";
+			ret += tab + "\t\t" + Base64::encode(publicKeyInfo) + "\n";
+			ret += tab + "\t</publicKeyInfo>\n";
+		} catch (...) {
+		}
+
+		ret += tab + "\t<extensions>\n";
+		extensions = this->getExtensions();
+		for (auto extension : extensions) {
+			ret += extension->toXml(tab + "\t\t");
+			delete extension;
+		}
+		ret += tab + "\t</extensions>\n";
+
+	ret += tab + "</certificateRequest>\n";
+
+	return ret;
+}
+
+std::string CertificateRequest::getPemEncoded() const
+{
+	ENCODE_PEM_AND_RETURN(this->req, PEM_write_bio_X509_REQ);
+}
+
+ByteArray CertificateRequest::getDerEncoded() const
+{
+	ENCODE_DER_AND_RETURN(this->req, i2d_X509_REQ_bio);
+}
+
+X509_REQ* CertificateRequest::getSslObject() const
+{
+	X509_REQ *clone = X509_REQ_dup(this->req);
+	THROW_ENCODE_ERROR_IF(clone == NULL);
+	return clone;
+}
+
+const X509_REQ* CertificateRequest::getX509Req() const
 {
 	return this->req;
-}
-
-CertificateRequest& CertificateRequest::operator =(const CertificateRequest& value)
-{
-	if (this->req)
-	{
-		X509_REQ_free(this->req);
-	}
-    this->req = X509_REQ_dup(value.getX509Req());
-    return (*this);
 }

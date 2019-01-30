@@ -2,7 +2,7 @@
 
 #include <libcryptosec/exception/AsymmetricKeyException.h>
 
-ECDSAPrivateKey::ECDSAPrivateKey(EVP_PKEY* key) : PrivateKey(key)
+ECDSAPrivateKey::ECDSAPrivateKey(const EVP_PKEY* key) : PrivateKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::EC) {

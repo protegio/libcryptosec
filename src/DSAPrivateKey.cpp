@@ -3,7 +3,7 @@
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/exception/AsymmetricKeyException.h>
 
-DSAPrivateKey::DSAPrivateKey(EVP_PKEY *key) : PrivateKey(key)
+DSAPrivateKey::DSAPrivateKey(const EVP_PKEY *key) : PrivateKey(key)
 {
 	AsymmetricKey::Algorithm algorithm = this->getAlgorithm();
 	if (algorithm != AsymmetricKey::DSA)
