@@ -1,6 +1,5 @@
 #include <libcryptosec/certificate/CertificateRevocationList.h>
 
-#include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/exception/EncodeException.h>
@@ -10,108 +9,236 @@
 CertificateRevocationList::CertificateRevocationList(const X509_CRL *crl) :
 		crl(X509_CRL_dup((X509_CRL*) crl))
 {
-	if (this->crl == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_DECODE_ERROR_IF(this->crl == NULL);
 }
 
 CertificateRevocationList::CertificateRevocationList(X509_CRL *crl) :
 		crl(crl)
 {
-	if (this->crl == NULL) {
-		throw CertificationException("" /* TODO */);
-	}
+	THROW_DECODE_ERROR_IF(this->crl);
 }
 
 CertificateRevocationList::CertificateRevocationList(const std::string& pemEncoded)
 {
-	BIO *buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL) {
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRevocationList::CertificateRevocationList");
-	}
-
-	unsigned int numberOfBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
-	if (numberOfBytes != pemEncoded.size()) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateRevocationList::CertificateRevocationList");
-	}
-
-	this->crl = PEM_read_bio_X509_CRL(buffer, NULL, NULL, NULL);
-	if (this->crl == NULL) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_DECODE, "CertificateBuilder::CertificateBuilder");
-	}
-
-	BIO_free(buffer);
+	DECODE_PEM(this->crl, pemEncoded, PEM_read_bio_X509_CRL);
 }
 
 CertificateRevocationList::CertificateRevocationList(const ByteArray& derEncoded)
 {
-	BIO *buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL) {
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRevocationList::CertificateRevocationList");
-	}
-
-	unsigned int numberOfBytes = BIO_write(buffer, derEncoded.getConstDataPointer(), derEncoded.getSize());
-	if (numberOfBytes != derEncoded.getSize()) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "CertificateRevocationList::CertificateRevocationList");
-	}
-
-	this->crl = d2i_X509_CRL_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (this->crl == NULL) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_DECODE, "CertificateRevocationList::CertificateRevocationList");
-	}
-
-	BIO_free(buffer);
+	DECODE_DER(this->crl, derEncoded, d2i_X509_CRL_bio);
 }
 
-CertificateRevocationList::CertificateRevocationList(const CertificateRevocationList& crl)
+CertificateRevocationList::CertificateRevocationList(const CertificateRevocationList& crl) :
+		crl(X509_CRL_dup(crl.crl))
 {
-	this->crl = X509_CRL_dup(crl.getX509Crl());
+	THROW_DECODE_ERROR_IF(this->crl == NULL);
+}
+
+CertificateRevocationList::CertificateRevocationList(CertificateRevocationList&& crl) :
+		crl(crl.crl)
+{
+	crl.crl = NULL;
 }
 
 CertificateRevocationList::~CertificateRevocationList()
 {
-	if (this->crl == nullptr) {
+	if (this->crl == NULL) {
 		X509_CRL_free(this->crl);
 	}
 }
 
-CertificateRevocationList& CertificateRevocationList::operator=(const CertificateRevocationList& value)
+CertificateRevocationList& CertificateRevocationList::operator=(const CertificateRevocationList& crl)
 {
-	if (&value == this) {
+	if (&crl == this) {
 		return *this;
 	}
 
-	if (this->crl) {
+	if (this->crl != NULL) {
 		X509_CRL_free(this->crl);
 	}
 
-    this->crl = X509_CRL_dup(value.crl);
+    this->crl = X509_CRL_dup(crl.crl);
+    THROW_DECODE_ERROR_IF(this->crl == NULL);
 
     return *this;
 }
 
-std::string CertificateRevocationList::getXmlEncoded(const std::string& tab) const
+CertificateRevocationList& CertificateRevocationList::operator=(CertificateRevocationList&& crl)
 {
+	if (&crl == this) {
+		return *this;
+	}
+
+	if (this->crl != NULL) {
+		X509_CRL_free(this->crl);
+	}
+
+    this->crl = crl.crl;
+    crl.crl = NULL;
+
+    return *this;
+}
+
+BigInteger CertificateRevocationList::getSerialNumber() const
+{
+	ASN1_INTEGER *asn1Int = (ASN1_INTEGER*) X509_CRL_get_ext_d2i(this->crl, NID_crl_number, 0, 0);
+	THROW_DECODE_ERROR_IF(asn1Int == NULL);
+	THROW_DECODE_ERROR_AND_FREE_IF(asn1Int->data == NULL,
+			ASN1_INTEGER_free(asn1Int);
+	);
+	BigInteger ret(asn1Int);
+	ASN1_INTEGER_free(asn1Int);
+	return ret;
+}
+
+BigInteger CertificateRevocationList::getBaseCRLNumber() const
+{
+	ASN1_INTEGER *asn1Int = (ASN1_INTEGER*) X509_CRL_get_ext_d2i(this->crl, NID_delta_crl, 0, 0);
+	THROW_DECODE_ERROR_IF(asn1Int == NULL);
+	THROW_DECODE_ERROR_AND_FREE_IF(asn1Int->data == NULL,
+			ASN1_INTEGER_free(asn1Int);
+	);
+	BigInteger ret(asn1Int);
+	ASN1_INTEGER_free(asn1Int);
+	return ret;
+}
+
+long CertificateRevocationList::getVersion() const
+{
+	// TODO: A verificação vai falhar para versões novas ou alternativas do X509
+	long ret = X509_CRL_get_version(this->crl);
+	THROW_DECODE_ERROR_IF(ret < 0 || ret > 1);
+	return ret;
+}
+
+RDNSequence CertificateRevocationList::getIssuer() const
+{
+	const X509_NAME *name = X509_CRL_get_issuer(this->crl);
+	THROW_DECODE_ERROR_IF(name == NULL);
+	return RDNSequence(name);
+}
+
+DateTime CertificateRevocationList::getLastUpdate() const
+{
+	const ASN1_TIME *date = X509_CRL_get0_lastUpdate(this->crl);
+	THROW_DECODE_ERROR_IF(date == NULL);
+	return DateTime(date);
+}
+
+DateTime CertificateRevocationList::getNextUpdate() const
+{
+	const ASN1_TIME *date = X509_CRL_get0_nextUpdate(this->crl);
+	THROW_DECODE_ERROR_IF(date == NULL);
+	return DateTime(date);
+}
+
+std::vector<RevokedCertificate> CertificateRevocationList::getRevokedCertificates() const
+{
+	std::vector<RevokedCertificate> ret;
+    STACK_OF(X509_REVOKED)* revokedStack = X509_CRL_get_REVOKED(this->crl);
+    if (revokedStack == NULL) {
+    	return ret;
+    }
+
+    int size = sk_X509_REVOKED_num(revokedStack);
+    for (int i = 0; i < size; i++) {
+    	const X509_REVOKED *sslRevoked = sk_X509_REVOKED_value(revokedStack, i);
+    	THROW_DECODE_ERROR_IF(sslRevoked == NULL);
+    	RevokedCertificate revoked(sslRevoked);
+    	ret.push_back(revoked);
+    }
+
+    return ret;
+}
+
+bool CertificateRevocationList::verify(const PublicKey& publicKey) const
+{
+	int rc = X509_CRL_verify(this->crl, (EVP_PKEY*) publicKey.getEvpPkey());
+	return (rc ? 1 : 0);
+}
+
+std::vector<Extension*> CertificateRevocationList::getExtension(Extension::Name extensionName) const
+{
+	std::vector<Extension*> ret;
+	int size = X509_CRL_get_ext_count(this->crl);
+	for (int i = 0; i < size; i++) {
+		const X509_EXTENSION *ext = X509_CRL_get_ext(this->crl, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		if (Extension::getName(ext) == extensionName) {
+			Extension *oneExt = ExtensionFactory::getExtension(ext);
+			ret.push_back(oneExt);
+		}
+	}
+	return ret;
+}
+
+std::vector<Extension*> CertificateRevocationList::getExtensions() const
+{
+	std::vector<Extension*> ret;
+	int size = X509_CRL_get_ext_count(this->crl);
+	for (int i = 0; i < size; i++) {
+		X509_EXTENSION *ext = X509_CRL_get_ext(this->crl, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		Extension *oneExt = ExtensionFactory::getExtension(ext);
+		ret.push_back(oneExt);
+	}
+	return ret;
+}
+
+std::vector<Extension*> CertificateRevocationList::getUnknownExtensions() const
+{
+	Extension *oneExt = NULL;
+	std::vector<Extension*> ret;
+
+	int size = X509_CRL_get_ext_count(this->crl);
+	for (int i = 0; i < size; i++) {
+		X509_EXTENSION *ext = X509_CRL_get_ext(this->crl, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(ext == NULL,
+				for (auto extension : ret) {
+					delete extension;
+				}
+		);
+
+		switch (Extension::getName(ext)) {
+			case Extension::UNKNOWN:
+				oneExt = new Extension(ext);
+				ret.push_back(oneExt);
+				break;
+			default:
+				break;
+		}
+	}
+	return ret;
+}
+
+std::string CertificateRevocationList::toXml(const std::string& tab) const
+{
+	std::stringstream ss;
 	std::string ret, string;
 	ByteArray data;
-	char temp[11];
 	std::vector<RevokedCertificate> revokedCertificates;
 
 	ret = tab + "<certificateRevocationList>\n";
 	ret += tab + "\t<tbsCertList>\n";
 		try {  /* version */
-			sprintf(temp, "%d", (int)this->getVersion());
-			ret += tab + "\t\t<version>" + temp + "</version>\n";
+			ss << this->getVersion();
+			ret += tab + "\t\t<version>" + ss.str() + "</version>\n";
 		} catch (...) {
 		}
 
 		try { /* Serial Number */
-			sprintf(temp, "%d", (int)this->getSerialNumber());
-			ret += tab + "\t\t<serialNumber>" + temp + "</serialNumber>\n";
+			ss.clear();
+			ret += tab + "\t\t<serialNumber>" + this->getSerialNumber().toDec() + "</serialNumber>\n";
 		} catch (...) {
 		}
 
@@ -131,7 +258,7 @@ std::string CertificateRevocationList::getXmlEncoded(const std::string& tab) con
 		string = OBJ_nid2ln(X509_CRL_get_signature_nid(this->crl));
 		ret += tab + "\t\t<algorithm>" + string + "</algorithm>\n";
 	ret += tab + "\t</signatureAlgorithm>\n";
-	
+
 	const ASN1_BIT_STRING* signature = 0;
 	X509_CRL_get0_signature(this->crl, &signature, 0);
 	data = ByteArray(signature->data, signature->length);
@@ -144,235 +271,22 @@ std::string CertificateRevocationList::getXmlEncoded(const std::string& tab) con
 
 std::string CertificateRevocationList::getPemEncoded() const
 {
-	unsigned char *data = NULL;
-
-	BIO *buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL) {
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRevocationList::getPemEncoded");
-	}
-
-	int wrote = PEM_write_bio_X509_CRL(buffer, this->crl);
-	if (!wrote) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::PEM_ENCODE, "CertificateRevocationList::getPemEncoded");
-	}
-
-	int ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRevocationList::getPemEncoded");
-	}
-
-	ByteArray ret(data, ndata);
-	BIO_free(buffer);
-
-	return ret.toString();
+	ENCODE_PEM_AND_RETURN(this->crl, PEM_write_bio_X509_CRL);
 }
 
 ByteArray CertificateRevocationList::getDerEncoded() const
 {
-	unsigned char *data = NULL;
-
-	BIO *buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL) {
-		throw EncodeException(EncodeException::BUFFER_CREATING, "CertificateRevocationList::getDerEncoded");
-	}
-
-	int wrote = i2d_X509_CRL_bio(buffer, this->crl);
-	if (!wrote) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_ENCODE, "CertificateRevocationList::getDerEncoded");
-	}
-
-	int ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0) {
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRevocationList::getDerEncoded");
-	}
-
-	ByteArray ret(data, ndata);
-	BIO_free(buffer);
-
-	return ret;
+	ENCODE_DER_AND_RETURN(this->crl, i2d_X509_CRL_bio);
 }
 
-long CertificateRevocationList::getSerialNumber() const
+X509_CRL* CertificateRevocationList::getSslObject() const
 {
-	if (this->crl == NULL) {
-		throw CertificationException(CertificationException::INVALID_CRL, "CertificateRevocationList::getSerialNumber");
-	}
-
-	ASN1_INTEGER *asn1Int = (ASN1_INTEGER*) X509_CRL_get_ext_d2i(this->crl, NID_crl_number, 0, 0);
-	if (asn1Int == NULL) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRevocationList::getSerialNumber");
-	}
-
-	if (asn1Int->data == NULL) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRevocationList::getSerialNumber");
-	}
-
-	long ret = ASN1_INTEGER_get(asn1Int);
-	if (ret < 0L) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRevocationList::getSerialNumber");
-	}
-
-	return ret;
+	X509_CRL *crlClone = X509_CRL_dup(this->crl);
+	THROW_ENCODE_ERROR_IF(crlClone == NULL);
+	return crlClone;
 }
 
-BigInteger CertificateRevocationList::getSerialNumberBigInt() const
-{
-	if (this->crl == NULL) {
-		throw CertificationException(CertificationException::INVALID_CRL, "CertificateRevocationList::getSerialNumber");
-	}
-
-	ASN1_INTEGER *asn1Int = (ASN1_INTEGER*) X509_CRL_get_ext_d2i(this->crl, NID_crl_number, 0, 0);
-	if (asn1Int == NULL) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRevocationList::getSerialNumber");
-	}
-
-	if (asn1Int->data == NULL) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRevocationList::getSerialNumber");
-	}
-
-	return BigInteger(asn1Int);
-}
-
-long CertificateRevocationList::getBaseCRLNumber() const
-{
-	if (this->crl == NULL) {
-		throw CertificationException(CertificationException::INVALID_CRL, "CertificateRevocationList::getBaseCRLNumber");
-	}
-
-	ASN1_INTEGER *asn1Int = (ASN1_INTEGER*) X509_CRL_get_ext_d2i(this->crl, NID_delta_crl, 0, 0);
-	if (asn1Int == NULL) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRevocationList::getBaseCRLNumber");
-	}
-
-	if (asn1Int->data == NULL) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRevocationList::getBaseCRLNumber");
-	}
-
-	long ret = ASN1_INTEGER_get(asn1Int);
-	if (ret < 0L) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRevocationList::getBaseCRLNumber");
-	}
-
-	return ret;
-}
-
-BigInteger CertificateRevocationList::getBaseCRLNumberBigInt() const
-{
-	if (this->crl == NULL) {
-		throw CertificationException(CertificationException::INVALID_CRL, "CertificateRevocationList::getBaseCRLNumberBigInt");
-	}
-
-	ASN1_INTEGER *asn1Int = (ASN1_INTEGER*) X509_CRL_get_ext_d2i(this->crl, NID_delta_crl, 0, 0);
-	if (asn1Int == NULL) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRevocationList::getBaseCRLNumberBigInt");
-	}
-
-	if (asn1Int->data == NULL) {
-		throw CertificationException(CertificationException::INTERNAL_ERROR, "CertificateRevocationList::getBaseCRLNumberBigInt");
-	}
-
-	return BigInteger(asn1Int);
-}
-
-
-long CertificateRevocationList::getVersion() const
-{
-	if (this->crl == NULL) {
-		throw CertificationException(CertificationException::INVALID_CRL, "CertificateRevocationList::getVersion");
-	}
-
-	// TODO: A verificação vai falhar para versões novas ou alternativas do X509
-	long ret = X509_CRL_get_version(this->crl);
-	if (ret < 0 || ret > 1) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "CertificateRevocationList::getVersion");
-	}
-
-	return ret;
-}
-
-RDNSequence CertificateRevocationList::getIssuer() const
-{
-	return RDNSequence(X509_CRL_get_issuer(this->crl));
-}
-
-DateTime CertificateRevocationList::getLastUpdate() const
-{
-	return DateTime(X509_CRL_get0_lastUpdate(this->crl));
-}
-
-DateTime CertificateRevocationList::getNextUpdate() const
-{
-	return DateTime(X509_CRL_get0_nextUpdate(this->crl));
-}
-
-std::vector<RevokedCertificate> CertificateRevocationList::getRevokedCertificates() const
-{
-	std::vector<RevokedCertificate> ret;
-    STACK_OF(X509_REVOKED)* revokedStack = X509_CRL_get_REVOKED(this->crl);
-    int size = sk_X509_REVOKED_num(revokedStack);
-    for (int i = 0; i < size; i++) {
-    	const X509_REVOKED *revoked = sk_X509_REVOKED_value(revokedStack, i);
-    	ret.push_back(RevokedCertificate(revoked));
-    }
-    return ret;
-}
-
-bool CertificateRevocationList::verify(const PublicKey& publicKey) const
-{
-	int rc = X509_CRL_verify(this->crl, (EVP_PKEY*) publicKey.getEvpPkey());
-	return (rc ? 1 : 0);
-}
-
-X509_CRL* CertificateRevocationList::getX509Crl() const
+const X509_CRL* CertificateRevocationList::getX509Crl() const
 {
 	return this->crl;
-}
-
-std::vector<Extension*> CertificateRevocationList::getExtension(Extension::Name extensionName) const
-{
-	std::vector<Extension *> ret;
-	int next = X509_CRL_get_ext_count(this->crl);
-	for (int i = 0; i < next; i++) {
-		X509_EXTENSION *ext = X509_CRL_get_ext(this->crl, i);
-		if (Extension::getName(ext) == extensionName) {
-			Extension *oneExt = ExtensionFactory::getExtension(ext);
-			ret.push_back(oneExt);
-		}
-	}
-	return ret;
-}
-
-std::vector<Extension*> CertificateRevocationList::getExtensions() const
-{
-	std::vector<Extension*> ret;
-	int next = X509_CRL_get_ext_count(this->crl);
-	for (int i = 0; i < next; i++) {
-		X509_EXTENSION *ext = X509_CRL_get_ext(this->crl, i);
-		Extension *oneExt = ExtensionFactory::getExtension(ext);
-		ret.push_back(oneExt);
-	}
-	return ret;
-}
-
-std::vector<Extension*> CertificateRevocationList::getUnknownExtensions() const
-{
-	Extension *oneExt = NULL;
-	std::vector<Extension*> ret;
-	int next = X509_CRL_get_ext_count(this->crl);
-	for (int i = 0; i < next; i++) {
-		X509_EXTENSION *ext = X509_CRL_get_ext(this->crl, i);
-		switch (Extension::getName(ext)) {
-			case Extension::UNKNOWN:
-				oneExt = new Extension(ext);
-				ret.push_back(oneExt);
-				break;
-			default:
-				break;
-		}
-	}
-	return ret;
 }

@@ -108,9 +108,9 @@ bool CertPathValidator::verify()
 	}
 	
 	/*adiciona crls ao store*/
-	for(unsigned int i = 0 ; i < this->crls.size() ; i++)
-	{
-		X509_STORE_add_crl(store, this->crls.at(i).getX509Crl());
+	for(auto crl : this->crls) {
+		// CAST: TODO: check cast
+		X509_STORE_add_crl(store, (X509_CRL*) crl.getX509Crl());
 	}
 	
 	/* inicializa contexto

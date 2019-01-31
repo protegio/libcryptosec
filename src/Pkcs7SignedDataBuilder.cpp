@@ -131,7 +131,8 @@ void Pkcs7SignedDataBuilder::addCrl(CertificateRevocationList &crl)
 		throw InvalidStateException("Pkcs7SignedDataBuilder::addCrl");
 	}
 
-	rc = PKCS7_add_crl(this->pkcs7, crl.getX509Crl());
+	// CAST: TODO: check cast
+	rc = PKCS7_add_crl(this->pkcs7, (X509_CRL*) crl.getX509Crl());
 	if (!rc)
 	{
 		PKCS7_free(this->pkcs7);

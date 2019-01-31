@@ -39,13 +39,13 @@ std::vector<CertificateRevocationList *> Pkcs7SignedData::getCrls()
 {
 	std::vector<CertificateRevocationList *> ret;
 	int i, num;
-	X509_CRL *oneX509Crl;
+	const X509_CRL *oneX509Crl;
 	CertificateRevocationList *crl;
 	num = sk_X509_CRL_num(this->pkcs7->d.sign->crl);
 	for (i=0;i<num;i++)
 	{
 		oneX509Crl = sk_X509_CRL_value(this->pkcs7->d.sign->crl, i);
-		crl = new CertificateRevocationList(X509_CRL_dup(oneX509Crl));
+		crl = new CertificateRevocationList(oneX509Crl);
 		ret.push_back(crl);
 	}
 	return ret;	

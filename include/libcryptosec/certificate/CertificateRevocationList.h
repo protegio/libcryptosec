@@ -17,9 +17,11 @@
 
 class CertificateRevocationList
 {
+protected:
+	CertificateRevocationList(X509_CRL* crl);
+
 public:
 	CertificateRevocationList(const X509_CRL* crl);
-	CertificateRevocationList(X509_CRL* crl);
 	CertificateRevocationList(const std::string& pemEncoded);
 	CertificateRevocationList(const ByteArray& derEncoded);
 
@@ -31,16 +33,9 @@ public:
 	CertificateRevocationList& operator=(const CertificateRevocationList& value);
 	CertificateRevocationList& operator=(CertificateRevocationList&& value);
 
-	std::string getXmlEncoded(const std::string& tab = "") const;
+	BigInteger getSerialNumber() const;
 
-	std::string getPemEncoded() const;
-	ByteArray getDerEncoded() const;
-
-	long getSerialNumber() const;
-	BigInteger getSerialNumberBigInt() const;
-
-	long getBaseCRLNumber() const;
-	BigInteger getBaseCRLNumberBigInt() const;
+	BigInteger getBaseCRLNumber() const;
 
 	long getVersion() const;
 
@@ -53,11 +48,17 @@ public:
 
 	bool verify(const PublicKey& publicKey) const;
 
-	X509_CRL* getX509Crl() const;
-
 	std::vector<Extension*> getExtension(Extension::Name extensionName) const;
 	std::vector<Extension*> getExtensions() const;
 	std::vector<Extension*> getUnknownExtensions() const;
+
+	std::string getPemEncoded() const;
+	ByteArray getDerEncoded() const;
+
+	std::string toXml(const std::string& tab = "") const;
+
+	X509_CRL* getSslObject() const;
+	const X509_CRL* getX509Crl() const;
 
 protected:
 	X509_CRL *crl;
