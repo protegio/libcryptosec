@@ -1,13 +1,13 @@
 #ifndef CERTIFICATEREQUESTFACTORY_H_
 #define CERTIFICATEREQUESTFACTORY_H_
 
-#include <string>
+#include <libcryptosec/certificate/CertificateRequestSPKAC.h>
 
-class CertificateRequestSPKAC;
+#include <string>
 
 class CertificateRequestFactory {
 public:
-	static CertificateRequestSPKAC* fromSPKAC(std::string &path);
+	static CertificateRequestSPKAC fromSPKAC(const std::string& path);
 };
 
 #endif /* CERTIFICATEREQUESTFACTORY_H_ */

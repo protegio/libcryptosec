@@ -1,102 +1,134 @@
 #include <libcryptosec/NetscapeSPKI.h>
 
-#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
+#include <string.h>
 
 NetscapeSPKI::NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI)
 {
-	this->netscapeSPKI = NULL;
-	if (!netscapeSPKI)
-	{
-		throw NetscapeSPKIException(NetscapeSPKIException::INVALID_SPKI, "NetscapeSPKI::NetscapeSPKI");
-	}
 	this->netscapeSPKI = netscapeSPKI;
 }
 
-NetscapeSPKI::NetscapeSPKI(std::string netscapeSPKIBase64)
+NetscapeSPKI::NetscapeSPKI(const NETSCAPE_SPKI *netscapeSPKI)
 {
-	this->netscapeSPKI = NETSCAPE_SPKI_b64_decode(netscapeSPKIBase64.c_str(), netscapeSPKIBase64.size());
-	if (!this->netscapeSPKI) {
-		throw EncodeException(EncodeException::BASE64_DECODE, "NetscapeSPKI::NetscapeSPKI");
-	}
+	THROW_DECODE_ERROR_IF(netscapeSPKI == NULL);
+
+	char *b64 = NETSCAPE_SPKI_b64_encode((NETSCAPE_SPKI*) netscapeSPKI);
+	THROW_DECODE_ERROR_IF(b64 == NULL);
+
+	this->netscapeSPKI = NETSCAPE_SPKI_b64_decode(b64, strlen(b64));
+	OPENSSL_free(b64);
+	THROW_DECODE_ERROR_IF(this->netscapeSPKI == NULL);
+}
+
+NetscapeSPKI::NetscapeSPKI(const std::string& netscapeSPKIBase64) :
+		netscapeSPKI(NETSCAPE_SPKI_b64_decode(netscapeSPKIBase64.c_str(), netscapeSPKIBase64.size()))
+{
+	THROW_DECODE_ERROR_IF(this->netscapeSPKI == NULL);
+}
+
+NetscapeSPKI::NetscapeSPKI(const NetscapeSPKI& netscapeSpki) :
+		NetscapeSPKI(netscapeSpki.netscapeSPKI)
+{
+}
+
+NetscapeSPKI::NetscapeSPKI(NetscapeSPKI&& netscapeSPKI) :
+		netscapeSPKI(netscapeSPKI.netscapeSPKI)
+{
+	netscapeSPKI.netscapeSPKI = NULL;
 }
 
 NetscapeSPKI::~NetscapeSPKI()
 {
-	if (this->netscapeSPKI)
-	{
-		NETSCAPE_SPKI_free(this->netscapeSPKI);
-		this->netscapeSPKI = NULL;
-	}
+	NETSCAPE_SPKI_free(this->netscapeSPKI);
 }
 
-std::string NetscapeSPKI::getBase64Encoded()
+NetscapeSPKI& NetscapeSPKI::operator=(const NetscapeSPKI& netscapeSPKI)
 {
-	char *base64Encoded;
-	std::string ret;
-	base64Encoded = NETSCAPE_SPKI_b64_encode(this->netscapeSPKI);
-	if (!base64Encoded) {
-		throw EncodeException(EncodeException::BASE64_ENCODE, "NetscapeSPKI::getBase64Encoded");
+	if (&netscapeSPKI == this) {
+		return *this;
 	}
-	ret = base64Encoded;
-	free(base64Encoded);
+
+	char *b64 = NETSCAPE_SPKI_b64_encode((NETSCAPE_SPKI*) netscapeSPKI.netscapeSPKI);
+	THROW_DECODE_ERROR_IF(b64 == NULL);
+
+	this->netscapeSPKI = NETSCAPE_SPKI_b64_decode(b64, strlen(b64));
+	OPENSSL_free(b64);
+	THROW_DECODE_ERROR_IF(this->netscapeSPKI == NULL);
+
+	return *this;
+}
+
+NetscapeSPKI& NetscapeSPKI::operator=(NetscapeSPKI&& netscapeSPKI)
+{
+	if (&netscapeSPKI == this) {
+		return *this;
+	}
+
+	this->netscapeSPKI = netscapeSPKI.netscapeSPKI;
+	netscapeSPKI.netscapeSPKI = NULL;
+
+	return *this;
+}
+
+std::string NetscapeSPKI::getBase64Encoded() const
+{
+	char *b64 = NETSCAPE_SPKI_b64_encode(this->netscapeSPKI);
+	THROW_DECODE_ERROR_IF(b64 == NULL);
+
+	std::string ret(b64);
+	OPENSSL_free(b64);
+
 	return ret;
 }
 
-PublicKey* NetscapeSPKI::getPublicKey()
+PublicKey NetscapeSPKI::getPublicKey() const
 {
-	EVP_PKEY *pubKey;
-	PublicKey *ret;
-	pubKey = NETSCAPE_SPKI_get_pubkey(this->netscapeSPKI);
-	if (!pubKey)
-	{
-		throw NetscapeSPKIException(NetscapeSPKIException::SET_NO_VALUE, "NetscapeSPKIException::getPublicKey");
-	}
-	try
-	{
-		ret = new PublicKey(pubKey);
-	}
-	catch (...)
-	{
+	// NETSCAPE_SPKI_get_pubkey uses X509_PUBKEY_get that increments
+	// the EVP_PKEY reference count, so we have to free the key after
+	// use
+	EVP_PKEY *pubKey = NETSCAPE_SPKI_get_pubkey(this->netscapeSPKI);
+	THROW_DECODE_ERROR_IF(pubKey == NULL);
+
+	try {
+		PublicKey ret(pubKey);
+		return ret;
+	} catch (...) {
 		EVP_PKEY_free(pubKey);
 		throw;
 	}
-	return ret;
 }
 
-std::string NetscapeSPKI::getChallenge()
+std::string NetscapeSPKI::getChallenge() const
 {
-	std::string ret;
-	char *data;
-	if (this->netscapeSPKI->spkac->challenge->length > 0)
-	{
-		/* pedir ao jeandré se é feito uma cópia do conteudo ao atribuir direto ao std::string */
-		data = (char *) (this->netscapeSPKI->spkac->challenge->data);
-		ret = data;
+	// TODO: deveriamos lançar a exeção ou retornar uma string vazia?
+	THROW_DECODE_ERROR_IF(this->netscapeSPKI->spkac == NULL || this->netscapeSPKI->spkac->challenge == NULL);
+
+	if (this->netscapeSPKI->spkac->challenge->length > 0) {
+		std::string ret((char*) this->netscapeSPKI->spkac->challenge->data);
+		return ret;
+	} else {
+		return "";
 	}
-	else
-	{
-		ret = "";
-	}
-	return ret;
 }
 
-bool NetscapeSPKI::verify()
+bool NetscapeSPKI::verify() const
 {
-	PublicKey *pubKey = this->getPublicKey();
-	// TODO: cast ok?
-	int rc = NETSCAPE_SPKI_verify(this->netscapeSPKI, (EVP_PKEY*) pubKey->getEvpPkey());
-	delete pubKey;
-	return (rc?true:false);
+	PublicKey pubKey = this->getPublicKey();
+	int rc = NETSCAPE_SPKI_verify(this->netscapeSPKI, (EVP_PKEY*) pubKey.getEvpPkey());
+	return (rc == 0 ? false : true);
 }
 
-bool NetscapeSPKI::verify(PublicKey &publicKey)
+bool NetscapeSPKI::verify(const PublicKey& publicKey) const
 {
-	// TODO: cast ok?
 	int rc = NETSCAPE_SPKI_verify(this->netscapeSPKI, (EVP_PKEY*) publicKey.getEvpPkey());
-	return (rc ? true : false);
+	return (rc == 0 ? false : true);
 }
 
-bool NetscapeSPKI::isSigned()
+bool NetscapeSPKI::isSigned() const
 {
+	// TODO: lançar exceção ou retornar false?
+	THROW_DECODE_ERROR_IF(this->netscapeSPKI->signature == NULL);
 	return (this->netscapeSPKI->signature->data) != NULL;
 }

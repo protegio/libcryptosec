@@ -1,32 +1,32 @@
 #include <libcryptosec/certificate/CertificateRequestSPKAC.h>
 
-CertificateRequestSPKAC::CertificateRequestSPKAC(std::string &netscapeSPKIBase64) : CertificateRequest()
+CertificateRequestSPKAC::CertificateRequestSPKAC(const std::string& netscapeSPKIBase64) :
+		CertificateRequest(), spkac(netscapeSPKIBase64)
 {
-	this->spkac = new NetscapeSPKI(netscapeSPKIBase64);
-	this->setPublicKey(*this->spkac->getPublicKey());
+	this->setPublicKey(this->spkac.getPublicKey());
 }
 
-CertificateRequestSPKAC::CertificateRequestSPKAC(X509_REQ *req, NETSCAPE_SPKI *netscapeSPKI) : CertificateRequest(req) {
-	this->spkac = new NetscapeSPKI(netscapeSPKI);
-	this->setPublicKey(*this->spkac->getPublicKey());
+CertificateRequestSPKAC::CertificateRequestSPKAC(const X509_REQ* req, const NETSCAPE_SPKI* netscapeSPKI) :
+		CertificateRequest(req), spkac(netscapeSPKI)
+{
+	this->setPublicKey(this->spkac.getPublicKey());
 }
 
-CertificateRequestSPKAC::CertificateRequestSPKAC(std::string &certificateRequestPemEncoded, std::string &netscapeSPKIBase64) : CertificateRequest(certificateRequestPemEncoded)
+CertificateRequestSPKAC::CertificateRequestSPKAC(const std::string& certificateRequestPemEncoded, const std::string& netscapeSPKIBase64) :
+		CertificateRequest(certificateRequestPemEncoded), spkac(netscapeSPKIBase64)
 {
-	this->spkac = new NetscapeSPKI(netscapeSPKIBase64);
-	this->setPublicKey(*this->spkac->getPublicKey());
+	this->setPublicKey(this->spkac.getPublicKey());
 }
 
-CertificateRequestSPKAC::~CertificateRequestSPKAC() {
-	if(this->spkac)
-		delete this->spkac;
+CertificateRequestSPKAC::~CertificateRequestSPKAC()
+{
 }
 
-bool CertificateRequestSPKAC::verify()
+bool CertificateRequestSPKAC::verify() const
 {
-	return this->spkac->verify();
+	return this->spkac.verify();
 }
-bool CertificateRequestSPKAC::isSigned() const throw()
+bool CertificateRequestSPKAC::isSigned() const
 {
-	return this->spkac->isSigned();
+	return this->spkac.isSigned();
 }

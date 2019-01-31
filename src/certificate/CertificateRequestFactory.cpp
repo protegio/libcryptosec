@@ -1,45 +1,30 @@
 #include <libcryptosec/certificate/CertificateRequestFactory.h>
 
-#include <libcryptosec/certificate/CertificateRequestSPKAC.h>
 #include <libcryptosec/exception/NetscapeSPKIException.h>
-#include <libcryptosec/exception/RandomException.h>
-#include <libcryptosec/exception/EncodeException.h>
 
 #include <string.h>
 
-CertificateRequestSPKAC* CertificateRequestFactory::fromSPKAC(std::string &path)
+CertificateRequestSPKAC CertificateRequestFactory::fromSPKAC(const std::string& path)
 {
-	STACK_OF(CONF_VALUE) *sk=NULL;
-	LHASH_OF(CONF_VALUE) *parms=NULL;
-	X509_REQ *req=NULL;
-	CONF_VALUE *cv=NULL;
 	NETSCAPE_SPKI *spki = NULL;
-	char *type,*buf;
-	EVP_PKEY *pktmp=NULL;
-	X509_NAME *n=NULL;
-	unsigned long chtype = MBSTRING_ASC;
-	int i;
+	EVP_PKEY *pktmp = NULL;
+	char *buf = NULL;
 	long errline;
-	int nid;
-	CertificateRequestSPKAC* ret=NULL;
+	int rc;
 
 	/*
 	 * Load input file into a hash table.  (This is just an easy
 	 * way to read and parse the file, then put it into a convenient
 	 * STACK format).
 	 */
-	parms=CONF_load(NULL,path.c_str(),&errline);
-	if (parms == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRequestFactory::fromSPKAC");
-	}
+	LHASH_OF(CONF_VALUE) *parms = CONF_load(NULL, path.c_str(), &errline);
+	THROW_DECODE_ERROR_IF(parms == NULL);
 
-	sk=CONF_get_section(parms, "default");
-	if (sk_CONF_VALUE_num(sk) == 0)
-	{
-		if (parms != NULL) CONF_free(parms);
-		throw EncodeException(EncodeException::BUFFER_READING, "CertificateRequestFactory::fromSPKAC");
-	}
+	STACK_OF(CONF_VALUE) *sk = CONF_get_section(parms, "default");
+	THROW_DECODE_ERROR_AND_FREE_IF(sk == NULL || sk_CONF_VALUE_num(sk) == 0,
+			// TODO: esse free está correto?
+			CONF_free(parms);
+	);
 
 	/*
 	 * Now create a dummy X509 request structure.  We don't actually
@@ -48,80 +33,114 @@ CertificateRequestSPKAC* CertificateRequestFactory::fromSPKAC(std::string &path)
 	 * put these components into the right X509 request structure
 	 * and we can use the same code as if you had a real X509 request.
 	 */
-	req=X509_REQ_new();
-	if (req == NULL)
-	{
-		if (parms != NULL) CONF_free(parms);
-		throw RandomException(RandomException::INTERNAL_ERROR, "CertificateRequestFactory::fromSPKAC");
-	}
+	X509_REQ *req = X509_REQ_new();
+	THROW_DECODE_ERROR_AND_FREE_IF(req == NULL,
+			// TODO: esse free está correto?
+			CONF_free(parms);
+	);
 
 	/*
 	 * Build up the subject name set.
 	 */
-	n = X509_REQ_get_subject_name(req);
-	for (i = 0; ; i++)
-	{
-		if (sk_CONF_VALUE_num(sk) <= i) break;
+	const X509_NAME *constName = X509_REQ_get_subject_name(req);
+	X509_NAME *name = X509_NAME_dup((X509_NAME*) constName);
 
-		cv=sk_CONF_VALUE_value(sk,i);
-		type=cv->name;
+	THROW_DECODE_ERROR_AND_FREE_IF(name == NULL,
+			X509_REQ_free(req);
+			CONF_free(parms);
+			X509_NAME_free(name);
+	);
+
+	for (int i = 0; ; i++) {
+		if (sk_CONF_VALUE_num(sk) <= i) {
+			break;
+		}
+
+		CONF_VALUE *cv = sk_CONF_VALUE_value(sk, i);
+		THROW_DECODE_ERROR_AND_FREE_IF(cv == NULL,
+				X509_REQ_free(req);
+				CONF_free(parms);
+				X509_NAME_free(name);
+		);
+
+		char *type = cv->name;
+
 		/* Skip past any leading X. X: X, etc to allow for
 		 * multiple instances
 		 */
-		for (buf = cv->name; *buf ; buf++)
-			if ((*buf == ':') || (*buf == ',') || (*buf == '.'))
-			{
+		for (buf = cv->name; *buf ; buf++) {
+			if ((*buf == ':') || (*buf == ',') || (*buf == '.')) {
 				buf++;
-				if (*buf) type = buf;
+				if (*buf) {
+					type = buf;
+				}
 				break;
 			}
+		}
 
-		buf=cv->value;
-		if ((nid=OBJ_txt2nid(type)) == NID_undef)
-		{
-			if (strcmp(type, "SPKAC") == 0)
-			{
+		buf = cv->value;
+		int nid = OBJ_txt2nid(type);
+		if (nid == NID_undef) {
+			if (strcmp(type, "SPKAC") == 0) {
 				spki = NETSCAPE_SPKI_b64_decode(cv->value, -1);
-				if (spki == NULL)
-				{
-					if (parms != NULL) CONF_free(parms);
-					throw EncodeException(EncodeException::BASE64_DECODE, "CertificateRequestFactory::fromSPKAC");
-				}
+				THROW_DECODE_ERROR_AND_FREE_IF(spki == NULL,
+						X509_REQ_free(req);
+						CONF_free(parms);
+						X509_NAME_free(name);
+				);
 			}
 			continue;
 		}
 
-		if (!X509_NAME_add_entry_by_NID(n, nid, chtype, (unsigned char *)buf, -1, -1, 0))
-		{
-			if (parms != NULL) CONF_free(parms);
-			if (spki != NULL) NETSCAPE_SPKI_free(spki);
-			throw RandomException(RandomException::INTERNAL_ERROR, "CertificateRequestFactory::fromSPKAC");
-		}
+		// TODO: check MBSTRING_ASC
+		rc = X509_NAME_add_entry_by_NID(name, nid, MBSTRING_ASC, (unsigned char *)buf, -1, -1, 0);
+		THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_REQ_free(req);
+				CONF_free(parms);
+				X509_NAME_free(name);
+				NETSCAPE_SPKI_free(spki);
+		);
 	}
 
-	X509_REQ_set_subject_name(req, n);
-
-	// TODO: free n?
-
-	if (spki == NULL)
-	{
-		if (parms != NULL) CONF_free(parms);
-		throw NetscapeSPKIException(NetscapeSPKIException::SET_NO_VALUE, "CertificateRequestFactory::fromSPKAC");
-	}
+	THROW_DECODE_ERROR_AND_FREE_IF(spki == NULL,
+			X509_REQ_free(req);
+			CONF_free(parms);
+			X509_NAME_free(name);
+	);
 
 	/*
 	 * Now extract the key from the SPKI structure.
 	 */
-	if ((pktmp=NETSCAPE_SPKI_get_pubkey(spki)) == NULL)
-	{
-		if (parms != NULL) CONF_free(parms);
-		if (spki != NULL) NETSCAPE_SPKI_free(spki);
-		throw NetscapeSPKIException(NetscapeSPKIException::SET_NO_VALUE, "CertificateRequestFactory::fromSPKAC");
-	}
-	X509_REQ_set_pubkey(req,pktmp);
-	EVP_PKEY_free(pktmp);
+	pktmp = NETSCAPE_SPKI_get_pubkey(spki); // TODO: retorna cópia ou referência?
+	THROW_DECODE_ERROR_AND_FREE_IF(pktmp == NULL,
+			X509_REQ_free(req);
+			CONF_free(parms);
+			X509_NAME_free(name);
+			NETSCAPE_SPKI_free(spki);
+	);
 
-	ret = new CertificateRequestSPKAC(req, spki);
+	rc = X509_REQ_set_subject_name(req, name);
+	X509_NAME_free(name);
+	THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_REQ_free(req);
+			CONF_free(parms);
+			NETSCAPE_SPKI_free(spki);
+			EVP_PKEY_free(pktmp);  // TODO: esse free é ok?
+	);
+
+	rc = X509_REQ_set_pubkey(req,pktmp);
+	EVP_PKEY_free(pktmp);  // TODO: esse free é ok?
+	THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_REQ_free(req);
+			CONF_free(parms);
+			NETSCAPE_SPKI_free(spki);
+	);
+
+	CertificateRequestSPKAC ret(req, spki);
+
+	X509_REQ_free(req);
+	CONF_free(parms);
+	NETSCAPE_SPKI_free(spki);
 
 	return ret;
 }

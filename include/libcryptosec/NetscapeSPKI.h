@@ -1,16 +1,11 @@
 #ifndef NETSCAPESPKI_H_
 #define NETSCAPESPKI_H_
 
+#include <libcryptosec/PublicKey.h>
+
 #include <openssl/x509.h>
 
 #include <string>
-
-#include "RSAPublicKey.h"
-#include "DSAPublicKey.h"
-#include "PrivateKey.h"
-#include "MessageDigest.h"
-
-#include <libcryptosec/exception/NetscapeSPKIException.h>
 
 /*
  * @ingroup SPKI
@@ -24,6 +19,9 @@
 
 class NetscapeSPKI
 {
+protected:
+	NetscapeSPKI(NETSCAPE_SPKI* netscapeSPKI);
+
 public:
 
 	/**
@@ -31,26 +29,32 @@ public:
 	 * Cria um objeto NetscapeSPKI a partir de uma estrutura NETSCAPE_SPKI do OpenSSL.
 	 * @param netscapeSPKI estrutura NETSCAPE_SPKI.
 	 */
-	NetscapeSPKI(NETSCAPE_SPKI *netscapeSPKI);
+	NetscapeSPKI(const NETSCAPE_SPKI* netscapeSPKI);
 	
 	/**
 	 * Construtor.
 	 * Cria um objeto NetscapeSPKI a partir outro do mesmo tipo mas codificado em base64.
 	 * @param netscapeSPKI estrutura NETSCAPE_SPKI.
 	 */	
-	NetscapeSPKI(std::string netscapeSPKIBase64);
+	NetscapeSPKI(const std::string& netscapeSPKIBase64);
+
+	NetscapeSPKI(const NetscapeSPKI& netscapeSpki);
+	NetscapeSPKI(NetscapeSPKI&& netscapeSpki);
 	
 	/**
 	 * Destrutor.
 	 */
 	virtual ~NetscapeSPKI();
-	
+
+	NetscapeSPKI& operator=(const NetscapeSPKI& netscapeSpki);
+	NetscapeSPKI& operator=(NetscapeSPKI&& netscapeSpki);
+
 	/**
 	 * Obtem objeto NetscapeSPKI em formato base64.
 	 * @return objeto NetscapeSPKI em formato base64.
 	 * @throw EncodeException caso ocorra algum erro interno durante a codificação do objeto em base64.
 	 */
-	std::string getBase64Encoded();
+	std::string getBase64Encoded() const;
 	
 	/**
 	 * Retorna a chave pública do objeto NetscapeSPKI.
@@ -58,13 +62,13 @@ public:
      * @throw NetscapeSPKIException caso a chave pública não esteja disponível no objeto NetscapeSPKI.
 	 * @throw AsymmetricKeyException caso não seja possível instanciar um objeto PublicKey a partir da chave pública obtida de NetscapeSPKI. 
 	 */
-	PublicKey* getPublicKey();
+	PublicKey getPublicKey() const;
 	
 	/**
 	 * Retorna desafio do objeto NetscapeSPKI.
 	 * @return desafio do objeto NetscapeSPKI.
 	 */
-	std::string getChallenge();
+	std::string getChallenge() const;
 
 	/**
 	 * Verifica a assinatura do NetscapeSPKI.
@@ -72,7 +76,7 @@ public:
 	 * @throw NetscapeSPKIException caso a chave pública não esteja disponível no objeto NetscapeSPKI.
 	 * @throw AsymmetricKeyException caso não seja possível instanciar um objeto PublicKey a partir da chave pública obtida de NetscapeSPKI.
 	 */
-	bool verify();
+	bool verify() const;
 	
 	/**
 	 * Verifica a assinatura do NetscapeSPKI.
@@ -81,9 +85,9 @@ public:
 	 * @throw NetscapeSPKIException caso a chave pública não esteja disponível no objeto NetscapeSPKI.
 	 * @throw AsymmetricKeyException caso não seja possível instanciar um objeto PublicKey a partir da chave pública obtida de NetscapeSPKI.
 	 */
-	bool verify(PublicKey &publicKey);
+	bool verify(const PublicKey& publicKey) const;
 
-	bool isSigned();
+	bool isSigned() const;
 
 protected:
 	

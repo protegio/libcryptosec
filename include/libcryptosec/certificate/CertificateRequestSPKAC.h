@@ -6,15 +6,17 @@
 
 class CertificateRequestSPKAC: public CertificateRequest {
 public:
-	CertificateRequestSPKAC(std::string &netscapeSPKIBase64);
-	CertificateRequestSPKAC(X509_REQ *req, NETSCAPE_SPKI *netscapeSPKI);
-	CertificateRequestSPKAC(std::string &certificateRequestPemEncoded, std::string &netscapeSPKIBase64);
+	CertificateRequestSPKAC(const std::string& netscapeSPKIBase64);
+	CertificateRequestSPKAC(const X509_REQ* req, const NETSCAPE_SPKI* netscapeSPKI);
+	CertificateRequestSPKAC(const std::string& certificateRequestPemEncoded, const std::string& netscapeSPKIBase64);
+
 	virtual ~CertificateRequestSPKAC();
 
-	bool verify();
-	bool isSigned() const throw();
+	bool verify() const;
+	bool isSigned() const;
+
 protected:
-	NetscapeSPKI* spkac;
+	NetscapeSPKI spkac;
 };
 
 #endif /* CERTIFICATEREQUESTSPKAC_H_ */
