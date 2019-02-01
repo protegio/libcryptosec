@@ -1,91 +1,59 @@
 #include <libcryptosec/certificate/RevokedCertificate.h>
 
-RevokedCertificate::RevokedCertificate()
+RevokedCertificate::RevokedCertificate() :
+		reasonCode(RevokedCertificate::UNSPECIFIED)
 {
-	this->certificateSerialNumber = BigInteger();
-	this->reasonCode = RevokedCertificate::UNSPECIFIED;
 }
 
 RevokedCertificate::RevokedCertificate(const X509_REVOKED *revoked)
 {
-	ASN1_ENUMERATED* asn1Enumerated;
-	if (revoked)
-	{
-		if (X509_REVOKED_get0_serialNumber(revoked))
-		{
-			this->certificateSerialNumber = BigInteger(X509_REVOKED_get0_serialNumber(revoked));
-		}
-		else
-		{
-			this->certificateSerialNumber = BigInteger();
-		}
-		if (X509_REVOKED_get0_revocationDate(revoked))
-		{
-			this->revocationDate = DateTime(X509_REVOKED_get0_revocationDate(revoked));
-		}
-		asn1Enumerated = (ASN1_ENUMERATED*) X509_REVOKED_get_ext_d2i(revoked, NID_crl_reason, NULL, NULL);
-		if (asn1Enumerated != NULL)
-		{
-			this->reasonCode = (RevokedCertificate::ReasonCode)ASN1_ENUMERATED_get(asn1Enumerated);
-			ASN1_ENUMERATED_free(asn1Enumerated);
-		}
-		else
-		{
-			this->reasonCode = RevokedCertificate::UNSPECIFIED;
-		}
-	}
-	else
-	{
-		this->certificateSerialNumber = 0;
+	THROW_DECODE_ERROR_IF(revoked == NULL);
+
+	const ASN1_INTEGER *sslSerialNumber = X509_REVOKED_get0_serialNumber(revoked);
+	THROW_DECODE_ERROR_IF(sslSerialNumber == NULL);
+	this->certificateSerialNumber = BigInteger(sslSerialNumber);
+
+	const ASN1_TIME * sslRevocationDate = X509_REVOKED_get0_revocationDate(revoked);
+	THROW_DECODE_ERROR_IF(sslRevocationDate == NULL);
+	this->revocationDate = DateTime(sslRevocationDate);
+
+	// The reason code is optional
+	ASN1_ENUMERATED *asn1Enumerated = (ASN1_ENUMERATED*) X509_REVOKED_get_ext_d2i(revoked, NID_crl_reason, NULL, NULL);
+	if (asn1Enumerated != NULL) {
+		this->reasonCode = (RevokedCertificate::ReasonCode) ASN1_ENUMERATED_get(asn1Enumerated);
+		ASN1_ENUMERATED_free(asn1Enumerated);
+	} else {
 		this->reasonCode = RevokedCertificate::UNSPECIFIED;
 	}
+}
+
+RevokedCertificate::RevokedCertificate(const BigInteger& certificateSerialNumber, const DateTime& revocationDate, RevokedCertificate::ReasonCode reasonCode) :
+		certificateSerialNumber(certificateSerialNumber),
+		revocationDate(revocationDate),
+		reasonCode(reasonCode)
+{
 }
 
 RevokedCertificate::~RevokedCertificate()
 {
 }
 
-std::string RevokedCertificate::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret;
-	
-	ret = tab + "<revokedCertificate>\n";
-		ret += tab + "\t<certificateSerialNumber>" + this->certificateSerialNumber.toDec() + "</certificateSerialNumber>\n";
-		ret += tab + "\t<revocationDate>" + this->revocationDate.getXmlEncoded() + "</revocationDate>\n";
-		if (this->reasonCode != RevokedCertificate::UNSPECIFIED)
-		{
-			ret += tab + "\t<reason>" + RevokedCertificate::reasonCode2Name(this->reasonCode) + "</reason>\n";
-		}
-	ret += tab + "</revokedCertificate>\n";
-	return ret;
-}
-
-void RevokedCertificate::setCertificateSerialNumber(long certificateSerialNumber)
+void RevokedCertificate::setCertificateSerialNumber(const BigInteger& certificateSerialNumber)
 {
 	this->certificateSerialNumber = BigInteger(certificateSerialNumber);
 }
 
-void RevokedCertificate::setCertificateSerialNumber(BigInteger certificateSerialNumber)
-{
-	this->certificateSerialNumber = certificateSerialNumber;
-}
-
-long RevokedCertificate::getCertificateSerialNumber()
-{
-	return this->certificateSerialNumber.getValue();
-}
-
-BigInteger RevokedCertificate::getCertificateSerialNumberBigInt()
+const BigInteger& RevokedCertificate::getCertificateSerialNumber() const
 {
 	return this->certificateSerialNumber;
 }
 
-void RevokedCertificate::setRevocationDate(DateTime &revocationDate)
+void RevokedCertificate::setRevocationDate(const DateTime& revocationDate)
 {
 	this->revocationDate = revocationDate;
 }
 
-DateTime RevokedCertificate::getRevocationDate()
+const DateTime& RevokedCertificate::getRevocationDate() const
 {
 	return this->revocationDate;
 }
@@ -95,28 +63,78 @@ void RevokedCertificate::setReasonCode(RevokedCertificate::ReasonCode reasonCode
 	this->reasonCode = reasonCode;
 }
 
-RevokedCertificate::ReasonCode RevokedCertificate::getReasonCode()
+RevokedCertificate::ReasonCode RevokedCertificate::getReasonCode() const
 {
 	return this->reasonCode;
 }
 
-X509_REVOKED* RevokedCertificate::getX509Revoked() const
+X509_REVOKED* RevokedCertificate::getSslObject() const
 {
-	X509_REVOKED *ret;
-	ASN1_ENUMERATED *asn1Enumerated;
+	X509_REVOKED *ret = NULL;
+	ASN1_INTEGER *sslSerialNumber = NULL;
+	ASN1_TIME *sslRevocationDate = NULL;
+	int rc = 0;
+	
 	ret = X509_REVOKED_new();
-	
-	// TODO: memory leak?
-	X509_REVOKED_set_serialNumber(ret, this->certificateSerialNumber.getASN1Value());
-	X509_REVOKED_set_revocationDate(ret, this->revocationDate.getAsn1Time());
-	
-	if (this->reasonCode != RevokedCertificate::UNSPECIFIED)
-	{
-		asn1Enumerated = ASN1_ENUMERATED_new();
-		ASN1_ENUMERATED_set(asn1Enumerated, this->reasonCode);
-		X509_REVOKED_add1_ext_i2d(ret, NID_crl_reason, asn1Enumerated, 0, 0);
-		ASN1_ENUMERATED_free(asn1Enumerated);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
+
+	try {
+		sslSerialNumber = this->certificateSerialNumber.getASN1Value();
+	} catch (...) {
+		X509_REVOKED_free(ret);
+		throw;
 	}
+
+	rc = X509_REVOKED_set_serialNumber(ret, sslSerialNumber);
+	ASN1_INTEGER_free(sslSerialNumber);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_REVOKED_free(ret);
+	);
+
+	try {
+		sslRevocationDate = this->revocationDate.getAsn1Time();
+	} catch (...) {
+		X509_REVOKED_free(ret);
+		throw;
+	}
+
+	rc = X509_REVOKED_set_revocationDate(ret, sslRevocationDate);
+	ASN1_TIME_free(sslRevocationDate);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+			X509_REVOKED_free(ret);
+	);
+
+	if (this->reasonCode != RevokedCertificate::UNSPECIFIED) {
+		ASN1_ENUMERATED *asn1Enumerated = ASN1_ENUMERATED_new();
+		THROW_ENCODE_ERROR_AND_FREE_IF(asn1Enumerated == NULL,
+				X509_REVOKED_free(ret);
+		);
+
+		rc = ASN1_ENUMERATED_set(asn1Enumerated, this->reasonCode);
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_REVOKED_free(ret);
+				ASN1_ENUMERATED_free(asn1Enumerated);
+		);
+
+		rc = X509_REVOKED_add1_ext_i2d(ret, NID_crl_reason, asn1Enumerated, 0, 0);
+		ASN1_ENUMERATED_free(asn1Enumerated);
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_REVOKED_free(ret);
+		);
+	}
+
+	return ret;
+}
+
+std::string RevokedCertificate::toXml(const std::string& tab) const
+{
+	std::string ret = tab + "<revokedCertificate>\n";
+		ret += tab + "\t<certificateSerialNumber>" + this->certificateSerialNumber.toDec() + "</certificateSerialNumber>\n";
+		ret += tab + "\t<revocationDate>" + this->revocationDate.getXmlEncoded() + "</revocationDate>\n";
+		if (this->reasonCode != RevokedCertificate::UNSPECIFIED) {
+			ret += tab + "\t<reason>" + RevokedCertificate::reasonCode2Name(this->reasonCode) + "</reason>\n";
+		}
+	ret += tab + "</revokedCertificate>\n";
 	return ret;
 }
 

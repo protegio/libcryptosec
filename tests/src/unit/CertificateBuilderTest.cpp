@@ -280,7 +280,9 @@ protected:
 
         req = new CertificateRequest(req_pem_encoded);
 	    certBuilder = new CertificateBuilder(*req);
-        rdn = RDNSequence(certBuilder->getSubject().getX509Name());
+	    X509_NAME *name = certBuilder->getSubject().getSslObject();
+        rdn = RDNSequence(name);
+        X509_NAME_free(name);
     }
 
     /**

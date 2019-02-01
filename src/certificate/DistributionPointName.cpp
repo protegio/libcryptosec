@@ -42,7 +42,7 @@ std::string DistributionPointName::getXmlEncoded(const std::string& tab) const
 			ret += this->fullName.getXmlEncoded(tab + "\t");
 			break;
 		case DistributionPointName::RELATIVE_NAME:
-			ret += this->relativeName.getXmlEncoded(tab + "\t");
+			ret += this->relativeName.toXml(tab + "\t");
 			break;
 		default:
 			ret += tab + "\tundefined\n";
@@ -128,7 +128,7 @@ DIST_POINT_NAME* DistributionPointName::getDistPointName() const
 			break;
 		case DistributionPointName::RELATIVE_NAME:
 			ret->type = 1;
-			name = this->relativeName.getX509Name();
+			name = this->relativeName.getSslObject();
 			DIST_POINT_set_dpname(ret, name);
 			X509_NAME_free(name);
 			break;

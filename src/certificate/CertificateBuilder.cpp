@@ -130,7 +130,7 @@ void CertificateBuilder::setNotAfter(const DateTime &dateTime)
 
 void CertificateBuilder::setIssuer(const RDNSequence &name)
 {
-	X509_NAME *issuer = name.getX509Name();
+	X509_NAME *issuer = name.getSslObject();
 	int rc = X509_set_issuer_name(this->cert, issuer);
 	X509_NAME_free(issuer);
 	THROW_ENCODE_ERROR_IF(rc == 0);
@@ -256,7 +256,7 @@ void CertificateBuilder::alterSubject(const RDNSequence& name)
 
 void CertificateBuilder::setSubject(const RDNSequence &name)
 {
-	X509_NAME *subject = name.getX509Name();
+	X509_NAME *subject = name.getSslObject();
 	int rc = X509_set_subject_name(this->cert, subject);
 	X509_NAME_free(subject);
 	THROW_ENCODE_ERROR_IF(rc == 0);

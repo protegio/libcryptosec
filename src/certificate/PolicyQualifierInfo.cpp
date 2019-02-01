@@ -44,7 +44,7 @@ std::string PolicyQualifierInfo::getXmlEncoded(const std::string& tab) const
 	{
 		case PolicyQualifierInfo::USER_NOTICE:
 			ret += this->objectIdentifier.getXmlEncoded(tab + "\t");
-			ret += this->userNotice.getXmlEncoded(tab + "\t");
+			ret += this->userNotice.toXml(tab + "\t");
 			break;
 		case PolicyQualifierInfo::CPS_URI:
 			ret += this->objectIdentifier.getXmlEncoded(tab + "\t");
@@ -115,7 +115,7 @@ POLICYQUALINFO* PolicyQualifierInfo::getPolicyQualInfo() const
 			break;
 		case PolicyQualifierInfo::USER_NOTICE:
 			ret->pqualid = OBJ_dup(this->objectIdentifier.getSslObject());
-			ret->d.usernotice = this->userNotice.getUserNotice();
+			ret->d.usernotice = this->userNotice.getSslObject();
 			break;
 		default:
 			break;

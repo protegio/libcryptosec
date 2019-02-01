@@ -103,7 +103,7 @@ std::string GeneralName::getXmlEncoded(const std::string& tab) const
 			ret += tab + "\t" + data + "\n";
 			break;
 		case GeneralName::DIRECTORY_NAME:
-			ret += this->directoryName.getXmlEncoded(tab + "\t");
+			ret += this->directoryName.toXml(tab + "\t");
 			break;
 		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
 			ret += tab + "\t" + data + "\n";
@@ -237,7 +237,7 @@ GENERAL_NAME* GeneralName::getSslObject() const
 			break;
 		case GeneralName::DIRECTORY_NAME:
 			ret->type = GEN_DIRNAME;
-			ret->d.directoryName = this->directoryName.getX509Name();
+			ret->d.directoryName = this->directoryName.getSslObject();
 			break;
 		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
 			ret->type = GEN_URI;

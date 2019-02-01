@@ -330,7 +330,7 @@ std::string Certificate::getXmlEncoded(const std::string& tab) const
 
 		ret += "\t\t<issuer>\n";
 			try {
-				ret += this->getIssuer().getXmlEncoded("\t\t\t");
+				ret += this->getIssuer().toXml("\t\t\t");
 			} catch (...) {
 			}
 
@@ -350,7 +350,7 @@ std::string Certificate::getXmlEncoded(const std::string& tab) const
 
 		ret += "\t\t<subject>\n";
 			try {
-				ret += this->getSubject().getXmlEncoded("\t\t\t");
+				ret += this->getSubject().toXml("\t\t\t");
 			} catch (...) {
 			}
 		ret += "\t\t</subject>\n";
@@ -441,7 +441,7 @@ std::string Certificate::toXml(const std::string& tab) const
 		ret += "\t\t<issuer>\n";
 			try
 			{
-				ret += (this->getIssuer()).getXmlEncoded("\t\t\t");
+				ret += (this->getIssuer()).toXml("\t\t\t");
 			}
 			catch (...)
 			{
@@ -468,7 +468,7 @@ std::string Certificate::toXml(const std::string& tab) const
 		ret += "\t\t<subject>\n";
 			try
 			{
-				ret += (this->getSubject()).getXmlEncoded("\t\t\t");
+				ret += (this->getSubject()).toXml("\t\t\t");
 			}
 			catch (...)
 			{

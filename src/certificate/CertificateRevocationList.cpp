@@ -243,14 +243,14 @@ std::string CertificateRevocationList::toXml(const std::string& tab) const
 		}
 
 		ret += tab + "\t\t<issuer>\n";
-			ret += (this->getIssuer()).getXmlEncoded("\t\t\t");
+			ret += (this->getIssuer()).toXml("\t\t\t");
 		ret += tab + "\t\t</issuer>\n";
 		ret += tab + "\t\t<lastUpdate>" + this->getLastUpdate().getXmlEncoded() + "</lastUpdate>\n";
 		ret += tab + "\t\t<nextUpdate>" + this->getNextUpdate().getXmlEncoded() + "</nextUpdate>\n";
 		ret += tab + "\t\t<revokedCertificates>\n";
 			revokedCertificates = this->getRevokedCertificates();
 			for (auto revoked : revokedCertificates) {
-				ret += revoked.getXmlEncoded(tab + "\t\t\t");
+				ret += revoked.toXml(tab + "\t\t\t");
 			}
 		ret += tab + "\t\t</revokedCertificates>\n";
 	ret += tab + "\t</tbsCertList>\n";

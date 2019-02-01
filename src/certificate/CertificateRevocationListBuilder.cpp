@@ -139,7 +139,7 @@ std::string CertificateRevocationListBuilder::getXmlEncoded(const std::string& t
 		}
 		ret += tab + "\t\t<issuer>\n";
 
-				ret += (this->getIssuer()).getXmlEncoded("\t\t\t");
+				ret += (this->getIssuer()).toXml("\t\t\t");
 
 		ret += tab + "\t\t</issuer>\n";
 
@@ -151,7 +151,7 @@ std::string CertificateRevocationListBuilder::getXmlEncoded(const std::string& t
 			revokedCertificates = this->getRevokedCertificates();
 			for (i=0;i<revokedCertificates.size();i++)
 			{
-				ret += revokedCertificates.at(i).getXmlEncoded(tab + "\t\t\t");
+				ret += revokedCertificates.at(i).toXml(tab + "\t\t\t");
 			}
 		ret += tab + "\t\t</revokedCertificates>\n";
 
@@ -240,7 +240,7 @@ long CertificateRevocationListBuilder::getVersion() const
 
 void CertificateRevocationListBuilder::setIssuer(const RDNSequence& issuer)
 {
-	X509_NAME *name = issuer.getX509Name();
+	X509_NAME *name = issuer.getSslObject();
 	int rc = X509_CRL_set_issuer_name(this->crl, name);
 	X509_NAME_free(name);
 	if (!rc) {
@@ -318,7 +318,7 @@ DateTime CertificateRevocationListBuilder::getNextUpdate() const
 
 void CertificateRevocationListBuilder::addRevokedCertificate(const RevokedCertificate& revoked)
 {
-	X509_REVOKED* sslRevoked = revoked.getX509Revoked();
+	X509_REVOKED* sslRevoked = revoked.getSslObject();
 	int rc = X509_CRL_add0_revoked(this->crl, sslRevoked);
 	if (!rc) {
 		X509_REVOKED_free(sslRevoked);

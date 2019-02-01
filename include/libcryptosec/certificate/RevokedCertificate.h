@@ -24,21 +24,28 @@ public:
 		PRIVILEGE_WITH_DRAWN = 7,
 		AACOMPROMISE = 8,
 	};
+
 	RevokedCertificate();
 	RevokedCertificate(const X509_REVOKED *revoked);
+	RevokedCertificate(const BigInteger& certificateSerialNumber, const DateTime& revocationDate, RevokedCertificate::ReasonCode reasonCode);
+
 	virtual ~RevokedCertificate();
 	
-	std::string getXmlEncoded(const std::string& tab = "") const;
-	void setCertificateSerialNumber(long certificateSerialNumber);
-	void setCertificateSerialNumber(BigInteger certificateSerialNumber);
-	long getCertificateSerialNumber();
-	BigInteger getCertificateSerialNumberBigInt();
-	void setRevocationDate(DateTime &revocationDate);
-	DateTime getRevocationDate();
-	void setReasonCode(RevokedCertificate::ReasonCode reasonCode);
-	RevokedCertificate::ReasonCode getReasonCode();
-	X509_REVOKED* getX509Revoked() const;
+	void setCertificateSerialNumber(const BigInteger& certificateSerialNumber);
+	const BigInteger& getCertificateSerialNumber() const;
+
+	void setRevocationDate(const DateTime& revocationDate);
+	const DateTime& getRevocationDate() const;
+
+	void setReasonCode(const RevokedCertificate::ReasonCode reasonCode);
+	RevokedCertificate::ReasonCode getReasonCode() const;
+
+	X509_REVOKED* getSslObject() const;
+
+	std::string toXml(const std::string& tab = "") const;
+
 	static std::string reasonCode2Name(RevokedCertificate::ReasonCode reasonCode);
+
 protected:
 	BigInteger certificateSerialNumber;
 	DateTime revocationDate;

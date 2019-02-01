@@ -146,7 +146,7 @@ ByteArray CertificateRequest::getPublicKeyInfo() const
 
 void CertificateRequest::setSubject(const RDNSequence& name)
 {
-	X509_NAME *subject = name.getX509Name();
+	X509_NAME *subject = name.getSslObject();
 	int rc = X509_REQ_set_subject_name(this->req, subject);
 	X509_NAME_free(subject);
 	THROW_ENCODE_ERROR_IF(rc == 0);
@@ -533,7 +533,7 @@ std::string CertificateRequest::toXml(const std::string& tab) const
 
 		ret += tab + "\t<subject>\n";
 		subject = this->getSubject();
-		ret += subject.getXmlEncoded(tab + "\t\t");
+		ret += subject.toXml(tab + "\t\t");
 		ret += tab + "\t</subject>\n";
 
 		try {

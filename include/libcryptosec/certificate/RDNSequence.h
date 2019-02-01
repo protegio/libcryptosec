@@ -35,21 +35,18 @@ public:
 	RDNSequence();
 	RDNSequence(const X509_NAME *rdn);
 	RDNSequence(const STACK_OF(X509_NAME_ENTRY) *entries);
-	RDNSequence(const RDNSequence& rdn);
-	RDNSequence(RDNSequence&& rdn);
 
 	virtual ~RDNSequence();
 
-	RDNSequence& operator=(const RDNSequence& value);
-	RDNSequence& operator=(RDNSequence&& value);
-
-	std::string getXmlEncoded(const std::string& tab = "") const;
 	void addEntry(RDNSequence::EntryType type, const std::string& value);
 	void addEntry(RDNSequence::EntryType type, const std::vector<std::string>& values);
 	std::vector<std::string> getEntries(RDNSequence::EntryType type) const;
 	std::vector<std::pair<ObjectIdentifier, std::string> > getUnknownEntries() const;
 	const std::vector<std::pair<ObjectIdentifier, std::string> >& getEntries() const;
-	X509_NAME* getX509Name() const;
+
+	X509_NAME* getSslObject() const;
+
+	std::string toXml(const std::string& tab = "") const;
 
 protected:
 	static RDNSequence::EntryType id2Type(int id);

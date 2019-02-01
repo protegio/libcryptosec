@@ -17,69 +17,50 @@ RDNSequence::RDNSequence()
 {
 }
 
-RDNSequence::RDNSequence(const RDNSequence& rdn) :
-		newEntries(rdn.getEntries())
-{
-}
-
 RDNSequence::RDNSequence(const X509_NAME *rdn)
 {
-	if (rdn == NULL) {
-		throw CertificationException("" /* TODO */ );
-	}
+	THROW_DECODE_ERROR_IF(rdn == NULL);
 
 	int num = X509_NAME_entry_count(rdn);
 	for (int i = 0; i < num; i++) {
 		std::pair<ObjectIdentifier, std::string> oneEntry;
 
 		X509_NAME_ENTRY *nameEntry = X509_NAME_get_entry(rdn, i);
-		if (nameEntry == NULL) {
-			throw CertificationException("" /* TODO */ );
-		}
+		THROW_DECODE_ERROR_IF(nameEntry == NULL);
 
 		const ASN1_OBJECT *oid = X509_NAME_ENTRY_get_object(nameEntry);
-		if (oid == NULL) {
-			throw CertificationException("" /* TODO */ );
-		}
+		THROW_DECODE_ERROR_IF(oid == NULL);
 
 		const char* data = (const char*) X509_NAME_ENTRY_get_data(nameEntry)->data;
-		if (data == NULL) {
-			throw CertificationException("" /* TODO */ );
-		}
+		THROW_DECODE_ERROR_IF(data == NULL);
 
 		oneEntry.first = ObjectIdentifier(oid);
 		oneEntry.second = std::string(data);
+
 		this->newEntries.push_back(oneEntry);
 	}
 }
 
 RDNSequence::RDNSequence(const STACK_OF(X509_NAME_ENTRY) *entries)
 {
-	if (entries == NULL) {
-		throw CertificationException("" /* TODO */ );
-	}
+	THROW_DECODE_ERROR_IF(entries == NULL);
 
 	int num = sk_X509_NAME_ENTRY_num(entries);
 	for (int i = 0; i < num; i++) {
 		std::pair<ObjectIdentifier, std::string> oneEntry;
 
-		X509_NAME_ENTRY *nameEntry = sk_X509_NAME_ENTRY_value(entries, i);
-		if (nameEntry == NULL) {
-			throw CertificationException("" /* TODO */ );
-		}
+		const X509_NAME_ENTRY *nameEntry = sk_X509_NAME_ENTRY_value(entries, i);
+		THROW_DECODE_ERROR_IF(nameEntry == NULL);
 
 		const ASN1_OBJECT *oid = X509_NAME_ENTRY_get_object(nameEntry);
-		if (oid == NULL) {
-			throw CertificationException("" /* TODO */ );
-		}
+		THROW_DECODE_ERROR_IF(oid == NULL);
 
 		const char *data = (const char *) X509_NAME_ENTRY_get_data(nameEntry)->data;
-		if (data == NULL) {
-			throw CertificationException("" /* TODO */ );
-		}
+		THROW_DECODE_ERROR_IF(data == NULL);
 
 		oneEntry.first = ObjectIdentifier(oid);
 		oneEntry.second = std::string(data);
+
 		this->newEntries.push_back(oneEntry);
 	}
 }
@@ -88,49 +69,12 @@ RDNSequence::~RDNSequence()
 {
 }
 
-RDNSequence& RDNSequence::operator=(const RDNSequence& value)
-{
-	if(&value == this) {
-		return *this;
-	}
-	this->newEntries = value.newEntries;
-	return *this;
-}
-
-
-RDNSequence& RDNSequence::operator=(RDNSequence&& value) {
-	if(&value == this) {
-		return *this;
-	}
-	this->newEntries = std::move(value.newEntries);
-	return *this;
-}
-
-std::string RDNSequence::getXmlEncoded(const std::string& tab) const
-{
-	std::vector<std::pair<ObjectIdentifier, std::string> >::iterator iterEntries;
-	std::string ret;
-	int nid = 0;
-	
-	ret = tab + "<RDNSequence>\n";
-	for (auto entry : this->newEntries) {
-		nid = iterEntries->first.getNid();
-		if (RDNSequence::id2Type(nid) != RDNSequence::UNKNOWN) {
-			ret += tab + "\t<" + RDNSequence::getNameId(RDNSequence::id2Type(nid)) + ">" + iterEntries->second + "</" + RDNSequence::getNameId(RDNSequence::id2Type(nid)) + ">\n";
-		} else {
-			ret += tab + "\t<unknownAttribute>" + iterEntries->first.getOid() + ":" + iterEntries->second + "</unknownAttribute>\n";
-		}
-	}
-	ret += tab + "</RDNSequence>\n";
-	return ret;
-}
-
 void RDNSequence::addEntry(RDNSequence::EntryType type, const std::string& value)
 {
 	std::pair<ObjectIdentifier, std::string> oneEntry;
-	if (type != RDNSequence::UNKNOWN)
-	{
-		oneEntry.first = ObjectIdentifierFactory::getObjectIdentifier(RDNSequence::type2Id(type));
+	if (type != RDNSequence::UNKNOWN) {
+		int nid = RDNSequence::type2Id(type);
+		oneEntry.first = ObjectIdentifierFactory::getObjectIdentifier(nid);
 		oneEntry.second = value;
 		this->newEntries.push_back(oneEntry);
 	}
@@ -147,7 +91,9 @@ std::vector<std::string> RDNSequence::getEntries(RDNSequence::EntryType type) co
 {
 	std::vector<std::string> ret;
 	for (auto entry : this->newEntries) {
-		if (id2Type(entry.first.getNid()) == type) {
+		int nid = entry.first.getNid();
+		RDNSequence::EntryType entryType = id2Type(nid);
+		if (entryType == type) {
 			ret.push_back(entry.second);
 		}
 	}
@@ -158,7 +104,9 @@ std::vector<std::pair<ObjectIdentifier, std::string> > RDNSequence::getUnknownEn
 {
 	std::vector<std::pair<ObjectIdentifier, std::string> > ret;
 	for (auto entry : this->newEntries) {
-		if (id2Type(entry.first.getNid()) == RDNSequence::UNKNOWN) {
+		int nid = entry.first.getNid();
+		RDNSequence::EntryType entryType = id2Type(nid);
+		if (entryType == RDNSequence::UNKNOWN) {
 			std::pair<ObjectIdentifier, std::string> oneEntry;
 			oneEntry.first = entry.first;
 			oneEntry.second = entry.second;
@@ -173,34 +121,60 @@ const std::vector<std::pair<ObjectIdentifier, std::string> >& RDNSequence::getEn
 	return this->newEntries;
 }
 
-X509_NAME* RDNSequence::getX509Name() const
+X509_NAME* RDNSequence::getSslObject() const
 {
-	X509_NAME *ret = X509_NAME_new();
 	int rc = 0;
+
+	X509_NAME *ret = X509_NAME_new();
+	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	for (auto iterEntries : this->newEntries) {
 		X509_NAME_ENTRY *entry = X509_NAME_ENTRY_new();
-		if (entry == NULL) {
-			throw CertificationException("" /* TODO */);
-		}
+		THROW_ENCODE_ERROR_AND_FREE_IF(entry == NULL,
+				X509_NAME_free(ret);
+		);
 
-		rc = X509_NAME_ENTRY_set_object(entry, iterEntries.first.getSslObject());
-		if (rc == 0) {
-			throw CertificationException("" /* TODO */);
-		}
+		ASN1_OBJECT *oid = iterEntries.first.getSslObject();
+		rc = X509_NAME_ENTRY_set_object(entry, oid);
+		ASN1_OBJECT_free(oid);
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_NAME_free(ret);
+		);
 
-		rc = X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (unsigned char *) iterEntries.second.c_str(), iterEntries.second.length());
-		if (rc == 0) {
-			throw CertificationException("" /* TODO */);
-		}
+		// TODO: check MBSTRING_ASC
+		rc = X509_NAME_ENTRY_set_data(entry, MBSTRING_ASC, (const unsigned char *) iterEntries.second.c_str(), iterEntries.second.length());
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_NAME_free(ret);
+		);
 
 		rc = X509_NAME_add_entry(ret, entry, -1, 0);
-		if (rc == 0) {
-			throw CertificationException("" /* TODO */);
-		}
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				X509_NAME_free(ret);
+		);
 
 		X509_NAME_ENTRY_free(entry);
 	}
+	return ret;
+}
+
+std::string RDNSequence::toXml(const std::string& tab) const
+{
+	std::vector<std::pair<ObjectIdentifier, std::string> >::iterator iterEntries;
+	std::string ret;
+	int nid = 0;
+
+	ret = tab + "<RDNSequence>\n";
+	for (auto entry : this->newEntries) {
+		nid = iterEntries->first.getNid();
+		RDNSequence::EntryType entryType = RDNSequence::id2Type(nid);
+		if (entryType != RDNSequence::UNKNOWN) {
+			std::string name =  RDNSequence::getNameId(entryType);
+			ret += tab + "\t<" + name + ">" + iterEntries->second + "</" + name + ">\n";
+		} else {
+			ret += tab + "\t<unknownAttribute>" + iterEntries->first.getOid() + ":" + iterEntries->second + "</unknownAttribute>\n";
+		}
+	}
+	ret += tab + "</RDNSequence>\n";
 	return ret;
 }
 
