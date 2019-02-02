@@ -53,7 +53,7 @@ std::string SubjectInformationAccessExtension::extValue2Xml(const std::string& t
 	std::string ret, string;
 	ret = tab + "<accessDescriptions>\n";
 	for (auto accessDescription : this->accessDescriptions) {
-		string = accessDescription.getXmlEncoded(tab + "\t");
+		string = accessDescription.toXml(tab + "\t");
 		ret += string;
 	}
 	ret += tab + "</accessDescriptions>\n";

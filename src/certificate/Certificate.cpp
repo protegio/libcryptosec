@@ -299,114 +299,6 @@ ByteArray Certificate::getDerEncoded() const
 	ENCODE_DER_AND_RETURN(this->cert, i2d_X509_bio);
 }
 
-std::string Certificate::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, string;
-	ByteArray data;
-	char temp[15];
-	long value;
-	std::vector<Extension *> extensions;
-
-	ret = "<?xml version=\"1.0\"?>\n";
-	ret += "<certificate>\n";
-	ret += "\t<tbsCertificate>\n";
-		try { /* version */
-			value = this->getVersion();
-			sprintf(temp, "%d", (int) value);
-			string = temp;
-			ret += "\t\t<version>" + string + "</version>\n";
-		} catch (...){
-		}
-
-		try { /* Serial Number */
-			BigInteger sn = this->getSerialNumberBigInt();
-			ret += "\t\t<serialNumber>" + sn.toDec() + "</serialNumber>\n";
-		} catch (...) {
-			//TODO: OK?
-		}
-
-		int signature_nid = X509_get_signature_nid(this->cert);
-		string = OBJ_nid2ln(signature_nid);
-		ret += "\t\t<signature>" + string + "</signature>\n";
-
-		ret += "\t\t<issuer>\n";
-			try {
-				ret += this->getIssuer().toXml("\t\t\t");
-			} catch (...) {
-			}
-
-		ret += "\t\t</issuer>\n";
-
-		ret += "\t\t<validity>\n";
-			try {
-				ret += "\t\t\t<notBefore>" + this->getNotBefore().getXmlEncoded() + "</notBefore>\n";
-			} catch (...) {
-			}
-
-			try {
-				ret += "\t\t\t<notAfter>" + this->getNotAfter().getXmlEncoded() + "</notAfter>\n";
-			} catch (...) {
-			}
-		ret += "\t\t</validity>\n";
-
-		ret += "\t\t<subject>\n";
-			try {
-				ret += this->getSubject().toXml("\t\t\t");
-			} catch (...) {
-			}
-		ret += "\t\t</subject>\n";
-
-		ret += "\t\t<subjectPublicKeyInfo>\n";
-
-			string = OBJ_nid2ln(EVP_PKEY_id(X509_get0_pubkey(this->cert)));
-			ret += "\t\t\t<algorithm>" + string + "</algorithm>\n";
-
-			const ASN1_BIT_STRING* public_key = X509_get0_pubkey_bitstr(this->cert);
-			data = ByteArray(public_key->data, public_key->length);
-			string = Base64::encode(data);
-			ret += "\t\t\t<subjectPublicKey>" + string + "</subjectPublicKey>\n";
-		ret += "\t\t</subjectPublicKeyInfo>\n";
-
-		const ASN1_BIT_STRING *issuerUID, *subjectUID;
-		X509_get0_uids(this->cert, &subjectUID, &issuerUID);
-
-		if (issuerUID) {
-			data = ByteArray(issuerUID->data, issuerUID->length);
-			string = Base64::encode(data);
-			ret += "\t\t<issuerUniqueID>" + string + "</issuerUniqueID>\n";
-		}
-
-		if (subjectUID) {
-			data = ByteArray(subjectUID->data, subjectUID->length);
-			string = Base64::encode(data);
-			ret += "\t\t<subjectUniqueID>" + string + "</subjectUniqueID>\n";
-		}
-
-		ret += "\t\t<extensions>\n";
-		extensions = this->getExtensions();
-		for (auto extension : extensions) {
-			ret += extension->toXml("\t\t\t");
-			delete extension;
-		}
-		ret += "\t\t</extensions>\n";
-
-	ret += "\t</tbsCertificate>\n";
-
-	ret += "\t<signatureAlgorithm>\n";
-		string = OBJ_nid2ln(X509_get_signature_nid(this->cert));
-		ret += "\t\t<algorithm>" + string + "</algorithm>\n";
-	ret += "\t</signatureAlgorithm>\n";
-
-	const ASN1_BIT_STRING* signature = 0;
-	X509_get0_signature(&signature, 0, this->cert);
-	data = ByteArray(signature->data, signature->length);
-	string = Base64::encode(data);
-	ret += "\t<signatureValue>" + string + "</signatureValue>\n";
-
-	ret += "</certificate>\n";
-	return ret;
-}
-
 std::string Certificate::toXml(const std::string& tab) const
 {
 	std::string ret, string;
@@ -452,14 +344,14 @@ std::string Certificate::toXml(const std::string& tab) const
 		ret += "\t\t<validity>\n";
 			try
 			{
-				ret += "\t\t\t<notBefore>" + ((this->getNotBefore()).getXmlEncoded()) + "</notBefore>\n";
+				ret += "\t\t\t<notBefore>" + ((this->getNotBefore()).toXml()) + "</notBefore>\n";
 			}
 			catch (...)
 			{
 			}
 			try
 			{
-				ret += "\t\t\t<notAfter>" + ((this->getNotAfter()).getXmlEncoded()) + "</notAfter>\n";
+				ret += "\t\t\t<notAfter>" + ((this->getNotAfter()).toXml()) + "</notAfter>\n";
 			}
 			catch (...)
 			{

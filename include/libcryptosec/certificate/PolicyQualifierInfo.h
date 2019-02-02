@@ -19,25 +19,32 @@ public:
 		CPS_URI,
 		USER_NOTICE,
 	};
+
 	PolicyQualifierInfo();
 	PolicyQualifierInfo(const POLICYQUALINFO *policyQualInfo);
+
 	virtual ~PolicyQualifierInfo();
 	
-	std::string getXmlEncoded(const std::string& tab = "") const;
-	ObjectIdentifier getObjectIdentifier();
-	void setCpsUri(std::string cpsUri);
-	std::string getCpsUri();
-	void setUserNotice(UserNotice userNotice);
-	UserNotice getUserNotice();
-	PolicyQualifierInfo::Type getType();
-	POLICYQUALINFO* getPolicyQualInfo() const;
+	const ObjectIdentifier& getObjectIdentifier() const;
+
+	void setCpsUri(const std::string& cpsUri);
+	const std::string& getCpsUri() const;
+
+	void setUserNotice(const UserNotice& userNotice);
+	const UserNotice& getUserNotice() const;
+
+	PolicyQualifierInfo::Type getType() const;
+
+	POLICYQUALINFO* getSslObject() const;
+
+	std::string toXml(const std::string& tab = "") const;
 protected:
 	PolicyQualifierInfo::Type type;
 	ObjectIdentifier objectIdentifier;
 	UserNotice userNotice;
 	std::string cpsUri;
 	
-	void setObjectIdentifier(ObjectIdentifier objectIdentifier);
+	void setObjectIdentifier(const ObjectIdentifier& objectIdentifier);
 };
 
 #endif /*POLICYQUALIFIERINFO_H_*/

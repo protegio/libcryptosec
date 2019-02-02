@@ -45,16 +45,6 @@ const ObjectIdentifier& AccessDescription::getAccessMethod() const
     return accessMethod;
 }
 
-std::string AccessDescription::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret;
-	ret = tab + "<accessDescription>\n";
-	ret += this->accessMethod.toXml(tab + "\t");
-	ret += this->accessLocation.toXml(tab + "\t");
-	ret += tab + "</accessDescription>\n";
-	return ret;
-}
-
 ACCESS_DESCRIPTION* AccessDescription::getSslObject() const {
 	ACCESS_DESCRIPTION* sslObject = ACCESS_DESCRIPTION_new();
 	THROW_ENCODE_ERROR_IF(sslObject == NULL);
@@ -63,3 +53,12 @@ ACCESS_DESCRIPTION* AccessDescription::getSslObject() const {
 	return sslObject;
 }
 
+std::string AccessDescription::toXml(const std::string& tab) const
+{
+	std::string ret;
+	ret = tab + "<accessDescription>\n";
+	ret += this->accessMethod.toXml(tab + "\t");
+	ret += this->accessLocation.toXml(tab + "\t");
+	ret += tab + "</accessDescription>\n";
+	return ret;
+}

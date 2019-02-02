@@ -67,7 +67,7 @@ POLICYINFO* PolicyInformation::getSslObject() const
 		POLICYQUALINFO *policyQualInfo = NULL;
 
 		try {
-			policyQualInfo = policyQualifier.getPolicyQualInfo();
+			policyQualInfo = policyQualifier.getSslObject();
 		} catch (...) {
 			POLICYINFO_free(ret);
 			throw;
@@ -89,7 +89,7 @@ std::string PolicyInformation::toXml(const std::string& tab) const
 	ret = tab + "<policyInformation>\n";
 	ret += this->policyIdentifier.toXml(tab + "\t");
 	for (auto policyQualifier : this->policyQualifiers) {
-		ret += policyQualifier.getXmlEncoded(tab + "\t");
+		ret += policyQualifier.toXml(tab + "\t");
 	}
 	ret += tab + "</policyInformation>\n";
 	return ret;

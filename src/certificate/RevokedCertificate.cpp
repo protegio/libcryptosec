@@ -133,7 +133,7 @@ std::string RevokedCertificate::toXml(const std::string& tab) const
 {
 	std::string ret = tab + "<revokedCertificate>\n";
 		ret += tab + "\t<certificateSerialNumber>" + this->certificateSerialNumber.toDec() + "</certificateSerialNumber>\n";
-		ret += tab + "\t<revocationDate>" + this->revocationDate.getXmlEncoded() + "</revocationDate>\n";
+		ret += tab + "\t<revocationDate>" + this->revocationDate.toXml() + "</revocationDate>\n";
 		if (this->reasonCode != RevokedCertificate::UNSPECIFIED) {
 			ret += tab + "\t<reason>" + RevokedCertificate::reasonCode2Name(this->reasonCode) + "</reason>\n";
 		}

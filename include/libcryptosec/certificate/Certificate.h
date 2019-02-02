@@ -83,12 +83,6 @@ public:
 	std::string getPemEncoded() const;
 	ByteArray getDerEncoded() const;
 
-	/**
-	 * @deprecated
-	 * Retorna o conteudo da extensão em formato XML.
-	 * Esta função será substituida por toXml().
-	 * */
-	std::string getXmlEncoded(const std::string& tab = "") const;
 	virtual std::string toXml(const std::string& tab = "") const;
 
 	X509* getSslObject() const;

@@ -56,7 +56,7 @@ std::string AuthorityInformationAccessExtension::extValue2Xml(const std::string&
 	std::string ret, string;
 	ret = tab + "<accessDescriptions>\n";
 	for (auto accessDescription : this->accessDescriptions) {
-		string = accessDescription.getXmlEncoded(tab + "\t");
+		string = accessDescription.toXml(tab + "\t");
 		ret += string;
 	}
 	ret += tab + "</accessDescriptions>\n";

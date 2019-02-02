@@ -18,7 +18,7 @@ public:
 	const GeneralName& getAccessLocation() const;
 	const ObjectIdentifier& getAccessMethod() const;
 	
-	virtual std::string getXmlEncoded(const std::string& tab = "") const;
+	virtual std::string toXml(const std::string& tab = "") const;
 	ACCESS_DESCRIPTION* getSslObject() const;
 
 private:

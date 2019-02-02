@@ -10,28 +10,23 @@ PolicyQualifierInfo::PolicyQualifierInfo()
 
 PolicyQualifierInfo::PolicyQualifierInfo(const POLICYQUALINFO *policyQualInfo)
 {
-	char *data;
-	if (policyQualInfo)
-	{
-		this->objectIdentifier = ObjectIdentifier((const ASN1_OBJECT*) policyQualInfo->pqualid);
-		switch (this->objectIdentifier.getNid())
-		{
-			case NID_id_qt_cps:
-				this->type = PolicyQualifierInfo::CPS_URI;
-				data = (char *) (policyQualInfo->d.cpsuri->data);
-				this->cpsUri = data;
-				break;
-			case NID_id_qt_unotice:
-				this->type = PolicyQualifierInfo::USER_NOTICE;
-				this->userNotice = UserNotice(policyQualInfo->d.usernotice);
-				break;
-			default:
-				this->type = PolicyQualifierInfo::UNDEFINED;
-		}
-	}
-	else
-	{
-		this->type = PolicyQualifierInfo::UNDEFINED;
+	THROW_DECODE_ERROR_IF(policyQualInfo == NULL);
+	char *data = NULL;
+
+	this->objectIdentifier = ObjectIdentifier((const ASN1_OBJECT*) policyQualInfo->pqualid);
+	int nid = this->objectIdentifier.getNid();
+	switch (nid) {
+		case NID_id_qt_cps:
+			this->type = PolicyQualifierInfo::CPS_URI;
+			data = (char *) (policyQualInfo->d.cpsuri->data);
+			this->cpsUri = std::string(data);
+			break;
+		case NID_id_qt_unotice:
+			this->type = PolicyQualifierInfo::USER_NOTICE;
+			this->userNotice = UserNotice(policyQualInfo->d.usernotice);
+			break;
+		default:
+			this->type = PolicyQualifierInfo::UNDEFINED;
 	}
 }
 
@@ -39,12 +34,96 @@ PolicyQualifierInfo::~PolicyQualifierInfo()
 {
 }
 
-std::string PolicyQualifierInfo::getXmlEncoded(const std::string& tab) const
+void PolicyQualifierInfo::setObjectIdentifier(const ObjectIdentifier& objectIdentifier)
+{
+	this->objectIdentifier = objectIdentifier;
+}
+
+const ObjectIdentifier& PolicyQualifierInfo::getObjectIdentifier() const
+{
+	return this->objectIdentifier;
+}
+
+void PolicyQualifierInfo::setCpsUri(const std::string& cpsUri)
+{
+	THROW_ENCODE_ERROR_IF(cpsUri.empty());
+	this->userNotice = UserNotice();
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_id_qt_cps);
+	this->cpsUri = cpsUri;
+	this->type = PolicyQualifierInfo::CPS_URI;
+}
+
+const std::string& PolicyQualifierInfo::getCpsUri() const
+{
+	return this->cpsUri;
+}
+
+void PolicyQualifierInfo::setUserNotice(const UserNotice& userNotice)
+{
+	this->userNotice = userNotice;
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_id_qt_unotice);
+	this->cpsUri = std::string();
+	this->type = PolicyQualifierInfo::USER_NOTICE;
+}
+
+const UserNotice& PolicyQualifierInfo::getUserNotice() const
+{
+	return this->userNotice;
+}
+
+PolicyQualifierInfo::Type PolicyQualifierInfo::getType() const
+{
+	return this->type;
+}
+
+POLICYQUALINFO* PolicyQualifierInfo::getSslObject() const
+{
+	POLICYQUALINFO *ret = POLICYQUALINFO_new();
+	THROW_ENCODE_ERROR_IF(ret == NULL);
+
+	switch (this->type) {
+		case PolicyQualifierInfo::CPS_URI:
+		{
+			try {
+				ret->pqualid = this->objectIdentifier.getSslObject();
+			} catch (...) {
+				POLICYQUALINFO_free(ret);
+				throw;
+			}
+
+			ret->d.cpsuri = ASN1_IA5STRING_new();
+			THROW_ENCODE_ERROR_AND_FREE_IF(ret->d.cpsuri == NULL,
+					POLICYQUALINFO_free(ret);
+			);
+
+			int rc = ASN1_STRING_set(ret->d.cpsuri, this->cpsUri.c_str(), this->cpsUri.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					POLICYQUALINFO_free(ret);
+			);
+
+			break;
+		}
+		case PolicyQualifierInfo::USER_NOTICE:
+			try {
+				ret->pqualid = this->objectIdentifier.getSslObject();
+				ret->d.usernotice = this->userNotice.getSslObject();
+			} catch (...) {
+				POLICYQUALINFO_free(ret);
+				throw;
+			}
+			break;
+		default:
+			break;
+	}
+
+	return ret;
+}
+
+std::string PolicyQualifierInfo::toXml(const std::string& tab) const
 {
 	std::string ret;
 	ret = tab + "<policyQualifierInfo>\n";
-	switch (this->type)
-	{
+	switch (this->type) {
 		case PolicyQualifierInfo::USER_NOTICE:
 			ret += this->objectIdentifier.toXml(tab + "\t");
 			ret += this->userNotice.toXml(tab + "\t");
@@ -60,68 +139,3 @@ std::string PolicyQualifierInfo::getXmlEncoded(const std::string& tab) const
 	return ret;
 }
 
-void PolicyQualifierInfo::setObjectIdentifier(ObjectIdentifier objectIdentifier)
-{
-	this->objectIdentifier = objectIdentifier;
-}
-
-ObjectIdentifier PolicyQualifierInfo::getObjectIdentifier()
-{
-	return this->objectIdentifier;
-}
-
-void PolicyQualifierInfo::setCpsUri(std::string cpsUri)
-{
-	//no caso de cpsUri = "" ha problema de codificacao ASN1
-	if(cpsUri.size() > 0)
-	{
-		this->userNotice = UserNotice();
-		this->objectIdentifier = ObjectIdentifier::fromNid(NID_id_qt_cps);
-		this->cpsUri = cpsUri;
-		this->type = PolicyQualifierInfo::CPS_URI;
-	}
-}
-
-std::string PolicyQualifierInfo::getCpsUri()
-{
-	return this->cpsUri;
-}
-
-void PolicyQualifierInfo::setUserNotice(UserNotice userNotice)
-{
-	this->userNotice = userNotice;
-	this->objectIdentifier = ObjectIdentifier::fromNid(NID_id_qt_unotice);
-	this->cpsUri = std::string();
-	this->type = PolicyQualifierInfo::USER_NOTICE;
-}
-
-UserNotice PolicyQualifierInfo::getUserNotice()
-{
-	return this->userNotice;
-}
-
-PolicyQualifierInfo::Type PolicyQualifierInfo::getType()
-{
-	return this->type;
-}
-
-POLICYQUALINFO* PolicyQualifierInfo::getPolicyQualInfo() const
-{
-	POLICYQUALINFO *ret;
-	ret = POLICYQUALINFO_new();
-	switch (this->type)
-	{
-		case PolicyQualifierInfo::CPS_URI:
-			ret->pqualid = OBJ_dup(this->objectIdentifier.getSslObject());
-			ret->d.cpsuri = ASN1_IA5STRING_new();
-			ASN1_STRING_set(ret->d.cpsuri, this->cpsUri.c_str(), this->cpsUri.size());
-			break;
-		case PolicyQualifierInfo::USER_NOTICE:
-			ret->pqualid = OBJ_dup(this->objectIdentifier.getSslObject());
-			ret->d.usernotice = this->userNotice.getSslObject();
-			break;
-		default:
-			break;
-	}
-	return ret;
-}
