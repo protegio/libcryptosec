@@ -1,5 +1,6 @@
 #include <libcryptosec/certificate/UserNotice.h>
 
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 #include <openssl/asn1.h>

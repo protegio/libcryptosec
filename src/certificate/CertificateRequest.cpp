@@ -2,7 +2,8 @@
 
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
-#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 #include <openssl/pem.h>
 

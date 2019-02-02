@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/SubjectInformationAccessExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 SubjectInformationAccessExtension::SubjectInformationAccessExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_sinfo_access);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_sinfo_access);
 }
 
 SubjectInformationAccessExtension::SubjectInformationAccessExtension(const X509_EXTENSION *ext) :

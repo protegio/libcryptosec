@@ -1,13 +1,14 @@
 #include <libcryptosec/certificate/extension/SubjectKeyIdentifierExtension.h>
 
-#include <libcryptosec/exception/CertificationException.h>
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/Base64.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_subject_key_identifier);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_subject_key_identifier);
 }
 
 SubjectKeyIdentifierExtension::SubjectKeyIdentifierExtension(const X509_EXTENSION* ext) :

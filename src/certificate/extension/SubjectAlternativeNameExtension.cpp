@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/SubjectAlternativeNameExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 SubjectAlternativeNameExtension::SubjectAlternativeNameExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_subject_alt_name);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_subject_alt_name);
 }
 
 SubjectAlternativeNameExtension::SubjectAlternativeNameExtension(const X509_EXTENSION *ext) :
@@ -43,12 +44,12 @@ const GeneralNames& SubjectAlternativeNameExtension::getSubjectAltName() const
 
 std::string SubjectAlternativeNameExtension::extValue2Xml(const std::string& tab) const
 {
-	return this->subjectAltName.getXmlEncoded(tab);
+	return this->subjectAltName.toXml(tab);
 }
 
 X509_EXTENSION* SubjectAlternativeNameExtension::getX509Extension() const
 {
-	GENERAL_NAMES *sslObject = this->subjectAltName.getInternalGeneralNames();
+	GENERAL_NAMES *sslObject = this->subjectAltName.getSslObject();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_subject_alt_name, this->critical ? 1 : 0, (void*) sslObject);
 	GENERAL_NAMES_free(sslObject);
 	THROW_ENCODE_ERROR_IF(ret == NULL);

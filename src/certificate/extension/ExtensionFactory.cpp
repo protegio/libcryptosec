@@ -12,6 +12,8 @@
 #include <libcryptosec/certificate/extension/SubjectAlternativeNameExtension.h>
 #include <libcryptosec/certificate/extension/SubjectInformationAccessExtension.h>
 #include <libcryptosec/certificate/extension/SubjectKeyIdentifierExtension.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 ExtensionFactory::~ExtensionFactory() {
 }

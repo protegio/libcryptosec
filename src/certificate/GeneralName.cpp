@@ -1,81 +1,75 @@
 #include <libcryptosec/certificate/GeneralName.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
 GeneralName::GeneralName()
 {
 	this->type = GeneralName::UNDEFINED;
 }
 
-//GeneralName::GeneralName(const GeneralName& generalName)
-//{
-//	this->type = generalName.getType();
-//	switch (this->type)
-//	{
-//		case GeneralName::RFC_822_NAME:
-//			this->data = generalName.getRfc822Name();
-//			break;
-//		case GeneralName::DNS_NAME:
-//			this->data = generalName.getDnsName();
-//			break;
-//		case GeneralName::DIRECTORY_NAME:
-//			this->directoryName = generalName.getDirectoryName();
-//			break;
-//		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
-//			this->data = generalName.getUniformResourceIdentifier();
-//			break;
-//		case GeneralName::IP_ADDRESS:
-//			this->data = generalName.getIpAddress();
-//			break;
-//		case GeneralName::REGISTERED_ID:
-//			this->registeredId = generalName.getRegisteredId();
-//			break;
-//		default:
-//			break;
-//	}
-//}
+GeneralName::GeneralName(const GENERAL_NAME* generalName)
+{
+	THROW_DECODE_ERROR_IF(generalName == NULL);
 
-GeneralName::GeneralName(const GENERAL_NAME* generalName) {
-	std::string data, oid;
-	unsigned char *temp;
-	RDNSequence directoryName;
-	ObjectIdentifier registeredId;
+	std::string data;
 
-	switch (generalName->type)
-	{
+	switch (generalName->type) {
 		case GEN_OTHERNAME:
-			if (V_ASN1_OCTET_STRING == generalName->d.otherName->value->type) {
-				ASN1_OCTET_STRING *	octetString = generalName->d.otherName->value->value.octet_string;
-				data.assign((const char *)octetString->data, octetString->length);
-				char oidChar[100];
-				OBJ_obj2txt(oidChar, 100, generalName->d.otherName->type_id, 1);
-				oid = oidChar;
-				this->setOtherName(oid, data);
-			}
+		{
+			THROW_DECODE_ERROR_IF(generalName->d.otherName == NULL);
+			THROW_DECODE_ERROR_IF(generalName->d.otherName->value == NULL);
+			THROW_DECODE_ERROR_IF(generalName->d.otherName->value->type != V_ASN1_OCTET_STRING);
+			// TODO: não suporta outros tipos?
+
+			const ASN1_OCTET_STRING *octetString = generalName->d.otherName->value->value.octet_string;
+			THROW_DECODE_ERROR_IF(octetString == NULL);
+			THROW_DECODE_ERROR_IF(octetString->data == NULL);
+
+			data.assign((const char *) octetString->data, octetString->length);
+
+			ObjectIdentifier oid((const ASN1_OBJECT*) generalName->d.otherName->type_id);
+			this->setOtherName(oid, data);
 			break;
+		}
 		case GEN_EMAIL:
-			data = (char *) (generalName->d.rfc822Name->data);
+			THROW_DECODE_ERROR_IF(generalName->d.rfc822Name == NULL);
+			THROW_DECODE_ERROR_IF(generalName->d.rfc822Name->data == NULL);
+			data = (char*) generalName->d.rfc822Name->data;
 			this->setRfc822Name(data);
 			break;
 		case GEN_DNS:
-			data = (char *) (generalName->d.dNSName->data);
+			THROW_DECODE_ERROR_IF(generalName->d.dNSName == NULL);
+			THROW_DECODE_ERROR_IF(generalName->d.dNSName->data == NULL);
+			data = (char*) (generalName->d.dNSName->data);
 			this->setDnsName(data);
 			break;
 		case GEN_DIRNAME:
-			directoryName = RDNSequence(generalName->d.directoryName);
+		{
+			THROW_DECODE_ERROR_IF(generalName->d.directoryName == NULL);
+			RDNSequence directoryName(generalName->d.directoryName);
 			this->setDirectoryName(directoryName);
 			break;
+		}
 		case GEN_IPADD:
-			temp = (unsigned char *) (generalName->d.iPAddress->data);
-			data = GeneralName::data2IpAddress(temp);
+			THROW_DECODE_ERROR_IF(generalName->d.iPAddress == NULL);
+			THROW_DECODE_ERROR_IF(generalName->d.iPAddress->data == NULL);
+			data = GeneralName::data2IpAddress((const unsigned char *) (generalName->d.iPAddress->data));
 			this->setIpAddress(data);
 			break;
 		case GEN_URI:
+			THROW_DECODE_ERROR_IF(generalName->d.uniformResourceIdentifier == NULL);
+			THROW_DECODE_ERROR_IF(generalName->d.uniformResourceIdentifier->data == NULL);
 			data = (char *) (generalName->d.uniformResourceIdentifier->data);
 			this->setUniformResourceIdentifier(data);
 			break;
 		case GEN_RID:
-			registeredId = ObjectIdentifier(OBJ_dup(generalName->d.registeredID));
+		{
+			THROW_DECODE_ERROR_IF(generalName->d.registeredID == NULL);
+			ObjectIdentifier registeredId((const ASN1_OBJECT*) generalName->d.registeredID);
 			this->setRegisteredId(registeredId);
 			break;
+		}
 		default:
 			this->type = GeneralName::UNDEFINED;
 			break;
@@ -86,120 +80,86 @@ GeneralName::~GeneralName()
 {
 }
 
-std::string GeneralName::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret, name;
-	name = GeneralName::type2Name(this->type);
-	ret = tab + "<" + name + ">\n";
-	switch (this->type)
-	{
-		case GeneralName::OTHER_NAME:
-			ret += tab + "\t" + oid + " : " + data + "\n";
-			break;
-		case GeneralName::RFC_822_NAME:
-			ret += tab + "\t" + data + "\n";
-			break;
-		case GeneralName::DNS_NAME:
-			ret += tab + "\t" + data + "\n";
-			break;
-		case GeneralName::DIRECTORY_NAME:
-			ret += this->directoryName.toXml(tab + "\t");
-			break;
-		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
-			ret += tab + "\t" + data + "\n";
-			break;
-		case GeneralName::IP_ADDRESS:
-			ret += tab + "\t" + data + "\n";
-			break;
-		case GeneralName::REGISTERED_ID:
-			ret += tab + "\t" + this->registeredId.getName() + "\n";
-			break;
-		default:
-			break;
-	}
-	ret += tab + "</" + name + ">\n";
-	return ret;
-}
-
-void GeneralName::setOtherName(std::string oid, std::string data) {
+void GeneralName::setOtherName(const ObjectIdentifier& oid, const std::string& data) {
 	this->clean();
 	this->type = GeneralName::OTHER_NAME;
 	this->oid = oid;
 	this->data = data;
 }
 
-std::pair<std::string, std::string> GeneralName::getOtherName() const {
-	return std::pair<std::string, std::string>(this->oid, this->data);
+std::pair<ObjectIdentifier, std::string> GeneralName::getOtherName() const
+{
+	return std::pair<ObjectIdentifier, std::string>(this->oid, this->data);
 }
 
-void GeneralName::setRfc822Name(std::string rfc822Name)
+void GeneralName::setRfc822Name(const std::string& rfc822Name)
 {
 	this->clean();
 	this->type = GeneralName::RFC_822_NAME;
 	this->data = rfc822Name;
 }
 
-std::string GeneralName::getRfc822Name() const
+const std::string& GeneralName::getRfc822Name() const
 {
 	return this->data;
 }
  
-void GeneralName::setDnsName(std::string dnsName)
+void GeneralName::setDnsName(const std::string& dnsName)
 {
 	this->clean();
 	this->type = GeneralName::DNS_NAME;
 	this->data = dnsName;
 }
 
-std::string GeneralName::getDnsName() const
+const std::string& GeneralName::getDnsName() const
 {
 	return this->data;
 }
 
-void GeneralName::setDirectoryName(RDNSequence &directoryName)
-{
-	this->clean();
-	this->type = GeneralName::DIRECTORY_NAME;
-	this->directoryName = directoryName;
-}
-
-RDNSequence GeneralName::getDirectoryName() const
-{
-	return this->directoryName;
-}
-
-void GeneralName::setUniformResourceIdentifier(std::string uniformResourceIdentifier)
+void GeneralName::setUniformResourceIdentifier(const std::string& uniformResourceIdentifier)
 {
 	this->clean();
 	this->type = GeneralName::UNIFORM_RESOURCE_IDENTIFIER;
 	this->data = uniformResourceIdentifier;
 }
 
-std::string GeneralName::getUniformResourceIdentifier() const
-{
-	return this->data;
-}
-
-void GeneralName::setIpAddress(std::string ipAddress)
+void GeneralName::setIpAddress(const std::string& ipAddress)
 {
 	this->clean();
 	this->type = GeneralName::IP_ADDRESS;
 	this->data = ipAddress;
 }
 
-std::string GeneralName::getIpAddress() const
+const std::string& GeneralName::getIpAddress() const
 {
 	return this->data;
 }
 
-void GeneralName::setRegisteredId(ObjectIdentifier registeredId)
+const std::string& GeneralName::getUniformResourceIdentifier() const
+{
+	return this->data;
+}
+
+void GeneralName::setDirectoryName(const RDNSequence& directoryName)
+{
+	this->clean();
+	this->type = GeneralName::DIRECTORY_NAME;
+	this->directoryName = directoryName;
+}
+
+const RDNSequence& GeneralName::getDirectoryName() const
+{
+	return this->directoryName;
+}
+
+void GeneralName::setRegisteredId(const ObjectIdentifier& registeredId)
 {
 	this->clean();
 	this->type = GeneralName::REGISTERED_ID;
 	this->registeredId = registeredId;
 }
 
-ObjectIdentifier GeneralName::getRegisteredId() const
+const ObjectIdentifier& GeneralName::getRegisteredId() const
 {
 	return this->registeredId;
 }
@@ -209,88 +169,159 @@ GeneralName::Type GeneralName::getType() const
 	return this->type;
 }
 
-GENERAL_NAME* GeneralName::getSslObject() const
+std::string GeneralName::toXml(const std::string& tab) const
 {
-	GENERAL_NAME *ret;
-	unsigned char *ipAddress;
-	ret = GENERAL_NAME_new();
+	std::string ret, name;
+	name = GeneralName::type2Name(this->type);
+	ret = tab + "<" + name + ">\n";
 	switch (this->type)
 	{
 		case GeneralName::OTHER_NAME:
+			ret += tab + "\t" + this->oid.toString() + " : " + this->data + "\n";
+			break;
+		case GeneralName::RFC_822_NAME:
+			ret += tab + "\t" + this->data + "\n";
+			break;
+		case GeneralName::DNS_NAME:
+			ret += tab + "\t" + this->data + "\n";
+			break;
+		case GeneralName::DIRECTORY_NAME:
+			ret += this->directoryName.toXml(tab + "\t");
+			break;
+		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
+			ret += tab + "\t" + this->data + "\n";
+			break;
+		case GeneralName::IP_ADDRESS:
+			ret += tab + "\t" + this->data + "\n";
+			break;
+		case GeneralName::REGISTERED_ID:
+			ret += tab + "\t" + this->registeredId.getShortName() + "\n";
+			break;
+		default:
+			break;
+	}
+	ret += tab + "</" + name + ">\n";
+	return ret;
+}
+
+GENERAL_NAME* GeneralName::getSslObject() const
+{
+	GENERAL_NAME *ret;
+	ASN1_TYPE *otherNameValue;
+	unsigned char *ipAddress;
+	int rc = 0;
+
+	ret = GENERAL_NAME_new();
+	THROW_ENCODE_ERROR_IF(ret == NULL);
+
+	switch (this->type) {
+		case GeneralName::OTHER_NAME:
 			ret->type = GEN_OTHERNAME;
 			ret->d.otherName = OTHERNAME_new();
-			ret->d.otherName->type_id = OBJ_txt2obj(this->oid.c_str(), 1);
-			ASN1_TYPE* otherNameValue;
+			THROW_ENCODE_ERROR_AND_FREE_IF(ret->d.otherName == NULL,
+					GENERAL_NAME_free(ret);
+			);
+
+			try {
+				ret->d.otherName->type_id = this->oid.getSslObject();
+			} catch (...) {
+				GENERAL_NAME_free(ret);
+				throw;
+			}
+
 			otherNameValue = ASN1_TYPE_new();
-			ASN1_TYPE_set_octetstring(otherNameValue, (unsigned char*) this->data.c_str(), this->data.length());
+			THROW_ENCODE_ERROR_AND_FREE_IF(otherNameValue == NULL,
+					GENERAL_NAME_free(ret);
+			);
+
+			rc = ASN1_TYPE_set_octetstring(otherNameValue, (unsigned char*) this->data.c_str(), this->data.length());
+			ASN1_TYPE_free(otherNameValue);
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					GENERAL_NAME_free(ret);
+			);
+
 			ret->d.otherName->value = otherNameValue;
 			break;
 		case GeneralName::RFC_822_NAME:
 			ret->type = GEN_EMAIL;
 			ret->d.rfc822Name = ASN1_IA5STRING_new();
-			ASN1_STRING_set(ret->d.rfc822Name, this->data.c_str(), this->data.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(ret->d.rfc822Name == NULL,
+					GENERAL_NAME_free(ret);
+			);
+
+			rc = ASN1_STRING_set(ret->d.rfc822Name, this->data.c_str(), this->data.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					GENERAL_NAME_free(ret);
+			);
+
 			break;
 		case GeneralName::DNS_NAME:
 			ret->type = GEN_DNS;
 			ret->d.dNSName = ASN1_IA5STRING_new();
-			ASN1_STRING_set(ret->d.dNSName, this->data.c_str(), this->data.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(ret->d.rfc822Name == NULL,
+					GENERAL_NAME_free(ret);
+			);
+
+			rc = ASN1_STRING_set(ret->d.dNSName, this->data.c_str(), this->data.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					GENERAL_NAME_free(ret);
+			);
+
 			break;
 		case GeneralName::DIRECTORY_NAME:
 			ret->type = GEN_DIRNAME;
-			ret->d.directoryName = this->directoryName.getSslObject();
+			try {
+				ret->d.directoryName = this->directoryName.getSslObject();
+			} catch (...) {
+				GENERAL_NAME_free(ret);
+				throw;
+			}
 			break;
 		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
 			ret->type = GEN_URI;
 			ret->d.uniformResourceIdentifier = ASN1_IA5STRING_new();
-			ASN1_STRING_set(ret->d.uniformResourceIdentifier, this->data.c_str(), this->data.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(ret->d.uniformResourceIdentifier == NULL,
+					GENERAL_NAME_free(ret);
+			);
+
+			rc = ASN1_STRING_set(ret->d.uniformResourceIdentifier, this->data.c_str(), this->data.size());
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					GENERAL_NAME_free(ret);
+			);
+
 			break;
 		case GeneralName::IP_ADDRESS:
 			ret->type = GEN_IPADD;
 			ret->d.iPAddress = ASN1_OCTET_STRING_new();
+			THROW_ENCODE_ERROR_AND_FREE_IF(ret->d.uniformResourceIdentifier == NULL,
+					GENERAL_NAME_free(ret);
+			);
+
 			ipAddress = GeneralName::ipAddress2Data(this->data);
-			ASN1_OCTET_STRING_set(ret->d.iPAddress, ipAddress, 4);
-			free(ipAddress);
+			rc = ASN1_OCTET_STRING_set(ret->d.iPAddress, ipAddress, 4);
+			delete ipAddress;
+			THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+					GENERAL_NAME_free(ret);
+			);
+
 			break;
 		case GeneralName::REGISTERED_ID:
 			ret->type = GEN_RID;
-			ret->d.registeredID = this->registeredId.getSslObject();
+			try {
+				ret->d.registeredID = this->registeredId.getSslObject();
+			} catch (...) {
+				GENERAL_NAME_free(ret);
+				throw;
+			}
 			break;
 		case GeneralName::UNDEFINED:
+			// TODO: não deveria lançar uma exceção?
 			break;
 	}
 	return ret;
 }
 
-void GeneralName::clean()
-{
-	switch (this->type)
-	{
-		case GeneralName::OTHER_NAME:
-			this->oid = std::string();
-			this->data = std::string();
-			break;
-		case GeneralName::RFC_822_NAME:
-			this->data = std::string();
-			break;
-		case GeneralName::DNS_NAME:
-			this->data = std::string();
-			break;
-		case GeneralName::DIRECTORY_NAME:
-			this->directoryName = RDNSequence();
-			break;
-		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
-			this->data = std::string();
-			break;
-		case GeneralName::IP_ADDRESS:
-			this->data = std::string();
-			break;
-		case GeneralName::REGISTERED_ID:
-			this->registeredId = ObjectIdentifier();
-			break;
-		default:
-			break;
-	}
-}
+
 
 std::string GeneralName::type2Name(GeneralName::Type type)
 {
@@ -325,83 +356,62 @@ std::string GeneralName::type2Name(GeneralName::Type type)
 	return ret;
 }
 
-unsigned char* GeneralName::ipAddress2Data(std::string ipAddress)
+std::string GeneralName::data2IpAddress(const unsigned char *data)
 {
-	unsigned char *ret;
-	int value, i;
-	unsigned int size, tempSize;
-	char data[4];
-	size = 0;
-	ret = (unsigned char *)calloc(5, sizeof(unsigned char));
-	for (i=0;i<4 && size < ipAddress.size();i++)
-	{
-		ret[i] = 0x0;
-		tempSize = 0;
-		while (ipAddress[size] != '.' && size < ipAddress.size())
-		{
-			data[tempSize] = ipAddress[size];
-			size++;
-			tempSize++;
-		}
-		size++;
-		data[tempSize] = '\0';
-		value = atoi(data);
-		ret[i] = (value & 0x00FF);
-	}
-	ret[4] = 0x0;
-	return ret;
-}
-
-GeneralName& GeneralName::operator=(const GeneralName& value)
-{
-	this->type = value.type;
-		
-	switch (this->type)
-	{
-		case GeneralName::OTHER_NAME:
-			this->oid = value.oid;
-			this->data = value.data;
-			break;
-		case GeneralName::RFC_822_NAME:
-			this->data = value.data;
-			break;
-		case GeneralName::DNS_NAME:
-			this->data = value.data;
-			break;
-		case GeneralName::DIRECTORY_NAME:
-			this->directoryName = value.directoryName;
-			break;
-		case GeneralName::UNIFORM_RESOURCE_IDENTIFIER:
-			this->data = value.data;
-			break;
-		case GeneralName::IP_ADDRESS:
-			this->data = value.data;
-			break;
-		case GeneralName::REGISTERED_ID:
-			this->registeredId = value.registeredId;
-			break;
-		default:
-			break;
-	}
-	
-	return *this;
-}
-
-std::string GeneralName::data2IpAddress(unsigned char *data)
-{
-	std::string ret;
-	int value, i;
-	char temp[4];
-
-	value = data[0];
-	sprintf(temp, "%d", value);
-	ret = temp;
-	for (i=1;i<4;i++)
-	{
+	std::stringstream ss;
+	std::string temp;
+	int value = data[0];
+	std::string ret = ss.str();
+	for (int i = 1; i < 4; i++) {
 		value = data[i];
-		sprintf(temp, "%d", value);
+		ss.clear();
+		ss << value;
 		ret += ".";
-		ret += temp;
+		ret += ss.str();
 	}
 	return ret;
 }
+
+unsigned char* GeneralName::ipAddress2Data(const std::string& ipAddress)
+{
+	THROW_DECODE_ERROR_IF(ipAddress.size() > (4 * 3 + 3));
+	THROW_DECODE_ERROR_IF(ipAddress.size() < (4 + 3));
+
+	size_t firstPoint = ipAddress.find(".", 0);
+	THROW_DECODE_ERROR_IF(firstPoint == std::string::npos);
+	THROW_DECODE_ERROR_IF(firstPoint == 0);
+	THROW_DECODE_ERROR_IF(firstPoint > 3);
+
+	size_t secondPoint = ipAddress.find(".", firstPoint + 1);
+	THROW_DECODE_ERROR_IF(secondPoint == std::string::npos);
+	THROW_DECODE_ERROR_IF(secondPoint == firstPoint + 1);
+	THROW_DECODE_ERROR_IF(secondPoint > firstPoint + 4);
+
+	size_t thirdPoint = ipAddress.find(".", secondPoint + 1);
+	THROW_DECODE_ERROR_IF(thirdPoint == std::string::npos);
+	THROW_DECODE_ERROR_IF(thirdPoint == secondPoint + 1);
+	THROW_DECODE_ERROR_IF(thirdPoint > secondPoint + 4);
+
+	std::string firstOctet = ipAddress.substr(0, firstPoint);
+	std::string secondOctet = ipAddress.substr(firstPoint + 1, secondPoint - firstPoint - 1);
+	std::string thirdOctet = ipAddress.substr(secondPoint + 1, thirdPoint - secondPoint - 1);
+	std::string fourthOctet = ipAddress.substr(thirdPoint + 1, ipAddress.size() - thirdPoint - 1);
+
+	unsigned char *ret = new unsigned char[5];
+	ret[0] = std::stoi(firstOctet);
+	ret[1] = std::stoi(secondOctet);
+	ret[2] = std::stoi(thirdOctet);
+	ret[3] = std::stoi(fourthOctet);
+	ret[4] = 0x00;
+
+	return ret;
+}
+
+void GeneralName::clean()
+{
+	this->oid = ObjectIdentifier();
+	this->data.clear();
+	this->directoryName = RDNSequence();
+	this->registeredId = ObjectIdentifier();
+}
+

@@ -3,15 +3,16 @@
 #include <libcryptosec/certificate/CertificateRequest.h>
 #include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
-#include <libcryptosec/exception/AsymmetricKeyException.h>
-#include <libcryptosec/exception/CertificationException.h>
-#include <libcryptosec/exception/EncodeException.h>
 #include <libcryptosec/PrivateKey.h>
 #include <libcryptosec/PublicKey.h>
 #include <libcryptosec/DateTime.h>
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Base64.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/AsymmetricKeyException.h>
+#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 #include <openssl/pem.h>
 

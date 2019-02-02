@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/KeyUsageExtension.h>
 
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 
 KeyUsageExtension::KeyUsageExtension() :
 		Extension(), usages(9)
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_key_usage);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_key_usage);
 	for (int i = 0; i < 9; i++) {
 		this->usages[i] = false;
 	}

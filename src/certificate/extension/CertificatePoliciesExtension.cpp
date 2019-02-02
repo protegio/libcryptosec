@@ -1,11 +1,12 @@
 #include <libcryptosec/certificate/extension/CertificatePoliciesExtension.h>
 
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 CertificatePoliciesExtension::CertificatePoliciesExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_certificate_policies);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_certificate_policies);
 }
 
 CertificatePoliciesExtension::CertificatePoliciesExtension(const X509_EXTENSION* ext) :
@@ -53,7 +54,7 @@ std::string CertificatePoliciesExtension::extValue2Xml(const std::string& tab) c
 {
 	std::string ret, string;
 	for (auto policeInformation : this->policiesInformation) {
-		ret += policeInformation.getXmlEncoded(tab);
+		ret += policeInformation.toXml(tab);
 	}
 	return ret;
 }
@@ -67,7 +68,7 @@ X509_EXTENSION* CertificatePoliciesExtension::getX509Extension() const
 		POLICYINFO *sslObject = NULL;
 
 		try {
-			sslObject = policeInformation.getPolicyInfo();
+			sslObject = policeInformation.getSslObject();
 		} catch (...) {
 			CERTIFICATEPOLICIES_free(sslObjectStack);
 			throw;

@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/BasicConstraintsExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 BasicConstraintsExtension::BasicConstraintsExtension() :
 		Extension(), ca(false), pathLen(-1)
 {
-	this->objectIdentifier = std::move(ObjectIdentifierFactory::getObjectIdentifier(NID_basic_constraints));
+	this->objectIdentifier = std::move(ObjectIdentifier::fromNid(NID_basic_constraints));
 }
 
 BasicConstraintsExtension::BasicConstraintsExtension(const X509_EXTENSION* ext) :

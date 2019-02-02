@@ -1,5 +1,8 @@
 #include <libcryptosec/certificate/RevokedCertificate.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
 RevokedCertificate::RevokedCertificate() :
 		reasonCode(RevokedCertificate::UNSPECIFIED)
 {

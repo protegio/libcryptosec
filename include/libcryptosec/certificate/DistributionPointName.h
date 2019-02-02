@@ -18,17 +18,24 @@ public:
 		FULL_NAME,
 		RELATIVE_NAME,
 	};
+
 	DistributionPointName();
-	DistributionPointName(DIST_POINT_NAME *dpn);
+	DistributionPointName(const DIST_POINT_NAME *dpn);
+
 	virtual ~DistributionPointName();
 	
-	std::string getXmlEncoded(const std::string& tab = "") const;
-	void setNameRelativeToCrlIssuer(RDNSequence &rdnSequence);
-	RDNSequence getNameRelativeToCrlIssuer();
-	void setFullName(GeneralNames &generalNames);
-	GeneralNames getFullName();
+	void setNameRelativeToCrlIssuer(const RDNSequence& rdnSequence);
+	const RDNSequence& getNameRelativeToCrlIssuer() const;
+
+	void setFullName(const GeneralNames& generalNames);
+	const GeneralNames& getFullName() const;
+
 	DistributionPointName::Type getType() const;
-	DIST_POINT_NAME* getDistPointName() const;
+
+	DIST_POINT_NAME* getSslObject() const;
+
+	std::string toXml(const std::string& tab = "") const;
+
 protected:
 	GeneralNames fullName;
 	RDNSequence relativeName;

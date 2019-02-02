@@ -6,14 +6,18 @@
 
 #include <string>
 
-#include <libcryptosec/exception/CertificationException.h>
-
+/**
+ * TODO: implement set functions
+ */
 class ObjectIdentifier
 {
+protected:
+	ObjectIdentifier(ASN1_OBJECT *asn1Object);
+
 public:
 	ObjectIdentifier();
-	ObjectIdentifier(ASN1_OBJECT *asn1Object);
 	ObjectIdentifier(const ASN1_OBJECT *asn1Object);
+
 	ObjectIdentifier(const ObjectIdentifier& objectIdentifier);
 	ObjectIdentifier(ObjectIdentifier&& objectIdentifier);
 
@@ -22,12 +26,41 @@ public:
 	ObjectIdentifier& operator=(const ObjectIdentifier& value);
 	ObjectIdentifier& operator=(ObjectIdentifier&& value);
 
-	std::string getXmlEncoded(const std::string& tab = "") const;
+	/**
+	 * @return The OID's short name. If there is no short name, the OID's string representation is returned instead.
+	 */
+	std::string getShortName() const;
 
-	std::string getOid() const;
+	/**
+	 * @return The OID's long name. If there is no long name, the OID's string representation is returned instead.
+	 */
+	std::string getLongName() const;
+
+	/**
+	 * @return The OID's NID. If there is no NID, NID_undef is returned instead.
+	 */
 	int getNid() const;
-	std::string getName() const;
+
+	/**
+	 * @return The internal reference to ASN1_OBJECT.
+	 */
+	const ASN1_OBJECT* getAsn1Object() const;
+
+	/**
+	 * @return A new ASN1_OBJECT instance.
+	 */
 	ASN1_OBJECT* getSslObject() const;
+
+	/**
+	 * @return The oid numbers as a string.
+	 */
+	std::string toString() const;
+	std::string toXml(const std::string& tab = "") const;
+
+	static ObjectIdentifier fromString(const std::string& oid);
+	static ObjectIdentifier fromNid(int nid);
+	static ObjectIdentifier fromShortName(const std::string& name);
+	static ObjectIdentifier fromLongName(const std::string& name);
 
 protected:
 	ASN1_OBJECT *asn1Object;

@@ -1,16 +1,19 @@
 #include <libcryptosec/certificate/PolicyQualifierInfo.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
 PolicyQualifierInfo::PolicyQualifierInfo()
 {
 	this->type = PolicyQualifierInfo::UNDEFINED;
 }
 
-PolicyQualifierInfo::PolicyQualifierInfo(POLICYQUALINFO *policyQualInfo)
+PolicyQualifierInfo::PolicyQualifierInfo(const POLICYQUALINFO *policyQualInfo)
 {
 	char *data;
 	if (policyQualInfo)
 	{
-		this->objectIdentifier = ObjectIdentifier(OBJ_dup(policyQualInfo->pqualid));
+		this->objectIdentifier = ObjectIdentifier((const ASN1_OBJECT*) policyQualInfo->pqualid);
 		switch (this->objectIdentifier.getNid())
 		{
 			case NID_id_qt_cps:
@@ -43,11 +46,11 @@ std::string PolicyQualifierInfo::getXmlEncoded(const std::string& tab) const
 	switch (this->type)
 	{
 		case PolicyQualifierInfo::USER_NOTICE:
-			ret += this->objectIdentifier.getXmlEncoded(tab + "\t");
+			ret += this->objectIdentifier.toXml(tab + "\t");
 			ret += this->userNotice.toXml(tab + "\t");
 			break;
 		case PolicyQualifierInfo::CPS_URI:
-			ret += this->objectIdentifier.getXmlEncoded(tab + "\t");
+			ret += this->objectIdentifier.toXml(tab + "\t");
 			ret += tab + "\t<cPSuri>" + this->cpsUri + "</cPSuri>\n";
 			break;
 		default:
@@ -73,7 +76,7 @@ void PolicyQualifierInfo::setCpsUri(std::string cpsUri)
 	if(cpsUri.size() > 0)
 	{
 		this->userNotice = UserNotice();
-		this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_id_qt_cps);
+		this->objectIdentifier = ObjectIdentifier::fromNid(NID_id_qt_cps);
 		this->cpsUri = cpsUri;
 		this->type = PolicyQualifierInfo::CPS_URI;
 	}
@@ -87,7 +90,7 @@ std::string PolicyQualifierInfo::getCpsUri()
 void PolicyQualifierInfo::setUserNotice(UserNotice userNotice)
 {
 	this->userNotice = userNotice;
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_id_qt_unotice);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_id_qt_unotice);
 	this->cpsUri = std::string();
 	this->type = PolicyQualifierInfo::USER_NOTICE;
 }

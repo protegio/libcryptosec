@@ -37,6 +37,8 @@ do {\
 #define THROW_ENCODE_ERROR_AND_FREE_IF(exp, free_code) THROW_AND_FREE_IF(exp, CertificationException, CertificationException::ENCODE_ERROR, free_code)
 #define THROW_DECODE_ERROR_IF(exp) THROW_IF(exp, CertificationException, CertificationException::DECODE_ERROR)
 #define THROW_DECODE_ERROR_AND_FREE_IF(exp, free_code) THROW_AND_FREE_IF(exp, CertificationException, CertificationException::DECODE_ERROR, free_code)
+#define THROW_OPERATION_ERROR_IF(exp) THROW_IF(exp, OperationException, OperationException::UNKNOWN)
+#define THROW_OPERATION_ERROR_AND_FREE_IF(exp, free_code) THROW_AND_FREE_IF(exp, OperationException, OperationException::UNKNOWN, free_code)
 
 #define DECODE_PEM(dst, str, decode_foo)\
 	do {\

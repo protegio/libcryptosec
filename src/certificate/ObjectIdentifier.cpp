@@ -1,28 +1,36 @@
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
+ObjectIdentifier::ObjectIdentifier(ASN1_OBJECT *asn1Object) :
+		asn1Object(asn1Object)
+{
+	THROW_DECODE_ERROR_IF(this->asn1Object == NULL);
+}
+
 ObjectIdentifier::ObjectIdentifier() :
 		asn1Object(ASN1_OBJECT_new())
 {
+	THROW_DECODE_ERROR_IF(this->asn1Object == NULL);
 }
 
 ObjectIdentifier::ObjectIdentifier(const ASN1_OBJECT *asn1Object) :
 		asn1Object(OBJ_dup(asn1Object))
 {
-}
-
-ObjectIdentifier::ObjectIdentifier(ASN1_OBJECT *asn1Object) :
-		asn1Object(asn1Object)
-{
+	THROW_DECODE_ERROR_IF(this->asn1Object == NULL);
 }
 
 ObjectIdentifier::ObjectIdentifier(const ObjectIdentifier& objectIdentifier) :
 		asn1Object(OBJ_dup(objectIdentifier.asn1Object))
 {
+	THROW_DECODE_ERROR_IF(this->asn1Object == NULL);
 }
 
 ObjectIdentifier::ObjectIdentifier(ObjectIdentifier&& objectIdentifier) :
 		asn1Object(objectIdentifier.asn1Object)
 {
+	THROW_DECODE_ERROR_IF(this->asn1Object == NULL);
 	objectIdentifier.asn1Object = nullptr;
 }
 
@@ -39,11 +47,14 @@ ObjectIdentifier& ObjectIdentifier::operator=(const ObjectIdentifier& value)
 		return *this;
 	}
 
+	ASN1_OBJECT *oid = OBJ_dup(value.asn1Object);
+	THROW_DECODE_ERROR_IF(oid == NULL);
+
 	if (this->asn1Object) {
 		ASN1_OBJECT_free(this->asn1Object);
 	}
 
-	this->asn1Object = OBJ_dup(value.asn1Object);
+	this->asn1Object = oid;
 
 	return *this;
 }
@@ -64,11 +75,74 @@ ObjectIdentifier& ObjectIdentifier::operator=(ObjectIdentifier&& value)
 	return *this;
 }
 
-std::string ObjectIdentifier::getXmlEncoded(const std::string& tab) const
+int ObjectIdentifier::getNid() const
+{
+	return OBJ_obj2nid(this->asn1Object);
+}
+
+std::string ObjectIdentifier::getShortName() const
+{
+	const unsigned char *data = OBJ_get0_data(this->asn1Object);
+	if (data == NULL) {
+		return "undefined";
+	}
+
+	int nid = OBJ_obj2nid(this->asn1Object);
+	// The next function returns NULL if nid == NID_undef
+
+	const char *shortName = OBJ_nid2sn(nid);
+	if (data == NULL) {
+		return this->toString();
+	} else {
+		return std::string(shortName);
+	}
+}
+
+std::string ObjectIdentifier::getLongName() const
+{
+	const unsigned char *data = OBJ_get0_data(this->asn1Object);
+	if (data == NULL) {
+		return "undefined";
+	}
+
+	int nid = OBJ_obj2nid(this->asn1Object);
+	// The next function returns NULL if nid == NID_undef
+
+	const char *longName = OBJ_nid2ln(nid);
+	if (data == NULL) {
+		return this->toString();
+	} else {
+		return std::string(longName);
+	}
+}
+
+const ASN1_OBJECT* ObjectIdentifier::getAsn1Object() const
+{
+	return this->asn1Object;
+}
+
+ASN1_OBJECT* ObjectIdentifier::getSslObject() const
+{
+	ASN1_OBJECT *oid =  OBJ_dup(this->asn1Object);
+	THROW_ENCODE_ERROR_IF(oid == NULL);
+	return oid;
+}
+
+std::string ObjectIdentifier::toString() const
+{
+	const unsigned char *data = OBJ_get0_data(this->asn1Object);
+	THROW_DECODE_ERROR_IF(data == NULL);
+	int size = OBJ_obj2txt(0, 0, this->asn1Object, 1);
+	char str[size];
+	OBJ_obj2txt(str, size, this->asn1Object, 1);
+	return std::string((const char*) data);
+}
+
+std::string ObjectIdentifier::toXml(const std::string& tab) const
 {
 	std::string ret, oid;
 	try {
-		oid = this->getOid();
+		oid = this->toString();
 	} catch (...) {
 		oid = "";
 	}
@@ -76,39 +150,30 @@ std::string ObjectIdentifier::getXmlEncoded(const std::string& tab) const
 	return ret;
 }
 
-std::string ObjectIdentifier::getOid() const
+
+ObjectIdentifier ObjectIdentifier::fromString(const std::string& oid)
 {
-	char data[30];
-	if (!OBJ_get0_data(this->asn1Object)) {
-		throw CertificationException(CertificationException::SET_NO_VALUE, "ObjectIdentifier::getOid");
-	}
-	OBJ_obj2txt(data, 30, this->asn1Object, 1);
-	return std::string(data);
+	ASN1_OBJECT *asn1Obj = OBJ_txt2obj(oid.c_str(), 1);
+	THROW_DECODE_ERROR_IF(asn1Obj == NULL);
+	return ObjectIdentifier(asn1Obj);
 }
 
-int ObjectIdentifier::getNid() const
+ObjectIdentifier ObjectIdentifier::fromNid(int nid)
 {
-	return OBJ_obj2nid(this->asn1Object);
+	ASN1_OBJECT *asn1Obj = OBJ_nid2obj(nid);
+	THROW_DECODE_ERROR_IF(asn1Obj == NULL);
+	return ObjectIdentifier(asn1Obj);
 }
 
-std::string ObjectIdentifier::getName() const
+ObjectIdentifier ObjectIdentifier::fromShortName(const std::string& name)
 {
-	std::string ret;
-	if (!OBJ_get0_data(this->asn1Object)) {
-		return "undefined";
-	}
-
-	int nid = OBJ_obj2nid(this->asn1Object);
-	if (nid != NID_undef) {
-		ret = OBJ_nid2sn(nid);
-	} else {
-		ret = this->getOid();
-	}
-
-	return ret;
+	int nid = OBJ_sn2nid(name.c_str());
+	return ObjectIdentifier::fromNid(nid);
 }
 
-ASN1_OBJECT* ObjectIdentifier::getSslObject() const
+ObjectIdentifier ObjectIdentifier::fromLongName(const std::string& name)
 {
-	return OBJ_dup(this->asn1Object);
+	int nid = OBJ_ln2nid(name.c_str());
+	return ObjectIdentifier::fromNid(nid);
 }
+

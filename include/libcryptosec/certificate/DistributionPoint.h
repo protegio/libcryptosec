@@ -17,19 +17,27 @@ public:
 		CESSATION_OF_OPERATION = 5,
 		CERTIFICATE_HOLD = 6,
 	};
+
 	DistributionPoint();
-	DistributionPoint(DIST_POINT *distPoint);
+	DistributionPoint(const DIST_POINT *distPoint);
+
 	virtual ~DistributionPoint();
 	
-	std::string getXmlEncoded(const std::string& tab = "") const;
-	void setDistributionPointName(DistributionPointName &dpn);
-	DistributionPointName getDistributionPointName();
+	void setDistributionPointName(const DistributionPointName& dpn);
+	const DistributionPointName& getDistributionPointName() const;
+
 	void setReasonFlag(DistributionPoint::ReasonFlags reason, bool value);
-	bool getReasonFlag(DistributionPoint::ReasonFlags reason);
-	void setCrlIssuer(GeneralNames &crlIssuer);
-	GeneralNames getCrlIssuer();
-	DIST_POINT* getDistPoint() const;
+	bool getReasonFlag(DistributionPoint::ReasonFlags reason) const;
+
+	void setCrlIssuer(const GeneralNames& crlIssuer);
+	const GeneralNames& getCrlIssuer() const;
+
+	std::string toXml(const std::string& tab = "") const;
+
+	DIST_POINT* getSslObject() const;
+
 	static std::string reasonFlag2Name(DistributionPoint::ReasonFlags reason);
+
 protected:
 	DistributionPointName distributionPointName;
 	bool reasons[7];

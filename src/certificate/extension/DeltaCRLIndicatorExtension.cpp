@@ -1,13 +1,13 @@
 #include <libcryptosec/certificate/extension/DeltaCRLIndicatorExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
-
 
 DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(const BigInteger& baseCrlNumber) :
 		Extension(), baseCrlNumber(baseCrlNumber)
 {
-    this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_delta_crl);
+    this->objectIdentifier = ObjectIdentifier::fromNid(NID_delta_crl);
 }
 
 DeltaCRLIndicatorExtension::DeltaCRLIndicatorExtension(const X509_EXTENSION* ext) :

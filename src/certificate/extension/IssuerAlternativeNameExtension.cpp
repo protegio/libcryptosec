@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/IssuerAlternativeNameExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 IssuerAlternativeNameExtension::IssuerAlternativeNameExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_issuer_alt_name);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_issuer_alt_name);
 }
 
 IssuerAlternativeNameExtension::IssuerAlternativeNameExtension(const X509_EXTENSION *ext) :
@@ -43,12 +44,12 @@ const GeneralNames& IssuerAlternativeNameExtension::getIssuerAltName() const
 
 std::string IssuerAlternativeNameExtension::extValue2Xml(const std::string& tab) const
 {
-	return this->issuerAltName.getXmlEncoded(tab);
+	return this->issuerAltName.toXml(tab);
 }
 
 X509_EXTENSION* IssuerAlternativeNameExtension::getX509Extension() const
 {
-	GENERAL_NAMES *sslObject = this->issuerAltName.getInternalGeneralNames();
+	GENERAL_NAMES *sslObject = this->issuerAltName.getSslObject();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_issuer_alt_name, this->critical ? 1 : 0, (void*) sslObject);
 	GENERAL_NAMES_free(sslObject);
 	THROW_ENCODE_ERROR_IF(ret == NULL);

@@ -7,11 +7,8 @@
 
 #include <string>
 
-#include "ObjectIdentifier.h"
-#include "ObjectIdentifierFactory.h"
-#include "UserNotice.h"
-
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/certificate/UserNotice.h>
 
 class PolicyQualifierInfo
 {
@@ -23,7 +20,7 @@ public:
 		USER_NOTICE,
 	};
 	PolicyQualifierInfo();
-	PolicyQualifierInfo(POLICYQUALINFO *policyQualInfo);
+	PolicyQualifierInfo(const POLICYQUALINFO *policyQualInfo);
 	virtual ~PolicyQualifierInfo();
 	
 	std::string getXmlEncoded(const std::string& tab = "") const;

@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/CRLDistributionPointsExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 CRLDistributionPointsExtension::CRLDistributionPointsExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_crl_distribution_points);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_crl_distribution_points);
 }
 
 CRLDistributionPointsExtension::CRLDistributionPointsExtension(const X509_EXTENSION *ext) :
@@ -55,7 +56,7 @@ std::string CRLDistributionPointsExtension::extValue2Xml(const std::string& tab)
 	std::string ret, string;
 	ret += tab + "<distributionPoints>\n";
 	for (auto distributionPoint : this->distributionPoints) {
-		string = distributionPoint.getXmlEncoded(tab + "\t");
+		string = distributionPoint.toXml(tab + "\t");
 		ret += string;
 	}
 	ret += tab + "</distributionPoints>\n";
@@ -71,7 +72,7 @@ X509_EXTENSION* CRLDistributionPointsExtension::getX509Extension() const
 		DIST_POINT *sslObject = NULL;
 
 		try {
-			sslObject = distributionPoint.getDistPoint();
+			sslObject = distributionPoint.getSslObject();
 		} catch (...) {
 			CRL_DIST_POINTS_free(distPoints);
 			throw;

@@ -1,5 +1,8 @@
 #include <libcryptosec/certificate/AccessDescription.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
 AccessDescription::AccessDescription() {
 }
 
@@ -46,8 +49,8 @@ std::string AccessDescription::getXmlEncoded(const std::string& tab) const
 {
 	std::string ret;
 	ret = tab + "<accessDescription>\n";
-	ret += this->accessMethod.getXmlEncoded(tab + "\t");
-	ret += this->accessLocation.getXmlEncoded(tab + "\t");
+	ret += this->accessMethod.toXml(tab + "\t");
+	ret += this->accessLocation.toXml(tab + "\t");
 	ret += tab + "</accessDescription>\n";
 	return ret;
 }

@@ -144,7 +144,9 @@ public:
 	 * */
 	virtual ~CertPathValidatorResult()
 	{
-		delete this->invalidCert;
+		if (this->invalidCert) {
+			delete this->invalidCert;
+		}
 	}
 	
 	
@@ -369,17 +371,20 @@ public:
 	 * Define o certificado submetido a validação.
 	 * @param cert ponteiro para o objeto Certificate. 
 	 * */
-	virtual void setInvalidCertificate(Certificate *cert)
+	virtual void setInvalidCertificate(const Certificate* cert)
 	{
-		const X509 *newCert = cert->getX509();
-		this->invalidCert = new Certificate(newCert);
+		if (cert == NULL) {
+			this->invalidCert = NULL;
+		} else {
+			this->invalidCert = new Certificate(*cert);
+		}
 	}
 	
 	/*
 	 * Retorna o certificado submetido a validação.
 	 * @return referência para o certificado submetido a validação.
 	 * */
-	virtual Certificate &getInvalidCertificate() const
+	virtual Certificate& getInvalidCertificate() const
 	{
 		return *this->invalidCert;
 	}

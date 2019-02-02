@@ -21,7 +21,7 @@ ObjectIdentifier* Asn1Object::getValue() const throw()
 	
 	if(this->asn1Type->value.object != NULL)
 	{
-		ret = new ObjectIdentifier(this->asn1Type->value.object); 
+		ret = new ObjectIdentifier((const ASN1_OBJECT*) this->asn1Type->value.object);
 	}
 	
 	return ret;

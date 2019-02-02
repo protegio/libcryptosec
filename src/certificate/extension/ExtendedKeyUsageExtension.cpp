@@ -1,12 +1,13 @@
 #include <libcryptosec/certificate/extension/ExtendedKeyUsageExtension.h>
 
 #include <libcryptosec/certificate/ObjectIdentifier.h>
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 ExtendedKeyUsageExtension::ExtendedKeyUsageExtension() :
 		Extension()
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_ext_key_usage);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_ext_key_usage);
 }
 
 ExtendedKeyUsageExtension::ExtendedKeyUsageExtension(const X509_EXTENSION *ext) :
@@ -55,7 +56,7 @@ std::string ExtendedKeyUsageExtension::extValue2Xml(const std::string& tab) cons
 {
 	std::string ret;
 	for (auto usage : this->usages) {
-		ret += tab + "<usage>" + usage.getName() + "</usage>\n";
+		ret += tab + "<usage>" + usage.toString() + "</usage>\n";
 	}
 	return ret;
 }

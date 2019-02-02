@@ -10,6 +10,7 @@
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Base64.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 #include <libcryptosec/exception/EncodeException.h>
 

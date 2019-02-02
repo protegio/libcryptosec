@@ -1,6 +1,7 @@
 #include <libcryptosec/certificate/CertificateRequestFactory.h>
 
-#include <libcryptosec/exception/NetscapeSPKIException.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 #include <string.h>
 

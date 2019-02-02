@@ -1,34 +1,31 @@
 #ifndef GENERALNAMES_H_
 #define GENERALNAMES_H_
 
-#include <string>
-#include <vector>
-
-#include <openssl/x509v3.h>
-
+#include <libcryptosec/certificate/GeneralName.h>
 #include <libcryptosec/ByteArray.h>
 
-#include "GeneralName.h"
-#include "ObjectIdentifier.h"
-#include "RDNSequence.h"
+#include <openssl/x509v3.h>
+#include <string>
+#include <vector>
 
 class GeneralNames
 {
 public:
 	GeneralNames();
-	GeneralNames(GENERAL_NAMES *generalNames);
-//	GeneralNames(const GeneralNames& gns);
+	GeneralNames(const GENERAL_NAMES *generalNames);
+
 	virtual ~GeneralNames();
-	std::string getXmlEncoded(const std::string& tab = "") const;
-	void addGeneralName(GeneralName &generalName);
-	std::vector<GeneralName> getGeneralNames() const;
+
+	void addGeneralName(const GeneralName &generalName);
+	const std::vector<GeneralName>& getGeneralNames() const;
+
 	int getNumberOfEntries() const;
-	GENERAL_NAMES* getInternalGeneralNames() const;
-	GeneralNames& operator=(const GeneralNames& value);
+
+	GENERAL_NAMES* getSslObject() const;
+
+	std::string toXml(const std::string& tab = "") const;
 protected:
 	std::vector<GeneralName> generalNames;
-
-	static std::string data2IpAddress(unsigned char *data);
 };
 
 #endif /*GENERALNAMES_H_*/

@@ -1,8 +1,9 @@
 #include <libcryptosec/certificate/extension/AuthorityKeyIdentifierExtension.h>
 
 #include <libcryptosec/Base64.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
 
 #include <openssl/asn1.h>
 #include <openssl/x509v3.h>
@@ -10,7 +11,7 @@
 AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension() :
 		Extension(), serialNumber(-1)
 {
-	this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_authority_key_identifier);
+	this->objectIdentifier = ObjectIdentifier::fromNid(NID_authority_key_identifier);
 }
 
 AuthorityKeyIdentifierExtension::AuthorityKeyIdentifierExtension(const X509_EXTENSION* ext) :
@@ -87,7 +88,7 @@ std::string AuthorityKeyIdentifierExtension::extValue2Xml(const std::string& tab
 
 	if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
 		ret += tab + "<authorityCertIssuer>\n";
-		ret += this->authorityCertIssuer.getXmlEncoded(tab + "\t");
+		ret += this->authorityCertIssuer.toXml(tab + "\t");
 		ret += tab + "</authorityCertIssuer>\n";
 	}
 
@@ -109,7 +110,7 @@ X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension() const
 		}
 
 		if (this->authorityCertIssuer.getNumberOfEntries() > 0) {
-			sslObject->issuer = this->authorityCertIssuer.getInternalGeneralNames();
+			sslObject->issuer = this->authorityCertIssuer.getSslObject();
 		}
 
 		if (this->serialNumber >= 0) {

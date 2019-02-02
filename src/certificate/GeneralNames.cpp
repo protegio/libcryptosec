@@ -1,54 +1,35 @@
 #include <libcryptosec/certificate/GeneralNames.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
 GeneralNames::GeneralNames()
 {
 }
 
-GeneralNames::GeneralNames(GENERAL_NAMES *generalNames)
+GeneralNames::GeneralNames(const GENERAL_NAMES* generalNames)
 {
-	int i, num;
-	GENERAL_NAME *value;
-	std::string data, oid;
-	RDNSequence directoryName;
-	ObjectIdentifier registeredId;
-	num = sk_GENERAL_NAME_num(generalNames);
-	if (generalNames)
-	{
-		for (i=0;i<num;i++)
-		{
-			value = sk_GENERAL_NAME_value(generalNames, i);
-			GeneralName generalName(value);
-			this->generalNames.push_back(generalName);
-		}
+	THROW_DECODE_ERROR_IF(generalNames == NULL);
+
+	int num = sk_GENERAL_NAME_num(generalNames);
+	for (int i = 0; i < num; i++) {
+		const GENERAL_NAME *value = sk_GENERAL_NAME_value(generalNames, i);
+		THROW_DECODE_ERROR_IF(value == NULL);
+		GeneralName generalName(value);
+		this->generalNames.push_back(std::move(generalName));
 	}
 }
-
-//GeneralNames::GeneralNames(const GeneralNames& gns)
-//{
-//	this->generalNames = sk_GENERAL_NAME_dup(gns.getGeneralNames());
-//}
 
 GeneralNames::~GeneralNames()
 {
 }
 
-std::string GeneralNames::getXmlEncoded(const std::string& tab) const
-{
-	std::string ret;
-	ret += tab + "<generalNames>\n";
-	for (auto generalName : this->generalNames) {
-		ret += generalName.getXmlEncoded(tab + "\t");
-	}
-	ret += tab + "</generalNames>\n";
-	return ret;
-}
-
-void GeneralNames::addGeneralName(GeneralName &generalName)
+void GeneralNames::addGeneralName(const GeneralName& generalName)
 {
 	this->generalNames.push_back(generalName);
 }
 
-std::vector<GeneralName> GeneralNames::getGeneralNames() const
+const std::vector<GeneralName>& GeneralNames::getGeneralNames() const
 {
 	return this->generalNames;
 }
@@ -58,27 +39,38 @@ int GeneralNames::getNumberOfEntries() const
 	return this->generalNames.size();
 }
 
-GENERAL_NAMES* GeneralNames::getInternalGeneralNames() const
+std::string GeneralNames::toXml(const std::string& tab) const
+{
+	std::string ret;
+	ret += tab + "<generalNames>\n";
+	for (auto generalName : this->generalNames) {
+		ret += generalName.toXml(tab + "\t");
+	}
+	ret += tab + "</generalNames>\n";
+	return ret;
+}
+
+GENERAL_NAMES* GeneralNames::getSslObject() const
 {
 	GENERAL_NAMES *sslObjectStack = GENERAL_NAMES_new();
-	for (auto generalName : this->generalNames)
-	{
-		GENERAL_NAME *sslObject = generalName.getSslObject();
-		sk_GENERAL_NAME_push(sslObjectStack, sslObject);
+	THROW_ENCODE_ERROR_IF(sslObjectStack == NULL);
+
+	for (auto generalName : this->generalNames) {
+		GENERAL_NAME *sslObject = NULL;
+
+		try {
+			sslObject = generalName.getSslObject();
+		} catch (...) {
+			GENERAL_NAMES_free(sslObjectStack);
+			throw;
+		}
+
+		int rc = sk_GENERAL_NAME_push(sslObjectStack, sslObject);
+		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+				GENERAL_NAMES_free(sslObjectStack);
+				GENERAL_NAME_free(sslObject);
+		);
 	}
+
 	return sslObjectStack;
-}
-
-/**
- * @deprecated Método movido para a classe GeneralName. Futuramente poderá ser removido dessa classe.
- */
-std::string GeneralNames::data2IpAddress(unsigned char *data)
-{
-	return GeneralName::data2IpAddress(data);
-}
-
-GeneralNames& GeneralNames::operator=(const GeneralNames& value)
-{
-	this->generalNames = value.getGeneralNames(); 
-	return *this;
 }

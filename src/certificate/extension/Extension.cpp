@@ -1,7 +1,8 @@
 #include <libcryptosec/certificate/extension/Extension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/Base64.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 #include <openssl/x509v3.h>
@@ -24,7 +25,7 @@ Extension::Extension(const X509_EXTENSION *ext) :
 }
 
 Extension::Extension(const std::string& oid, bool critical, const std::string& valueBase64) :
-		objectIdentifier(ObjectIdentifierFactory::getObjectIdentifier(oid)),
+		objectIdentifier(ObjectIdentifier::fromString(oid)),
 		critical(critical),
 		value(Base64::decode(valueBase64))
 {
@@ -41,7 +42,7 @@ const ObjectIdentifier& Extension::getObjectIdentifier() const
 
 std::string Extension::getNameString() const
 {
-	return this->objectIdentifier.getName();
+	return this->objectIdentifier.getShortName();
 }
 
 Extension::Name Extension::getName() const
@@ -74,7 +75,7 @@ std::string Extension::toXml(const std::string& tab) const
 	std::string ret, critical;
 	ret = tab + "<extension>\n";
 		ret += tab + "\t<extnID>"+ this->getNameString() +"</extnID>\n";
-		ret += tab + "\t<oid>"+ this->getObjectIdentifier().getOid() +"</oid>\n";
+		ret += tab + "\t<oid>"+ this->getObjectIdentifier().toString() +"</oid>\n";
 		critical = (this->isCritical())?"yes":"no";
 		ret += tab + "\t<critical>"+ critical +"</critical>\n";
 		ret += tab + "\t<extnValue>"+ +"\n" + this->extValue2Xml(tab + "\t\t") + tab + "\t</extnValue>\n";

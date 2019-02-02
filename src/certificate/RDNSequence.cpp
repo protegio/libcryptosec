@@ -1,17 +1,17 @@
 #include <libcryptosec/certificate/RDNSequence.h>
 
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
+
 #include <openssl/x509.h>
 
 #include <string>
 #include <iostream>
 #include <vector>
 #include <map>
-
-#include <libcryptosec/ByteArray.h>
-#include <libcryptosec/certificate/ObjectIdentifier.h>
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
-
-#include <libcryptosec/exception/CertificationException.h>
 
 RDNSequence::RDNSequence()
 {
@@ -74,7 +74,7 @@ void RDNSequence::addEntry(RDNSequence::EntryType type, const std::string& value
 	std::pair<ObjectIdentifier, std::string> oneEntry;
 	if (type != RDNSequence::UNKNOWN) {
 		int nid = RDNSequence::type2Id(type);
-		oneEntry.first = ObjectIdentifierFactory::getObjectIdentifier(nid);
+		oneEntry.first = ObjectIdentifier::fromNid(nid);
 		oneEntry.second = value;
 		this->newEntries.push_back(oneEntry);
 	}
@@ -171,7 +171,7 @@ std::string RDNSequence::toXml(const std::string& tab) const
 			std::string name =  RDNSequence::getNameId(entryType);
 			ret += tab + "\t<" + name + ">" + iterEntries->second + "</" + name + ">\n";
 		} else {
-			ret += tab + "\t<unknownAttribute>" + iterEntries->first.getOid() + ":" + iterEntries->second + "</unknownAttribute>\n";
+			ret += tab + "\t<unknownAttribute>" + iterEntries->first.toString() + ":" + iterEntries->second + "</unknownAttribute>\n";
 		}
 	}
 	ret += tab + "</RDNSequence>\n";

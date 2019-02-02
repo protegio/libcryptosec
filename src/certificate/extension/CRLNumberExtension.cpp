@@ -1,6 +1,7 @@
 #include <libcryptosec/certificate/extension/CRLNumberExtension.h>
 
-#include <libcryptosec/certificate/ObjectIdentifierFactory.h>
+#include <libcryptosec/certificate/ObjectIdentifier.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/CertificationException.h>
 
 #include <openssl/x509v3.h>
@@ -9,7 +10,7 @@
 CRLNumberExtension::CRLNumberExtension(const BigInteger& serial) :
 		Extension(), serial(serial)
 {
-    this->objectIdentifier = ObjectIdentifierFactory::getObjectIdentifier(NID_crl_number);
+    this->objectIdentifier = ObjectIdentifier::fromNid(NID_crl_number);
 }
 
 CRLNumberExtension::CRLNumberExtension(const X509_EXTENSION* ext) :

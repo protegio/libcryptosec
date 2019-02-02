@@ -2,20 +2,21 @@
 
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
 #include <libcryptosec/Base64.h>
-#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/CertificationException.h>
 
 #include <openssl/pem.h>
-
-CertificateRevocationList::CertificateRevocationList(const X509_CRL *crl) :
-		crl(X509_CRL_dup((X509_CRL*) crl))
-{
-	THROW_DECODE_ERROR_IF(this->crl == NULL);
-}
 
 CertificateRevocationList::CertificateRevocationList(X509_CRL *crl) :
 		crl(crl)
 {
 	THROW_DECODE_ERROR_IF(this->crl);
+}
+
+CertificateRevocationList::CertificateRevocationList(const X509_CRL *crl) :
+		crl(X509_CRL_dup((X509_CRL*) crl))
+{
+	THROW_DECODE_ERROR_IF(this->crl == NULL);
 }
 
 CertificateRevocationList::CertificateRevocationList(const std::string& pemEncoded)
