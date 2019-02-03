@@ -26,33 +26,35 @@ class Pkcs7CertificateBundleBuilder : public Pkcs7Builder
 {
 public:
 	/*
-	 * Construtor padrão, inicializa os atributos essenciais para
-	 * a criação do pacote de disseminação.
+	 * @brief Construtor padrão.
+	 *
+	 * Inicializa os atributos essenciais para a criação do pacote de disseminação.
 	 */
 	Pkcs7CertificateBundleBuilder();
+
+	/**
+	 * @brief Destrutor padrão.
+	 */
 	virtual ~Pkcs7CertificateBundleBuilder();
 
 	/*
-	 * Reinicializa os atributos essenciais para
-	 * a criação do pacote de disseminação.
+	 * @brief Reinicializa os atributos essenciais para a criação do pacote de
+	 * disseminação.
 	 */
 	void init();
 
 	/*
-	 * Adiciona um certificado na pilha.
+	 * @brief Adiciona um certificado na pilha.
 	 */
-	void addCertificate(Certificate &cert);
+	void addCertificate(const Certificate &cert);
 
 	/*
-	 * Gera o pacote PKCS7 final
+	 * @brief Gera o pacote PKCS7 final
 	 */
-	Pkcs7CertificateBundle* doFinal();
+	Pkcs7CertificateBundle doFinal() const;
 
 private:
-	/*
-	 * Pilha de certificados a serem adicionados ao pacote PKCS7
-	 */
-	STACK_OF(X509) *certs;
+	std::vector<Certificate> certificates;
 };
 
 #endif /* PKCS7CERTIFICATEBUNDLEBUILDER_H_ */

@@ -2,12 +2,6 @@
 #define PKCS12_H_
 
 #include <libcryptosec/certificate/Certificate.h>
-#include <libcryptosec/RSAPublicKey.h>
-#include <libcryptosec/DSAPublicKey.h>
-#include <libcryptosec/ECDSAPublicKey.h>
-#include <libcryptosec/RSAPrivateKey.h>
-#include <libcryptosec/DSAPrivateKey.h>
-#include <libcryptosec/ECDSAPrivateKey.h>
 #include <libcryptosec/ByteArray.h>
 
 #include <openssl/pkcs12.h>

@@ -1,6 +1,10 @@
 #ifndef PKCS7BUILDER_H_
 #define PKCS7BUILDER_H_
 
+#include <libcryptosec/certificate/CertificateRevocationList.h>
+#include <libcryptosec/certificate/Certificate.h>
+#include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/SymmetricKey.h>
 #include <libcryptosec/ByteArray.h>
 
 #include <openssl/bio.h>
@@ -23,55 +27,94 @@ class Pkcs7Builder
 public:
 
 	/**
-	 * Construtor padrão.
+	 * @brief Construtor padrão.
+	 *
 	 * Cria uma nova estrutura PKCS7.
 	 **/	
 	Pkcs7Builder();
 	
 	/**
-	 * Destrutor padrão. 
+	 * @brief Destrutor padrão.
+	 *
 	 * Limpa a estrutura PKCS7.
 	 **/
-	~Pkcs7Builder();
-	
+	virtual ~Pkcs7Builder();
+
+	void initData();
+	void initDigest(MessageDigest::Algorithm messageDigestAlgorithm);
+	void initEncrypted();
+	void initSigned(MessageDigest::Algorithm messageDigestAlgorithm);
+	void initEnveloped(MessageDigest::Algorithm messageDigestAlgorithm, SymmetricKey::Algorithm symmetricCipherAlgorithm);
+	void initEnvelopedAndSigned();
+
+	void addCertificate(const Certificate& certificate);
+	void addCrl(const CertificateRevocationList& crl);
+	void addSigner(const Certificate& signerCertificate, const PrivateKey& signerPrivateKey);
+	void addRecipient(const Certificate& recipientCertificate);
+
 	/**
-	 * Concatena novos dados ao pacote PKCS7.
-	 * @param data os dados a serem concatenados ao conteúdo prévio do pacote. 
-	 * @throw InvalidStateException se o builder não estiver em um estado apropriado
-	 * para receber dados, como no estado não inicializado.
-	 * @throw Pkcs7Exception caso ocorra algum erro no procedimento de empacotamento.
-	 * @see Pkcs7Builder::State
-	 * @see Pkcs7EnvelopedDataBuilder::init()
-	 * @see Pkcs7SignedDataBuilder::init()
-	 **/
-	void update(std::string &data);
-	
-	/**
-	 * Concatena novos dados ao pacote PKCS7.
-	 * @param data os dados a serem concatenados ao conteúdo prévio do pacote. 
-	 * @throw InvalidStateException se o builder não estiver em um estado apropriado
-	 * para receber dados, como no estado não inicializado.
-	 * @throw Pkcs7Exception caso ocorra algum erro no procedimento de empacotamento.
+	 * @brief Concatena novos dados ao pacote PKCS7.
+	 *
+	 * O terminador nulo (\0) da string também é concatenado.
+	 *
+	 * @param data Os dados a serem concatenados.
+	 *
+	 * @throw OperationException Caso ocorra algum erro no procedimento de empacotamento.
+	 *
 	 * @see State
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
-	void update(ByteArray &data);
+	void update(const std::string& data);
 	
 	/**
-	 * Gera um pacote PKCS7 a partir de de um stream de entrada e põe o resultado
-	 * no formato PEM em um stream de saída.
-	 * @param in stream de entrada cujo conteúdo será adicionado ao pacote PKCS7
-	 * @param out stream que vai receber o pacote PKCS7 no formato PEM
-	 * @throw InvalidStateException se o builder não estiver em um estado apropriado
-	 * para receber dados, como no estado não inicializado.
-	 * @throw Pkcs7Exception caso ocorra algum erro no procedimento de empacotamento.
-	 * @throw EncodeException caso ocorra algum erro na conversão para o formato PEM.
+	 * @brief Concatena novos dados ao pacote PKCS7.
+	 *
+	 * @param data Os dados a serem concatenados.
+	 *
+	 * @throw OperationException Caso ocorra algum erro no procedimento de empacotamento.
+	 *
 	 * @see State
 	 * @see Pkcs7EnvelopedDataBuilder::init()
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
-	void doFinal(std::istream *in, std::ostream *out);
+	void update(const ByteArray& data);
+	
+	/**
+	 * @brief Concatena novos dados ao pacote PKCS7.
+	 *
+	 * @param data Os dados a serem concatenados.
+	 * @param size O numero de bytes a serem concatenados.
+	 *
+	 * @throw OperationException Caso ocorra algum erro no procedimento de empacotamento.
+	 *
+	 * @see State
+	 * @see Pkcs7EnvelopedDataBuilder::init()
+	 * @see Pkcs7SignedDataBuilder::init()
+	 **/
+	void update(const unsigned char* data, unsigned int size);
+
+	/**
+	 * @brief Gera um pacote PKCS7 a partir de de um stream de entrada e escreve o
+	 * pacote gerado no formato PEM em um stream de saída.
+	 *
+	 * @param in Stream de entrada de onde será lido o conteúdo que será adicionado ao pacote PKCS7.
+	 * @param out Stream de saída onde será escrito o pacote PKCS7 no formato PEM.
+	 *
+	 * @throw OperationException caso ocorra algum erro no procedimento de empacotamento.
+	 *
+	 * @see State
+	 * @see Pkcs7EnvelopedDataBuilder::init()
+	 * @see Pkcs7SignedDataBuilder::init()
+	 **/
+	void doFinal(std::istream* in, std::ostream* out);
+
+	/**
+	 * @brief Reinicia o estado do objeto.
+	 *
+	 * Todos buffer são limpos e o estado vai para NO_INIT.
+	 */
+	virtual void reset();
 
 protected:
 
@@ -83,15 +126,10 @@ protected:
 	 **/
 	enum State
 	{
-		NO_INIT, /*!< estado inicial, quando o builder ainda não foi inicializado.*/
-		INIT, /*!< estado em que o builder foi inicializado, mas ainda não recebeu dados para adicionar ao pacote PKCS7.*/
-		UPDATE, /*!< estado em que o builder já possui condições para finalizar a criação do pacote através da chamada Pkcs7Builder::doFinal().*/
+		NO_INIT,	/*!< estado inicial, quando o builder ainda não foi inicializado.*/
+		INIT,		/*!< estado em que o builder foi inicializado, mas ainda não recebeu dados para adicionar ao pacote PKCS7.*/
+		UPDATE,		/*!< estado em que o builder já possui condições para finalizar a criação do pacote através da chamada Pkcs7Builder::doFinal().*/
 	};
-	
-	/**
-	 * Estado atual do builder
-	 **/
-	Pkcs7Builder::State state;
 	
 	/**
 	 * Estrutura OpenSSL que representa o pacote PKCS7 
@@ -103,6 +141,11 @@ protected:
 	 **/
 	BIO *p7bio;
 	
+	/**
+	 * Estado atual do builder
+	 **/
+	Pkcs7Builder::State state;
+
 };
 
 #endif /*PKCS7BUILDER_H_*/

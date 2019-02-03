@@ -1,7 +1,10 @@
 #ifndef PKCS7_H_
 #define PKCS7_H_
 
+#include <libcryptosec/certificate/CertificateRevocationList.h>
 #include <libcryptosec/certificate/Certificate.h>
+#include <libcryptosec/certificate/CertPathValidatorResult.h>
+#include <libcryptosec/certificate/ValidationFlags.h>
 #include <libcryptosec/ByteArray.h>
 
 #include <openssl/pem.h>
@@ -40,48 +43,166 @@ public:
 	 **/
 	enum Type
 	{
-		SIGNED, /*!< O pacote é assinado */
-		ENVELOPED, /*!< O pacote é envelopado */
-		CERTIFICATE_BUNDLE /*!< O pacote é usado para diseminação de certificados */
+		SIGNED = NID_pkcs7_signed, /*!< O pacote é assinado */
+		ENVELOPED = NID_pkcs7_enveloped, /*!< O pacote é envelopado */
+		SIGNED_AND_ENVELOPED = NID_pkcs7_signedAndEnveloped, /*!< O pacote é assinado e envelopado */
+		ENCRYPTED = NID_pkcs7_encrypted, /*!< O pacote é cifrado */
+		DATA = NID_pkcs7_data, /*!< O pacote é em claro */
+		DIGESTED = NID_pkcs7_digest /*!< O pacote inclui o hash dos dados */
 	};
 	
 	/**
-	 * Construtor recebendo um ponteiro para a estrutura PKCS7 da biblioteca OpenSSL.
-	 * Esse construtor é para uso interno. Para carregar um pacote PKCS7 a classe Pkcs7Factory
-	 * deverá ser consultada. Para construir um novo pacote consulte a classe Pkcs7Builder
-	 * @param pkcs7 ponteiro para a estrutura PKCS7
-	 **/	
-	Pkcs7(PKCS7 *pkcs7);
+	 * @brief Construtor de inicialização por atribuição.
+	 *
+	 * O argumento \p pkcs7 não deve ser desalocado após a construção do objeto.
+	 *
+	 * @param pkcs7 A estrutura PKCS7 que será atribuída ao objeto.
+	 */
+	Pkcs7(PKCS7* pkcs7);
 	
 	/**
-	 * Destrutor padrão.
-	 * Limpa a estrutura OpenSSL PKCS7 da memória. 
+	 * @brief Construtor de inicialização por cópia.
+	 *
+	 * O argumento \p pkcs7 pode ser desalocado após a construção do objeto.
+	 *
+	 * @param pkcs7 A estrutura PKCS7 que será copiada.
+	 */
+	Pkcs7(const PKCS7* pkcs7);
+
+	/**
+	 * @brief Inicializa o objeto a partir de um PKCS7 codificado em PEM.
+	 *
+	 * @param pemEncoded O PKCS7 codificado em PEM.
+	 */
+	Pkcs7(const std::string& pemEncoded);
+
+	/**
+	 * @brief Inicializa o objeto a partir de um PKCS7 codificado em DER.
+	 *
+	 * @param derEncoded O PKCS7 codificado em DER.
+	 */
+	Pkcs7(const ByteArray& derEncoded);
+
+	/**
+	 * @brief Construtor de cópia.
+	 *
+	 * @param pkcs7 O objeto Pkcs7 a ser copiado.
+	 */
+	Pkcs7(const Pkcs7& pkcs7);
+
+	/**
+	 * @brief Construtor por movimentação de atributos.
+	 *
+	 * @param pkcs7 O objeto Pkcs7 que terá os atributos movidos.
+	 */
+	Pkcs7(Pkcs7&& pkcs7);
+
+	/**
+	 * @brief Destrutor padrão.
+	 *
+	 * Desaloca a estrutura OpenSSL PKCS7 da memória.
 	 **/
 	virtual ~Pkcs7();
+
+	/**
+	 * @brief Operador de atribuição por cópia.
+	 *
+	 * @param pkcs7 O objeto Pkcs7 a ser copiado.
+	 *
+	 * @return A cópia do objeto Pkcs7.
+	 */
+	Pkcs7& operator=(const Pkcs7& pkcs7);
+
+	/**
+	 * @brief Operador de atribuição por movimentação de atributos.
+	 *
+	 * @param pkcs7 O objeto Pkcs7 a ser movido.
+	 *
+	 * @return O objeto Pkcs7 com os atributos movidos.
+	 */
+	Pkcs7& operator=(Pkcs7&& pkcs7);
+
+	/**
+	 * @return O tipo do PKCS7.
+	 *
+	 * @see Pkcs7::Type
+	 **/
+	virtual Pkcs7::Type getType() const;
 	
 	/**
-	 * Método abstrato que retorna o tipo de procedimento de segurança 
-	 * aplicado ao conteúdo do pacote. 
-	 * @return o tipo de procedimento criptografico aplicado ao pacote, como
-	 * assinatura ou cifragem. 
+	 * @return O PKCS7 codificado em PEM.
 	 **/
-	virtual Pkcs7::Type getType() = 0;
+	std::string getPemEncoded() const;
 	
 	/**
-	 * Retorna uma representação do pacote codificada no formato PEM.
-	 * @return conteúdo do pacote no formado PEM
-	 * @throw EncodeException se ocorrer algum erro no procedimento de codificação
-	 * do pacote para o formato PEM.
+	 * @return O PKCS7 codificado em DER.
 	 **/
-	std::string getPemEncoded();
-	
+	ByteArray getDerEncoded() const;
+
+	/*
+	 * @brief Extrai o texto plano contido no pacote PKCS7.
+	 *
+	 * @param out A stream onde será escrito o texto extraído.
+	 */
+	void extract(std::ostream& out);
+
 	/**
-	 * Retorna uma representação do pacote codificada no formato DER.
-	 * @return conteúdo do pacote no formado DER
-	 * @throw EncodeException se ocorrer algum erro no procedimento de codificação
-	 * do pacote para o formato DER.
+	 * @brief Decifra o pacote usando os parâmetros certificate e privateKey e escreve o resultado
+	 * no stream de saída \p out.
+	 *
+	 * @param certificate O certificado contendo a chave ou uma das chaves que cifraram o pacote.
+	 * @param privateKey A chave privada correspondente ao certificado.
+	 * @param out O stream de saída onde será escrito o resultado da decifragem.
 	 **/
-	ByteArray getDerEncoded();
+	void decrypt(const Certificate& certificate, const PrivateKey& privateKey, std::ostream& out);
+
+	/*
+	 * Verifica a assinatura e/ou a integridade do pacote PKCS7
+	 * @return true se o pacote é íntegro e/ou suas assinaturas são válidas
+	 * @param checkSignerCert true para verificar as assinaturas do pacote, false caso contrário
+	 * @param trusted certificados confiáveis
+	 * @param cpvr objeto resultado da verificação das assinaturas
+	 * @flags opções de validação (ver CertPathValidator::ValidationFlags)
+	 */
+	bool verify(
+			bool checkSignerCert = false,
+			const std::vector<Certificate>& trusted = std::vector<Certificate>(),
+			CertPathValidatorResult **cpvr = NULL,
+			const std::vector<ValidationFlags>& flags = std::vector<ValidationFlags>());
+
+	/**
+	 * Verifica a integridade do pacote PKCS7 e extrai seu conteúdo para o stream de saída
+	 * passado como parâmetro.
+	 * @param out o stream que receberá o conteúdo extraído.
+	 * @return false se o pacote tiver sido corrompido, true caso contrário.
+	 * @throw Pkcs7Exception caso a estrutura PKCS7 seja inválida.
+	 **/
+	bool verifyAndExtract(
+			std::ostream& out,
+			bool checkSignerCert = false,
+			const std::vector<Certificate>& trusted = std::vector<Certificate>(),
+			CertPathValidatorResult **cpvr = NULL,
+			const std::vector<ValidationFlags>& flags = std::vector<ValidationFlags>());
+
+	/**
+	 * @return A lista de certificados contida no PKCS7.
+	 */
+	std::vector<Certificate> getCertificates() const;
+
+	/**
+	 * @return A lista de CRLs contida no PKCS7.
+	 */
+	std::vector<CertificateRevocationList> getCrls() const;
+
+	/**
+	 * @brief Função callback de tratamento de erro de validação de assinaturas.
+	 *
+	 * @param ok resultado da verificação
+	 * @param ctx contexto de certificado
+	 *
+	 * @return 1 para warning 0 para erro.
+	 */
+	static int callback(int ok, X509_STORE_CTX *ctx);
 
 protected:
 
@@ -90,6 +211,8 @@ protected:
 	 **/
 	PKCS7 *pkcs7;
 	
+	static CertPathValidatorResult cpvr;
+
 };
 
 #endif /*PKCS7_H_*/
