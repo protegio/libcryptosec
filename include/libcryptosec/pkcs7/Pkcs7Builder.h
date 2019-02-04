@@ -1,6 +1,7 @@
 #ifndef PKCS7BUILDER_H_
 #define PKCS7BUILDER_H_
 
+#include <libcryptosec/pkcs7/Pkcs7.h>
 #include <libcryptosec/certificate/CertificateRevocationList.h>
 #include <libcryptosec/certificate/Certificate.h>
 #include <libcryptosec/MessageDigest.h>
@@ -14,11 +15,8 @@
 #include <string>
 
 /**
- * Implementa o padrão builder para a criação de um pacote PKCS7. Essa classe
- * deve ser usada como uma classe abstrata, pois não pussui um método init. 
+ * Implementa um contrutor de PKCS7, permitindo criar todos os tipos de PKCS7.
  * 
- * @see Pkcs7EnvelopedDataBuilder
- * @see Pkcs7SignedDataBuilder
  * @ingroup PKCS7
  **/
 class Pkcs7Builder
@@ -40,16 +38,142 @@ public:
 	 **/
 	virtual ~Pkcs7Builder();
 
+	/**
+	 * @brief Inicializa o construtor de PKCS7 no modo DATA.
+	 *
+	 * No modo DATA o conteúdo é inserido em claro, sem assinatura e sem mecanismo
+	 * de verificação de integridade, no PKCS7.
+	 */
 	void initData();
-	void initDigest(MessageDigest::Algorithm messageDigestAlgorithm);
+
+	/**
+	 * @brief Inicializa o construtor de PKCS7 no modo DIGEST.
+	 *
+	 * No modo DIGEST o conteúdo é inserido em claro com mecanismo de
+	 * verificação de integridade no PKCS7.
+	 *
+	 * @param messageDigestAlgorithm O algoritmo de hash a ser utilizado.
+	 */
+	void initDigest(MessageDigest::Algorithm messageDigestAlgorithm, bool attached);
+
+	/**
+	 * @brief Inicializa o construtor de PKCS7 no modo ENCRYTPED.
+	 *
+	 * No modo ENCRYPTED o conteúdo é inserido cifrado no PKCS7.
+	 *
+	 * Diferente do modo ENVELOPED, o modo ENCRYPTED não gerencia as
+	 * chaves de cifração do PKCS7.
+	 *
+	 * @param
+	 *
+	 * @throw EncodeException
+	 */
 	void initEncrypted();
-	void initSigned(MessageDigest::Algorithm messageDigestAlgorithm);
-	void initEnveloped(MessageDigest::Algorithm messageDigestAlgorithm, SymmetricKey::Algorithm symmetricCipherAlgorithm);
+
+	/**
+	 * @brief Inicializa o construtor de PKCS7 no modo SIGNED.
+	 *
+	 * No modo SIGNED o conteúdo em claro é assinado por todos signatários e
+	 * as assinaturas incluídas no PKCS7. Se o parâmetro \p attached for true
+	 * o conteúdo assinado também é inserido, em claro, no PKCS7.
+	 *
+	 * Para adicionar signatários é necessário utilizar a função addSigner().
+	 *
+	 * Se nenhum signatário for adicionado, o PKCS7 será gerado sem nenhuma assinatura,
+	 * mas com todos certificados e CRLs adicionados com addCertificate() e addCrl().
+	 *
+	 * @param attached Define se o conteúdo assinado é anexado ou não no PKCS7.
+	 *
+	 * @see addSigner
+	 * @see addCertificate
+	 * @see addCrl
+	 * @see update
+	 * @see doFinal
+	 */
+	void initSigned(bool attached);
+
+	/**
+	 * @brief Inicializa o construtor de PKCS7 no modo ENVELOPED.
+	 *
+	 * No modo ENVELOPED o conteúdo é cifrado para todos destinatários. Diferente
+	 * do modo ENCRYPTED, o modo ENVELOPED se responsabiliza por gerar a chave
+	 * de cifração do conteúdo e cifrá-la para todos destinatários.
+	 *
+	 * Para adicionar destinatários é necessário chamar a função addRecipient().
+	 *
+	 * @param symmetricAlgorithm O algoritimo de cifração.
+	 * @param operationMode O modo de operação da cifração.
+	 *
+	 * @throw EncodeException
+	 *
+	 * @see addRecipient
+	 * @see update
+	 * @see doFinal
+	 */
+	void initEnveloped(SymmetricKey::Algorithm symmetricAlgorithm,
+			SymmetricCipher::OperationMode operationMode);
+
+	/**
+	 * @brief Inicializa o construtor de PKCS7 no modo ENVELOPED_AND_SIGNED.
+	 *
+	 * No modo ENVELOPED_AND_SIGNED o conteúdo em claro é assinado para todos
+	 * signatários e as assinaturas incluídas no PKCS7. O conteúdo é cifrado
+	 * para todos destinatários e incluído no PKCS7.
+	 *
+	 * Para adicionar signatários é necessário chamar a função addSigner().
+	 * Para adicionar destinatários é necessário chamar a função addRecipient().
+	 *
+	 * @param symmetricAlgorithm O algoritimo de cifração.
+	 * @param operationMode O modo de operação da cifração.
+	 *
+	 * @throw EncodeException
+	 */
 	void initEnvelopedAndSigned();
 
+	/**
+	 * @brief Add a certificate to the PKCS7.
+	 *
+	 * @param certificate The certificate to be added.
+	 *
+	 * @throw EncodeException
+	 */
 	void addCertificate(const Certificate& certificate);
+
+	/**
+	 * @brief Add a CRL to the PKCS7.
+	 *
+	 * @param crl The CRL to be added.
+	 *
+	 * @throw EncodeException
+	 */
 	void addCrl(const CertificateRevocationList& crl);
-	void addSigner(const Certificate& signerCertificate, const PrivateKey& signerPrivateKey);
+
+	/**
+	 * @brief Add a signer to the PKCS7.
+	 *
+	 * The signer's certificate is automatically added in the PKCS7.
+	 *
+	 * @param messageDigestAlgorithm The message digest algorithm to be used in this signer's signature.
+	 * @param signerCertificate The signer's certificate.
+	 * @param signerPrivateKEy The signer's private key to perform the signature.
+	 *
+	 * @throw EncodeException
+	 */
+	void addSigner(MessageDigest::Algorithm messageDigestAlgorithm,
+			const Certificate& signerCertificate, const PrivateKey& signerPrivateKey);
+
+	/**
+	 * @brief Add a recipient to the PKCS7.
+	 *
+	 * The recipient's certificate is automatically added to the PKCS7.
+	 *
+	 * The PKCS7 content will be enveloped to all recipients.
+	 *
+	 * @param recipientCertificate The recipient's certificate.
+	 *
+	 * @throw EncodeException
+	 *
+	 */
 	void addRecipient(const Certificate& recipientCertificate);
 
 	/**
@@ -93,6 +217,56 @@ public:
 	 * @see Pkcs7SignedDataBuilder::init()
 	 **/
 	void update(const unsigned char* data, unsigned int size);
+
+	/**
+	 * @brief Finaliza a construção do PKCS7 e retorna.
+	 */
+	Pkcs7 doFinal();
+
+	/**
+	 * @brief Concatena o conteúdo e finaliza a construção.
+	 *
+	 * O terminador nulo da string também é concatenado.
+	 *
+	 * @param data O conteúdo a ser concatenado.
+	 *
+	 * @return O PKCS7 contruído.
+	 *
+	 * @throw EncodeException
+	 *
+	 * @see update
+	 * @see doFinal
+	 */
+	Pkcs7 doFinal(const std::string& data);
+
+	/**
+	 * @brief Concatena o conteúdo e finaliza a construção.
+	 *
+	 * @param data O conteúdo a ser concatenado.
+	 *
+	 * @return O PKCS7 contruído.
+	 *
+	 * @throw EncodeException
+	 *
+	 * @see update
+	 * @see doFinal
+	 */
+	Pkcs7 doFinal(const ByteArray& data);
+
+	/**
+	 * @brief Concatena o conteúdo e finaliza a construção.
+	 *
+	 * @param data O ponteiro para o conteúdo a ser concatenado.
+	 * @param size O número de bytes do conteúdo a ser concatenado.
+	 *
+	 * @return O PKCS7 contruído.
+	 *
+	 * @throw EncodeException
+	 *
+	 * @see update
+	 * @see doFinal
+	 */
+	Pkcs7 doFinal(const unsigned char *data, unsigned int size);
 
 	/**
 	 * @brief Gera um pacote PKCS7 a partir de de um stream de entrada e escreve o
@@ -146,6 +320,10 @@ protected:
 	 **/
 	Pkcs7Builder::State state;
 
+	/**
+	 * Modo de inicialização.
+	 */
+	Pkcs7::Type mode;
 };
 
 #endif /*PKCS7BUILDER_H_*/
