@@ -18,7 +18,7 @@ class SymmetricCipherTest: public ::testing::Test {
 protected:
 
 	std::map<SymmetricKey::Algorithm, SymmetricKey*> keys;
-	std::map<SymmetricKey::Algorithm, ByteArray*> ivs;
+	std::map<SymmetricKey::Algorithm, ByteArray> ivs;
 
 	virtual void SetUp() {
 		for(auto algorithm : SymmetricKey::AlgorithmList) {
@@ -30,7 +30,6 @@ protected:
 	virtual void TearDown() {
 		for(auto algorithm : SymmetricKey::AlgorithmList) {
 			delete keys[algorithm];
-			delete ivs[algorithm];
 		}
 	}
 
@@ -50,13 +49,13 @@ protected:
 TEST_F(SymmetricCipherTest, encryptDecryptString) {
 	for (auto algorithm : SymmetricKey::AlgorithmList) {
 		SymmetricKey* key = keys[algorithm];
-		ByteArray* iv = ivs[algorithm];
+		ByteArray iv = ivs[algorithm];
 		for (auto mode : SymmetricCipher::OperationModeList) {
 			if (mode == SymmetricCipher::OperationMode::NO_MODE) {
 				continue;
 			}
-			SymmetricCipher cipher(*key, *iv, SymmetricCipher::Operation::ENCRYPT, mode);
-			SymmetricCipher decipher(*key, *iv, SymmetricCipher::Operation::DECRYPT, mode);
+			SymmetricCipher cipher(*key, iv, SymmetricCipher::Operation::ENCRYPT, mode);
+			SymmetricCipher decipher(*key, iv, SymmetricCipher::Operation::DECRYPT, mode);
 			ByteArray *encryptedData = cipher.doFinal(testString);
 			ByteArray *decryptedData = decipher.doFinal(*encryptedData);
 			this->testPrint(algorithm, mode, ByteArray(testString), *encryptedData, *decryptedData);
@@ -72,13 +71,13 @@ TEST_F(SymmetricCipherTest, encryptDecryptByteArray) {
 	ByteArray originalData(testString);
 	for (auto algorithm : SymmetricKey::AlgorithmList) {
 		SymmetricKey* key = keys[algorithm];
-		ByteArray* iv = ivs[algorithm];
+		ByteArray iv = ivs[algorithm];
 		for (auto mode : SymmetricCipher::OperationModeList) {
 			if (mode == SymmetricCipher::OperationMode::NO_MODE) {
 				continue;
 			}
-			SymmetricCipher cipher(*key, *iv, SymmetricCipher::Operation::ENCRYPT, mode);
-			SymmetricCipher decipher(*key, *iv, SymmetricCipher::Operation::DECRYPT, mode);
+			SymmetricCipher cipher(*key, iv, SymmetricCipher::Operation::ENCRYPT, mode);
+			SymmetricCipher decipher(*key, iv, SymmetricCipher::Operation::DECRYPT, mode);
 			ByteArray *encryptedData = cipher.doFinal(originalData);
 			ByteArray *decryptedData = decipher.doFinal(*encryptedData);
 			this->testPrint(algorithm, mode, originalData, *encryptedData, *decryptedData);

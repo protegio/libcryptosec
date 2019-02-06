@@ -169,7 +169,7 @@ unsigned int * SecretSharer::getHeader(std::vector<std::istream *>* secrets){
 	unsigned char *char_i;
 	char *char_hex;
 	char_hex = (char *)calloc(9, sizeof(char));
-	rc = (unsigned int *)calloc(secrets->size() + 1, sizeof(unsigned int));
+	rc = (unsigned int *)calloc(secrets->size(), sizeof(unsigned int));
 	for (j=0;j<secrets->size();j++){
 		secrets->at(j)->readsome(char_hex, 8);
 		if ((char_i = SecretSharer::hex2bin(char_hex, &size_i)) == NULL){
@@ -244,10 +244,8 @@ unsigned int * SecretSharer::order_parts(unsigned int *seq, unsigned int parts, 
 //}
 
 void SecretSharer::rand_bytes(unsigned char *data, int num){
-	ByteArray *rand;
-	rand = Random::bytes(num);
-	memcpy(data, rand->getDataPointer(), num);
-	delete rand;
+	ByteArray rand = Random::bytes(num);
+	memcpy(data, rand.getDataPointer(), num);
 }
 
 /*

@@ -83,7 +83,7 @@ void Hmac::update(const ByteArray& data) {
 }
 
 void Hmac::update(const std::string& data) {
-	this->update((const unsigned char*) data.c_str(), data.size() + 1);
+	this->update((const unsigned char*) data.c_str(), data.size());
 }
 
 void Hmac::update(const unsigned char* data, unsigned int size) {

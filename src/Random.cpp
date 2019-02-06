@@ -4,13 +4,12 @@
 
 #include <openssl/rand.h>
 
-ByteArray* Random::bytes(int nbytes)
+ByteArray Random::bytes(unsigned int nbytes)
 {
 	int rc;
-	ByteArray* ret = NULL;
 
-	ret = new ByteArray(nbytes);
-	rc = RAND_bytes(ret->getDataPointer(), nbytes);
+	ByteArray ret(nbytes);
+	rc = RAND_bytes(ret.getDataPointer(), nbytes);
 
 	if (rc == -1) {
 		throw RandomException(RandomException::NO_IMPLEMENTED_FUNCTION, "Random::bytes");

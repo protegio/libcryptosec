@@ -299,7 +299,6 @@ std::string KeyPair::getPemEncoded(const EVP_CIPHER* cipher, const ByteArray* pa
 
 std::string KeyPair::getPemEncoded(const SymmetricKey& passphrase, SymmetricCipher::OperationMode mode) const
 {
-	const ByteArray *passphraseData = NULL;
 	const EVP_CIPHER *cipher = NULL;
 
 	try {
@@ -308,8 +307,8 @@ std::string KeyPair::getPemEncoded(const SymmetricKey& passphrase, SymmetricCiph
 		throw;
 	}
 
-	passphraseData = passphrase.getEncoded();
-	return this->getPemEncoded(cipher, passphraseData);
+	const ByteArray& passphraseData = passphrase.getEncoded();
+	return this->getPemEncoded(cipher, &passphraseData);
 }
 
 std::string KeyPair::getPemEncoded() const

@@ -1,11 +1,10 @@
 #ifndef SYMMETRICKEY_H_
 #define SYMMETRICKEY_H_
 
+#include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Macros.h>
 
 #include <string>
-
-class ByteArray;
 
 /**
  * Representa chaves simétricas.
@@ -52,13 +51,6 @@ public:
 	SymmetricKey(const ByteArray &keyData, SymmetricKey::Algorithm algorithm);
 	
 	/**
-	 * @brief Construtor de cópia.
-	 *
-	 * @param symmetricKey referência para a chave simétrica a ser copiada.
-	 **/
-	SymmetricKey(const SymmetricKey &symmetricKey);
-	
-	/**
 	 * @brief Destrutor padrão.
 	 **/
 	virtual ~SymmetricKey();
@@ -68,7 +60,7 @@ public:
 	 *
 	 * @return a chave na sua representação binária.
 	 **/
-	const ByteArray* getEncoded() const;
+	const ByteArray& getEncoded() const;
 	
 	/**
 	 * @brief Retorna o algoritmo da chave.
@@ -78,20 +70,32 @@ public:
 	SymmetricKey::Algorithm getAlgorithm() const;
 	
 	/**
-	 * @brief Retorna co tamanho da chave.
+	 * @brief Retorna o tamanho da chave.
 	 *
 	 * @return o tamanho da chave. 
 	 **/
-	int getSize();
+	unsigned int getSize();
 	
 	/**
-	 * @brief Operador de atribuição sobrescrito.
+	 * @return O tamanho do IV compatível com o algoritmo da chave.
+	 */
+	unsigned int getAlgorithmIvSize();
+
+	/**
+	 * @brief Operador de atribuição por cópia.
 	 *
 	 * @param value a chave a ser atribuída.
 	 *
 	 * @return uma cópia da chave representada pela referência value.
 	 **/
-	SymmetricKey& operator =(const SymmetricKey& value);
+	SymmetricKey& operator=(const SymmetricKey& value);
+
+	/**
+	 * @brief Operador de atribuição por movimentação de atributos.
+	 *
+	 * @param value a chave a ser atribuída.
+	 **/
+	SymmetricKey& operator=(SymmetricKey&& value);
 	
 	/**
 	 * @brief Retorna o nome do algoritmo simétrico na sua forma textual.
@@ -125,7 +129,7 @@ private:
 	/**
 	 * Chave no formato binário.
 	 **/
-	ByteArray* keyData;
+	ByteArray keyData;
 	
 	/**
 	 * Tipo de algoritmo a que a chave se destina.

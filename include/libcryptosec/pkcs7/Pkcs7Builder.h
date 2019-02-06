@@ -54,7 +54,7 @@ public:
 	 *
 	 * @param messageDigestAlgorithm O algoritmo de hash a ser utilizado.
 	 */
-	void initDigest(MessageDigest::Algorithm messageDigestAlgorithm, bool attached);
+	void initDigested(MessageDigest::Algorithm messageDigestAlgorithm, bool attached = true);
 
 	/**
 	 * @brief Inicializa o construtor de PKCS7 no modo ENCRYTPED.
@@ -68,7 +68,7 @@ public:
 	 *
 	 * @throw EncodeException
 	 */
-	void initEncrypted();
+	void initEncrypted(const SymmetricKey& key, const ByteArray& iv, SymmetricCipher::OperationMode operationMode);
 
 	/**
 	 * @brief Inicializa o construtor de PKCS7 no modo SIGNED.
@@ -291,6 +291,7 @@ public:
 	virtual void reset();
 
 protected:
+	BIO* initEncryptedBio(unsigned char** key, unsigned int *key_size, unsigned char** iv, unsigned int *iv_size);
 
 	/**
 	 * @enum State

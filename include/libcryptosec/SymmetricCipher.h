@@ -186,11 +186,23 @@ public:
 	SymmetricCipher::Operation getOperation();
 	
 	/**
+	 * @brief Retorna os parametros públicos do cifrados encodados em uma estrutura ASN1.
+	 *
+	 * Essa função deve ser chamada após a inicialização e antes de qualquer update.
+	 *
+	 * @return A estrutura ASN1.
+	 *
+	 * @throw OperationException Se o estado for diferente de INIT ou se ocorrer algum
+	 * erro na codificação.
+	 */
+	ASN1_TYPE* getAsn1TypeParameters();
+
+	/**
 	 * Retorna o nome do modo de operação passado como parâmetro.
 	 * @return o nome do modo de operação passado como parâmetro.
 	 **/
 	static std::string getOperationModeName(SymmetricCipher::OperationMode mode);
-	
+
 	/**
 	 * Retorna a estrutura OpenSSL que representa um cifrador.
 	 * @param algorithm o algoritmo que o cifrador deverá utilizar.

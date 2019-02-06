@@ -1,5 +1,7 @@
 #include <libcryptosec/pkcs7/Pkcs7.h>
 
+#include <openssl/rand.h>
+
 CertPathValidatorResult Pkcs7::cpvr;
 
 Pkcs7::Pkcs7(PKCS7* pkcs7)
@@ -109,6 +111,14 @@ ByteArray Pkcs7::getDerEncoded() const
 
 void Pkcs7::extract(std::ostream& out)
 {
+	// TODO: não encontramos uma forma padrão de extrair os dados de um PKCS7 do tipo DATA.
+	// PKCS7_dataInit e PKCS7_dataFinal aparentemente deveriam funcionar, mas o BIO retornado
+	// sempre retorna 0 bytes lidos na chamada BIO_read.
+	if (this->getType() == Pkcs7::Type::DATA) {
+		out.write((const char*) this->pkcs7->d.data->data, this->pkcs7->d.data->length);
+		return;
+	}
+
 	BIO *p7bio = PKCS7_dataInit(this->pkcs7, NULL);
 	THROW_DECODE_ERROR_IF(p7bio == NULL);
 

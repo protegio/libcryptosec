@@ -141,7 +141,6 @@ std::string PrivateKey::getPemEncoded()
 std::string PrivateKey::getPemEncoded(const SymmetricKey& symmetricKey, SymmetricCipher::OperationMode mode)
 {
 	ByteArray *retTemp = NULL;
-	const ByteArray *passphraseData = NULL;
 	BIO *buffer = NULL;
 	const EVP_CIPHER *cipher = NULL;
 	unsigned char *data = NULL;
@@ -160,9 +159,9 @@ std::string PrivateKey::getPemEncoded(const SymmetricKey& symmetricKey, Symmetri
 		throw;
 	}
 
-	passphraseData = symmetricKey.getEncoded();
+	const ByteArray& passphraseData = symmetricKey.getEncoded();
 	wrote = PEM_write_bio_PrivateKey(buffer, this->evpPkey, cipher, NULL, 0,
-			PrivateKey::passphraseCallBack, (void *) passphraseData);
+			PrivateKey::passphraseCallBack, (void *) &passphraseData);
 
 	if (!wrote) {
 		BIO_free(buffer);

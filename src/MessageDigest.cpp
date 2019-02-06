@@ -104,7 +104,7 @@ void MessageDigest::update(const ByteArray &data)
 
 void MessageDigest::update(const std::string &data)
 {
-	return this->update((const unsigned char*) data.c_str(), data.size() + 1);
+	return this->update((const unsigned char*) data.c_str(), data.size());
 }
 
 void MessageDigest::update(const unsigned char* data, unsigned int size) {

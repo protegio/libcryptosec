@@ -29,25 +29,17 @@ SymmetricKey::SymmetricKey(SymmetricKey::Algorithm algorithm)
 	this->keyData = Random::bytes(size);
 }
 
-SymmetricKey::SymmetricKey(const ByteArray &keyData, SymmetricKey::Algorithm algorithm)
+SymmetricKey::SymmetricKey(const ByteArray &keyData, SymmetricKey::Algorithm algorithm) :
+		keyData(keyData), algorithm(algorithm)
 {
-	this->keyData = new ByteArray(keyData);
-	this->algorithm = algorithm;
-}
-
-SymmetricKey::SymmetricKey(const SymmetricKey &symmetricKey)
-{
-	this->keyData = new ByteArray(*(symmetricKey.getEncoded()));
-	this->algorithm = symmetricKey.getAlgorithm();
 }
 
 SymmetricKey::~SymmetricKey()
 {
-	this->keyData->burn();
-	delete this->keyData;
+	this->keyData.burn();
 }
 
-const ByteArray* SymmetricKey::getEncoded() const
+const ByteArray& SymmetricKey::getEncoded() const
 {
 	return this->keyData;
 }
@@ -57,21 +49,38 @@ SymmetricKey::Algorithm SymmetricKey::getAlgorithm() const
 	return this->algorithm;
 }
 
-int SymmetricKey::getSize()
+unsigned int SymmetricKey::getSize()
 {
-	return this->keyData->getSize();
+	return this->keyData.getSize();
 }
 
-SymmetricKey& SymmetricKey::operator =(const SymmetricKey& value)
+unsigned int SymmetricKey::getAlgorithmIvSize() {
+	return SymmetricKey::getAlgorithmIvSize(this->algorithm);
+}
+
+SymmetricKey& SymmetricKey::operator=(const SymmetricKey& value)
 {
-	if(this == &value)
+	if(this == &value) {
 		return *this;
+	}
 
-	this->keyData->burn();
-	delete this->keyData;
+	this->keyData.burn();
+	this->keyData = value.keyData;
+    this->algorithm = value.algorithm;
 
-	this->keyData = new ByteArray(*(value.keyData));
-    this->algorithm = value.getAlgorithm();
+    return *this;
+}
+
+SymmetricKey& SymmetricKey::operator=(SymmetricKey&& value)
+{
+	if(this == &value) {
+		return *this;
+	}
+
+	this->keyData.burn();
+	this->keyData = std::move(value.keyData);
+    this->algorithm = std::move(value.algorithm);
+
     return *this;
 }
 

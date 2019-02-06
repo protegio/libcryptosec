@@ -1,6 +1,9 @@
 #include <libcryptosec/pkcs7/Pkcs7Builder.h>
 #include <libcryptosec/pkcs7/Pkcs7.h>
 
+#include <libcryptosec/Random.h>
+#include <libcryptosec/SymmetricKey.h>
+
 #include <gtest/gtest.h>
 
 #include <fstream>
@@ -33,43 +36,124 @@ protected:
     }
 };
 
+#define TEST_INIT_UPDATE_DOFINAL(init_foo, str_data, extract_foo)\
+std::ostringstream ss(std::stringstream::binary);\
+\
+init_foo;\
+builder.update(str_data);\
+Pkcs7 pkcs7 = builder.doFinal();\
+pkcs7.extract_foo(ss);\
+std::string extracted = ss.str();\
+EXPECT_EQ(extracted, str_data);\
+ss.str("");\
+\
+init_foo;\
+pkcs7 = builder.doFinal(testString);\
+pkcs7.extract_foo(ss);\
+extracted = ss.str();\
+EXPECT_EQ(extracted, str_data);\
+ss.str("");\
+\
+init_foo;\
+builder.update(ByteArray(str_data));\
+pkcs7 = builder.doFinal();\
+pkcs7.extract_foo(ss);\
+extracted = ss.str();\
+EXPECT_EQ(extracted, str_data);\
+ss.str("");\
+\
+init_foo;\
+pkcs7 = builder.doFinal(ByteArray(str_data));\
+pkcs7.extract_foo(ss);\
+extracted = ss.str();\
+EXPECT_EQ(extracted, str_data);\
+ss.str("");\
+\
+init_foo;\
+builder.update((const unsigned char*) str_data.c_str(), str_data.size());\
+pkcs7 = builder.doFinal();\
+pkcs7.extract_foo(ss);\
+extracted = ss.str();\
+EXPECT_EQ(extracted, str_data);\
+ss.str("");\
+\
+init_foo;\
+pkcs7 = builder.doFinal((const unsigned char*) str_data.c_str(), str_data.size());\
+pkcs7.extract_foo(ss);\
+extracted = ss.str();\
+EXPECT_EQ(extracted, str_data);\
+ss.str("")\
+
 /**
  * @brief Testa a função EVP_MD* GetMessageDigest(MessageDigest::Algorithm).
  */
 TEST_F(Pkcs7BuilderTest, DataMode) {
-	std::ostringstream ss;
+	TEST_INIT_UPDATE_DOFINAL(builder.initData(), testString, extract);
+}
 
-	builder.initData();
+TEST_F(Pkcs7BuilderTest, DigestedMode) {
+	std::ostringstream ss(std::stringstream::binary);
+
+	builder.initDigested(MessageDigest::SHA1);
 	builder.update(testString);
 	Pkcs7 pkcs7 = builder.doFinal();
 	pkcs7.extract(ss);
 	std::string extracted = ss.str();
 	EXPECT_EQ(extracted, testString);
-	ss.clear();
+	ss.str("");
 
-	builder.initData();
+	builder.initDigested(MessageDigest::SHA1);
+	pkcs7 = builder.doFinal(testString);
+	pkcs7.extract(ss);
+	extracted = ss.str();
+	EXPECT_EQ(extracted, testString);
+	ss.str("");
+
+	builder.initDigested(MessageDigest::SHA1);
 	builder.update(ByteArray(testString));
 	pkcs7 = builder.doFinal();
 	pkcs7.extract(ss);
 	extracted = ss.str();
 	EXPECT_EQ(extracted, testString);
-	ss.clear();
+	ss.str("");
 
-	builder.initData();
-	builder.update((const unsigned char*) testString.c_str(), testString.size() + 1);
+	builder.initDigested(MessageDigest::SHA1);
+	pkcs7 = builder.doFinal(ByteArray(testString));
+	pkcs7.extract(ss);
+	extracted = ss.str();
+	EXPECT_EQ(extracted, testString);
+	ss.str("");
+
+	builder.initDigested(MessageDigest::SHA1);
+	builder.update((const unsigned char*) testString.c_str(), testString.size());
 	pkcs7 = builder.doFinal();
 	pkcs7.extract(ss);
 	extracted = ss.str();
 	EXPECT_EQ(extracted, testString);
-	ss.clear();
-}
+	ss.str("");
 
-TEST_F(Pkcs7BuilderTest, DigestedMode) {
-
+	builder.initDigested(MessageDigest::SHA1);
+	pkcs7 = builder.doFinal((const unsigned char*) testString.c_str(), testString.size());
+	pkcs7.extract(ss);
+	extracted = ss.str();
+	EXPECT_EQ(extracted, testString);
+	ss.str("");
 }
 
 TEST_F(Pkcs7BuilderTest, EncryptedMode) {
+	std::ostringstream ss(std::stringstream::binary);
 
+	SymmetricKey key(SymmetricKey::AES_256);
+	ByteArray iv = Random::bytes(key.getAlgorithmIvSize());
+
+	builder.initEncrypted(key, iv, SymmetricCipher::CBC);
+	builder.update(testString);
+	Pkcs7 pkcs7 = builder.doFinal();
+	std::cerr << pkcs7.getPemEncoded() << std::endl;
+	pkcs7.extract(ss);
+	std::string extracted = ss.str();
+	EXPECT_EQ(extracted, testString);
+	ss.str("");
 }
 
 TEST_F(Pkcs7BuilderTest, SignedMode) {

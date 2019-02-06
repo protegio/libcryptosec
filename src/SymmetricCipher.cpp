@@ -1,5 +1,7 @@
 #include <libcryptosec/SymmetricCipher.h>
 
+#include <libcryptosec/exception/OperationException.h>
+
 INITIALIZE_ENUM( SymmetricCipher::OperationMode, 5,
 	NO_MODE,
 	CBC,
@@ -42,17 +44,16 @@ SymmetricCipher::~SymmetricCipher()
 void SymmetricCipher::init(const SymmetricKey& key, const ByteArray& iv, SymmetricCipher::Operation operation, SymmetricCipher::OperationMode mode)
 {
 	const EVP_CIPHER *cipher = NULL;
-	const ByteArray* keyData = NULL;
 
 	if(EVP_CIPHER_CTX_cleanup(this->ctx) == 0) {
 		throw SymmetricCipherException(SymmetricCipherException::CTX_CLEANUP, "SymmetricCipher::init");
 	}
 
 	cipher = SymmetricCipher::getCipher(key.getAlgorithm(), mode);
-	keyData = key.getEncoded();
+	const ByteArray& keyData = key.getEncoded();
 
 	EVP_CIPHER_CTX_init(this->ctx);
-	int rc = EVP_CipherInit_ex(this->ctx, cipher, NULL, keyData->getConstDataPointer(),
+	int rc = EVP_CipherInit_ex(this->ctx, cipher, NULL, keyData.getConstDataPointer(),
 			iv.getConstDataPointer(), (operation == this->ENCRYPT) ? 1 : 0);
 
 	if (!rc) {
@@ -62,11 +63,15 @@ void SymmetricCipher::init(const SymmetricKey& key, const ByteArray& iv, Symmetr
 	this->operation = operation;
 	this->state = SymmetricCipher::State::INIT;
 	this->mode = mode;
+
+	// TODO: usar pra validação?
+	// keylen = EVP_CIPHER_key_length(evp_cipher);
+	// ivlen = EVP_CIPHER_iv_length(evp_cipher);
 }
 
 ByteArray* SymmetricCipher::update(const std::string& data)
 {
-	return this->update((unsigned char*) data.c_str(), data.size() + 1);
+	return this->update((unsigned char*) data.c_str(), data.size());
 }
 
 ByteArray* SymmetricCipher::update(const ByteArray& data)
@@ -159,7 +164,7 @@ ByteArray* SymmetricCipher::doFinal(const std::string &data)
 	ByteArray* encryptedData = new ByteArray(data.size() + 2 * EVP_MAX_BLOCK_LENGTH - 1);
 	unsigned char* encryptedDataPointer = encryptedData->getDataPointer();
 
-	this->update(encryptedDataPointer, &numberOfEncryptedBytes, (const unsigned char*) data.c_str(), data.size() + 1);
+	this->update(encryptedDataPointer, &numberOfEncryptedBytes, (const unsigned char*) data.c_str(), data.size());
 	totalSize = numberOfEncryptedBytes;
 
 	this->doFinal(encryptedDataPointer + numberOfEncryptedBytes, &numberOfEncryptedBytes);
@@ -200,6 +205,18 @@ SymmetricCipher::OperationMode SymmetricCipher::getOperationMode()
 SymmetricCipher::Operation SymmetricCipher::getOperation()
 {
 	return this->operation;
+}
+
+ASN1_TYPE* SymmetricCipher::getAsn1TypeParameters()
+{
+	THROW_OPERATION_ERROR_IF(this->state != SymmetricCipher::INIT);
+
+	ASN1_TYPE *parameters = ASN1_TYPE_new();
+	int rc = EVP_CIPHER_param_to_asn1(this->ctx, parameters);
+	THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
+			ASN1_TYPE_free(parameters);
+	);
+	return parameters;
 }
 
 std::string SymmetricCipher::getOperationModeName(SymmetricCipher::OperationMode mode)

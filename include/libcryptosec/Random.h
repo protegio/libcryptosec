@@ -21,7 +21,7 @@ public:
 	 * @return objeto ByteArray que representa bytes randômicos.
 	 * @throw RandomException caso função de geração de bytes não esteja implementada ou caso o gerador não tenha sido semeado.
 	 */
-	static ByteArray* bytes(int nbytes);
+	static ByteArray bytes(unsigned int nbytes);
 	
 	/**
 	 * Semeia o Gerador de Número Aleatórios com semente.

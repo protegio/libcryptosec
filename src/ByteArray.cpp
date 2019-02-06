@@ -37,7 +37,7 @@ ByteArray::ByteArray(std::ostringstream *buffer) :
 }
 
 ByteArray::ByteArray(const std::string& data) :
-		size(data.size() + 1),
+		size(data.size()),
 		originalSize(size),
 		m_data(new unsigned char[size + 1])
 {
@@ -231,7 +231,7 @@ void ByteArray::setSize(unsigned int size)
 
 std::string ByteArray::toString() const
 {
-	return (char *) this->m_data;
+	return std::string((char *) this->m_data, this->size);
 }
 
 std::string ByteArray::toHex() const
