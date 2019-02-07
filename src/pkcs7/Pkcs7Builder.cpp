@@ -3,6 +3,8 @@
 #include <libcryptosec/exception/CertificationException.h>
 #include <libcryptosec/Macros.h>
 
+#include <openssl/err.h>
+
 Pkcs7Builder::Pkcs7Builder() :
 	pkcs7(PKCS7_new()), p7bio(NULL), state(Pkcs7Builder::NO_INIT), mode(Pkcs7::DATA)
 {
@@ -31,11 +33,7 @@ void Pkcs7Builder::initData()
 	int rc = PKCS7_set_type(this->pkcs7, NID_pkcs7_data);
 	THROW_ENCODE_ERROR_IF(rc == 0);
 
-	this->p7bio = PKCS7_dataInit(this->pkcs7, NULL);
-	THROW_ENCODE_ERROR_AND_FREE_IF(this->p7bio == NULL,
-			this->reset();
-	);
-
+	this->mode = Pkcs7::DATA;
 	this->state = Pkcs7Builder::INIT;
 }
 
@@ -64,11 +62,7 @@ void Pkcs7Builder::initDigested(MessageDigest::Algorithm messageDigestAlgorithm,
 		PKCS7_set_detached(this->pkcs7, 1);
 	}
 
-	this->p7bio = PKCS7_dataInit(this->pkcs7, NULL);
-	THROW_ENCODE_ERROR_AND_FREE_IF(this->p7bio == NULL,
-			this->reset();
-	);
-
+	this->mode = Pkcs7::DIGESTED;
 	this->state = Pkcs7Builder::INIT;
 }
 
@@ -112,6 +106,7 @@ void Pkcs7Builder::initEncrypted(const SymmetricKey& key, const ByteArray& iv, S
 
 	this->p7bio = this->initEncryptedBio(&keyDataArray, &keyDataSize, &ivDataArray, &ivDataSize);
 
+	this->mode = Pkcs7::ENCRYPTED;
 	this->state = Pkcs7Builder::INIT;
 }
 
@@ -134,11 +129,7 @@ void Pkcs7Builder::initSigned(bool attached)
 		PKCS7_set_detached(this->pkcs7, 1);
 	}
 
-	this->p7bio = PKCS7_dataInit(this->pkcs7, NULL);
-	THROW_ENCODE_ERROR_AND_FREE_IF(this->p7bio == NULL,
-			this->reset();
-	);
-
+	this->mode = Pkcs7::SIGNED;
 	this->state = Pkcs7Builder::INIT;
 }
 
@@ -157,11 +148,26 @@ void Pkcs7Builder::initEnveloped(SymmetricKey::Algorithm symmetricAlgorithm,
 			this->reset();
 	);
 
-	this->p7bio = PKCS7_dataInit(this->pkcs7, NULL);
-	THROW_ENCODE_ERROR_AND_FREE_IF(this->p7bio == NULL,
+	this->mode = Pkcs7::ENVELOPED;
+	this->state = Pkcs7Builder::INIT;
+}
+
+void Pkcs7Builder::initSignedAndEnveloped(SymmetricKey::Algorithm symmetricAlgorithm,
+		SymmetricCipher::OperationMode operationMode)
+{
+	if (this->state != Pkcs7Builder::NO_INIT) {
+		this->reset();
+	}
+
+	int rc = PKCS7_set_type(this->pkcs7, NID_pkcs7_signedAndEnveloped);
+	const EVP_CIPHER *cipher = SymmetricCipher::getCipher(symmetricAlgorithm, operationMode);
+
+	rc = PKCS7_set_cipher(this->pkcs7, cipher);
+	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
 			this->reset();
 	);
 
+	this->mode = Pkcs7::SIGNED_AND_ENVELOPED;
 	this->state = Pkcs7Builder::INIT;
 }
 
@@ -169,7 +175,7 @@ void Pkcs7Builder::addSigner(MessageDigest::Algorithm messageDigestAlgorithm,
 		const Certificate& signerCertificate, const PrivateKey& signerPrivateKey)
 {
 	THROW_ENCODE_ERROR_IF(this->state != Pkcs7Builder::INIT);
-	THROW_ENCODE_ERROR_IF(this->mode != Pkcs7::ENVELOPED && this->mode != Pkcs7::SIGNED && this->mode != Pkcs7::SIGNED_AND_ENVELOPED);
+	THROW_ENCODE_ERROR_IF(this->mode != Pkcs7::SIGNED && this->mode != Pkcs7::SIGNED_AND_ENVELOPED);
 
 	const X509 *sslCert = signerCertificate.getX509();
 	const EVP_PKEY *sslPkey = signerPrivateKey.getEvpPkey();
@@ -244,10 +250,22 @@ void Pkcs7Builder::update(const unsigned char* data, unsigned int size)
 {
 	THROW_ENCODE_ERROR_IF(this->state != Pkcs7Builder::INIT && this->state != Pkcs7Builder::UPDATE);
 
-	int rc = BIO_write(this->p7bio, data, size);
-	THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
+	// Do not move this code to Pkcs7Builder::initX.
+	// PKCS7_dataInit MUST be called after setSigner, setRecipient,
+	// setCertificate and setCrl, what we expect to be done after
+	// Pkcs7Builder::initX.
+	if (this->state == Pkcs7Builder::INIT) {
+		this->p7bio = PKCS7_dataInit(this->pkcs7, NULL);
+		THROW_ENCODE_ERROR_AND_FREE_IF(this->p7bio == NULL,
+				this->reset();
+		);
+	}
+
+	int writtenBytes = BIO_write(this->p7bio, data, size);
+	THROW_ENCODE_ERROR_AND_FREE_IF((unsigned int) writtenBytes != size,
 			this->reset();
 	);
+	// CAST: TODO: check cast
 
 	this->state = Pkcs7Builder::UPDATE;
 }
@@ -262,8 +280,9 @@ Pkcs7 Pkcs7Builder::doFinal()
 	);
 
 	// XXX: OpenSSL doesn't support NID_pkcs7_encrypted
+	// So, we copied the PKCS7_dataFinal for NID_pkcs7_enveloped
+	// removing the key management code.
 	if (OBJ_obj2nid(this->pkcs7->type) == NID_pkcs7_encrypted) {
-		int i, j;
 		BIO *btmp;
 		ASN1_OCTET_STRING *os = NULL;
 
@@ -276,7 +295,7 @@ Pkcs7 Pkcs7Builder::doFinal()
 				this->reset();
 		);
 
-		i = OBJ_obj2nid(this->pkcs7->type);
+		int i = OBJ_obj2nid(this->pkcs7->type);
 		this->pkcs7->state = PKCS7_S_HEADER;
 
 		THROW_ENCODE_ERROR_AND_FREE_IF(i != NID_pkcs7_encrypted,
@@ -321,6 +340,9 @@ Pkcs7 Pkcs7Builder::doFinal()
 		}
 	} else {
 		rc = PKCS7_dataFinal(this->pkcs7, this->p7bio);
+		const char *file;
+		int line;
+		ERR_get_error_line(&file, &line);
 		THROW_ENCODE_ERROR_AND_FREE_IF(rc == 0,
 				this->reset();
 		);

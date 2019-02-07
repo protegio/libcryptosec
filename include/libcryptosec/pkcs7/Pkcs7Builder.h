@@ -128,7 +128,8 @@ public:
 	 *
 	 * @throw EncodeException
 	 */
-	void initEnvelopedAndSigned();
+	void initSignedAndEnveloped(SymmetricKey::Algorithm symmetricAlgorithm,
+			SymmetricCipher::OperationMode operationMode);
 
 	/**
 	 * @brief Add a certificate to the PKCS7.
