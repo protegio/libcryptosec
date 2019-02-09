@@ -76,10 +76,12 @@ void Pkcs7Builder::initEncrypted(const SymmetricKey& key, const ByteArray& iv, S
 	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	const EVP_CIPHER *cipher = SymmetricCipher::getCipher(key.getAlgorithm(), operationMode);
-	//rc = PKCS7_set_cipher(this->pkcs7, cipher);
-	// THROW_ENCODE_ERROR_IF(rc == 0);
+
 	// XXX: PKCS7_set_cipher não funciona com NID_pkcs7_encrypted.
 	// O código abaixo foi basado no código do OpenSSL para NID_pkcs7_enveloped.
+	// rc = PKCS7_set_cipher(this->pkcs7, cipher);
+	// THROW_ENCODE_ERROR_IF(rc == 0);
+
 
     int i;
     PKCS7_ENC_CONTENT *ec;
@@ -250,11 +252,14 @@ void Pkcs7Builder::update(const unsigned char* data, unsigned int size)
 {
 	THROW_ENCODE_ERROR_IF(this->state != Pkcs7Builder::INIT && this->state != Pkcs7Builder::UPDATE);
 
+	int nid = OBJ_obj2nid(this->pkcs7->type);
+
 	// Do not move this code to Pkcs7Builder::initX.
 	// PKCS7_dataInit MUST be called after setSigner, setRecipient,
 	// setCertificate and setCrl, what we expect to be done after
 	// Pkcs7Builder::initX.
-	if (this->state == Pkcs7Builder::INIT) {
+	// PKCS7_dataInit doesn't work for NID_pkcs7_encrypted.
+	if (this->state == Pkcs7Builder::INIT && nid != NID_pkcs7_encrypted) {
 		this->p7bio = PKCS7_dataInit(this->pkcs7, NULL);
 		THROW_ENCODE_ERROR_AND_FREE_IF(this->p7bio == NULL,
 				this->reset();

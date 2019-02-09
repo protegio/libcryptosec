@@ -115,11 +115,12 @@ TEST_F(Pkcs7BuilderTest, EncryptedMode) {
 	SymmetricKey symmetricKey(SymmetricKey::AES_256);
 	ByteArray iv = Random::bytes(symmetricKey.getAlgorithmIvSize());
 
-	std::ostringstream ss(std::stringstream::binary);
 	builder.initEncrypted(symmetricKey, iv, SymmetricCipher::CBC);
 	builder.update(testString);
 	Pkcs7 pkcs7 = builder.doFinal();
-	pkcs7.extract(ss);
+
+	std::ostringstream ss(std::stringstream::binary);
+	pkcs7.decrypt(symmetricKey, ss);
 	std::string extracted = ss.str();
 	EXPECT_EQ(extracted, testString);
 	ss.str("");
@@ -134,8 +135,13 @@ TEST_F(Pkcs7BuilderTest, SignedMode) {
 	builder.addSigner(MessageDigest::SHA256, certificate, privateKey);
 	builder.update(testString);
 	Pkcs7 pkcs7 = builder.doFinal();
+
 	std::cout << pkcs7.getPemEncoded() << std::endl;
-	bool valid = pkcs7.verifyAndExtract(ss);
+
+	bool valid = pkcs7.verify();
+	EXPECT_TRUE(valid);
+
+	valid = pkcs7.verifyAndExtract(ss);
 	std::string extracted = ss.str();
 	EXPECT_TRUE(valid);
 	EXPECT_EQ(testString, extracted);
@@ -146,10 +152,21 @@ TEST_F(Pkcs7BuilderTest, SignedModeNoSigner) {
 	builder.initSigned(true);
 	builder.update(testString);
 	Pkcs7 pkcs7 = builder.doFinal();
+
+	std::cerr << "SignedModeNoSigner:" << std::endl;
 	std::cerr << pkcs7.getPemEncoded() << std::endl;
-	bool valid = pkcs7.verifyAndExtract(ss);
+
+	bool valid = pkcs7.verify();
+	EXPECT_FALSE(valid);
+
+	valid = pkcs7.verifyAndExtract(ss);
 	std::string extracted = ss.str();
-	EXPECT_TRUE(valid);
+	EXPECT_FALSE(valid);
+	EXPECT_EQ(testString, extracted);
+
+	ss.str("");
+	pkcs7.extract(ss);
+	extracted = ss.str();
 	EXPECT_EQ(testString, extracted);
 }
 
@@ -162,7 +179,10 @@ TEST_F(Pkcs7BuilderTest, EnvelopedMode) {
 	builder.addRecipient(certificate);
 	builder.update(testString);
 	Pkcs7 pkcs7 = builder.doFinal();
+
+	std::cerr << "EnvelopedMode:" << std::endl;
 	std::cerr << pkcs7.getPemEncoded() << std::endl;
+
 	pkcs7.decrypt(certificate, privateKey, ss);
 	std::string extracted = ss.str();
 	EXPECT_EQ(testString, extracted);
@@ -175,6 +195,8 @@ TEST_F(Pkcs7BuilderTest, EnvelopedModeNoRecipient) {
 TEST_F(Pkcs7BuilderTest, SignedAndEnvelopedMode) {
 	Certificate certificate(testCertificatePem);
 	PrivateKey privateKey(testPrivateKeyPem);
+	std::vector<Certificate> trustedCertifciates;
+	trustedCertifciates.push_back(certificate);
 
 	std::stringstream ss;
 	builder.initSignedAndEnveloped(SymmetricKey::AES_256, SymmetricCipher::CBC);
@@ -182,8 +204,11 @@ TEST_F(Pkcs7BuilderTest, SignedAndEnvelopedMode) {
 	builder.addRecipient(certificate);
 	builder.update(testString);
 	Pkcs7 pkcs7 = builder.doFinal();
+
+	std::cerr << "SignedAndEnvelopedMode:" << std::endl;
 	std::cerr << pkcs7.getPemEncoded() << std::endl;
-	bool valid = pkcs7.verify(true);
+
+	bool valid = pkcs7.verify(certificate, privateKey);
 	pkcs7.decrypt(certificate, privateKey, ss);
 	std::string extracted = ss.str();
 	EXPECT_TRUE(valid);

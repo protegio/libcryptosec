@@ -299,6 +299,8 @@ ByteArray Certificate::getDerEncoded() const
 	ENCODE_DER_AND_RETURN(this->cert, i2d_X509_bio);
 }
 
+// TODO: use X509_check_private_key(cert, pkey)
+
 std::string Certificate::toXml(const std::string& tab) const
 {
 	std::string ret, string;

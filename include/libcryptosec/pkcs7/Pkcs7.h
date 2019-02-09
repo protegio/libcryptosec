@@ -156,6 +156,13 @@ public:
 	 **/
 	void decrypt(const Certificate& certificate, const PrivateKey& privateKey, std::ostream& out);
 
+	/**
+	 * @brief Decifra um PKCS7 do tipo ENCRYPTED.
+	 *
+	 * @param key A chave simétrica para ser usada na decifração.
+	 */
+	void decrypt(const SymmetricKey& key, std::ostream& out);
+
 	/*
 	 * Verifica a assinatura e/ou a integridade do pacote PKCS7
 	 * @return true se o pacote é íntegro e/ou suas assinaturas são válidas
@@ -165,6 +172,14 @@ public:
 	 * @flags opções de validação (ver CertPathValidator::ValidationFlags)
 	 */
 	bool verify(
+			bool checkSignerCert = false,
+			const std::vector<Certificate>& trusted = std::vector<Certificate>(),
+			CertPathValidatorResult **cpvr = NULL,
+			const std::vector<ValidationFlags>& flags = std::vector<ValidationFlags>());
+
+	bool verify(
+			const Certificate& certificate,
+			const PrivateKey& privateKey,
 			bool checkSignerCert = false,
 			const std::vector<Certificate>& trusted = std::vector<Certificate>(),
 			CertPathValidatorResult **cpvr = NULL,
@@ -205,6 +220,37 @@ public:
 	static int callback(int ok, X509_STORE_CTX *ctx);
 
 protected:
+
+	/**
+	 * @brief Returns a BIO to read the PKCS7's decryted data from.
+	 *
+	 * This functions is based on OpenSSL's PKCS7_dataDecode function (pkcs7_doit.c file).
+	 * Different from PKCS7_dataDecode, this functions is strictly used for decrypting
+	 * ENCRYPTED PKCS7. We have to implement this functions because Openssl doesnt't
+	 * provide a decrypt function for ENCRYPTED PKCS7.
+	 *
+	 * @param pkcs7 The pkcs7 to be decrypted.
+	 * @param in_bio The recipients's private key.
+	 * @param key The detached data to be decrypted. Use NULL if the data is attached to the PKCS7.
+	 * @param keySize The recipient's certificate.
+	 *
+	 * @return The BIO to read the decryted data from or NULL if an error occurs.
+	 */
+	BIO* decryptInit(PKCS7 *p7, BIO *in_bio, unsigned char* key, unsigned int keySize) const;
+
+	/**
+	 *
+	 */
+	int verify(const Certificate& certificate, const PrivateKey& privateKey,
+			PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
+			BIO *indata, BIO *out, int flags) const;
+
+	X509_STORE* newX509Store(
+			const std::vector<Certificate>& trusted,
+			CertPathValidatorResult **cpvr,
+			const std::vector<ValidationFlags>& flags);
+
+	STACK_OF(X509)* getSigners(PKCS7* p7, STACK_OF(X509)* certs, int flags) const;
 
 	/**
 	 * Ponteiro para a estrutura PKCS7 da biblioteca OpenSSL
