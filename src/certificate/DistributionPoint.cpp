@@ -1,7 +1,8 @@
 #include <libcryptosec/certificate/DistributionPoint.h>
 
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 DistributionPoint::DistributionPoint()
 {

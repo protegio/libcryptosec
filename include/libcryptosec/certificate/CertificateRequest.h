@@ -3,8 +3,8 @@
 
 #include <libcryptosec/certificate/RDNSequence.h>
 #include <libcryptosec/certificate/extension/Extension.h>
-#include <libcryptosec/PrivateKey.h>
-#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/asymmetric/PrivateKey.h>
+#include <libcryptosec/asymmetric/PublicKey.h>
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
 

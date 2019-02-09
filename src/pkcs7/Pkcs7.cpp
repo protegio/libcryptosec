@@ -1,5 +1,9 @@
 #include <libcryptosec/pkcs7/Pkcs7.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
+
 #include <openssl/rand.h>
 
 #include <memory.h>

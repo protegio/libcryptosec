@@ -1,7 +1,7 @@
 #include <libcryptosec/certificate/CertificateRequestFactory.h>
 
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
 
 #include <string.h>
 

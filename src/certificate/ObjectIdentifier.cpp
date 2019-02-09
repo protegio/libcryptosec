@@ -1,7 +1,8 @@
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 ObjectIdentifier::ObjectIdentifier(ASN1_OBJECT *asn1Object) :
 		asn1Object(asn1Object)

@@ -1,11 +1,11 @@
 #include <libcryptosec/certificate/Certificate.h>
 #include <libcryptosec/certificate/CertificateBuilder.h>
 #include <libcryptosec/Signer.h>
-#include <libcryptosec/ECDSAKeyPair.h>
-#include <libcryptosec/ECDSAPrivateKey.h>
-#include <libcryptosec/ECDSAPublicKey.h>
+#include <libcryptosec/asymmetric/ECDSAKeyPair.h>
+#include <libcryptosec/asymmetric/ECDSAPrivateKey.h>
+#include <libcryptosec/asymmetric/ECDSAPublicKey.h>
 #include <libcryptosec/ec/EllipticCurve.h>
-#include <libcryptosec/AsymmetricKey.h>
+#include <libcryptosec/asymmetric/AsymmetricKey.h>
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
 

@@ -1,5 +1,5 @@
 #include <libcryptosec/certificate/CertificateBuilder.h>
-#include <libcryptosec/RSAKeyPair.h>
+#include <libcryptosec/asymmetric/RSAKeyPair.h>
 #include <libcryptosec/init.h>
 #include <libcryptosec/exception/MessageDigestException.h>
 

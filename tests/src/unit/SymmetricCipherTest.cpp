@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <libcryptosec/RSAKeyPair.h>
-#include <libcryptosec/AsymmetricCipher.h>
+#include <libcryptosec/asymmetric/RSAKeyPair.h>
+#include <libcryptosec/asymmetric/AsymmetricCipher.h>
 #include <libcryptosec/Random.h>
 
 #include <iostream>

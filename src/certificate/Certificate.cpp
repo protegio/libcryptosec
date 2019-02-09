@@ -4,14 +4,14 @@
 #include <libcryptosec/certificate/RDNSequence.h>
 #include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
-#include <libcryptosec/PrivateKey.h>
-#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/asymmetric/PrivateKey.h>
+#include <libcryptosec/asymmetric/PublicKey.h>
 #include <libcryptosec/DateTime.h>
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
 #include <libcryptosec/exception/EncodeException.h>
 
 #include <openssl/pem.h>
@@ -271,7 +271,8 @@ CertificateRequest Certificate::getNewCertificateRequest(const PrivateKey &priva
 	X509_REQ *sslReq = X509_to_X509_REQ(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
 
 	// TODO: check exception type
-	THROW_IF(sslReq == NULL, CertificationException, CertificationException::INTERNAL_ERROR);
+	THROW_ENCODE_ERROR_IF(sslReq == NULL);
+
 	CertificateRequest req((const X509_REQ*) sslReq);
 	X509_REQ_free(sslReq);
 

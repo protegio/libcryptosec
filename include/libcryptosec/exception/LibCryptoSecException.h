@@ -5,8 +5,6 @@
 
 #include <libcryptosec/OpenSSLErrorHandler.h>
 
-#include <libcryptosec/Macros.h>
-
 class LibCryptoSecException : public std::exception
 {
 public:

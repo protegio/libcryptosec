@@ -1,11 +1,11 @@
 #include <libcryptosec/pkcs12/Pkcs12.h>
 
-#include <libcryptosec/RSAPublicKey.h>
-#include <libcryptosec/DSAPublicKey.h>
-#include <libcryptosec/ECDSAPublicKey.h>
-#include <libcryptosec/RSAPrivateKey.h>
-#include <libcryptosec/DSAPrivateKey.h>
-#include <libcryptosec/ECDSAPrivateKey.h>
+#include <libcryptosec/asymmetric/RSAPublicKey.h>
+#include <libcryptosec/asymmetric/DSAPublicKey.h>
+#include <libcryptosec/asymmetric/ECDSAPublicKey.h>
+#include <libcryptosec/asymmetric/RSAPrivateKey.h>
+#include <libcryptosec/asymmetric/DSAPrivateKey.h>
+#include <libcryptosec/asymmetric/ECDSAPrivateKey.h>
 
 #include <libcryptosec/exception/EncodeException.h>
 #include <libcryptosec/exception/Pkcs12Exception.h>
@@ -40,31 +40,7 @@ Pkcs12::~Pkcs12()
 
 ByteArray Pkcs12::getDerEncoded() const
 {
-	BIO *buffer;
-	int ndata, wrote;
-	ByteArray ret;
-	unsigned char *data;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "Pkcs12::getDerEncoded");
-	}
-	
-	wrote = i2d_PKCS12_bio(buffer, this->pkcs12);
-	if (!wrote)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_ENCODE, "Pkcs12::getDerEncoded");
-	}
-	ndata = BIO_get_mem_data(buffer, &data);
-	if (ndata <= 0)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_READING, "Pkcs12::getDerEncoded");
-	}
-	ret = ByteArray(data, ndata);
-	BIO_free(buffer);
-	return ret;
+	ENCODE_DER_AND_RETURN(this->pkcs12, i2d_PKCS12_bio);
 }
 
 PrivateKey* Pkcs12::getPrivKey(std::string password)

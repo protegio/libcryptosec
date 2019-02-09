@@ -3,7 +3,8 @@
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 #include <openssl/asn1.h>
 #include <openssl/x509v3.h>

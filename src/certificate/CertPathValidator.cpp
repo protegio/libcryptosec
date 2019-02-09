@@ -100,7 +100,7 @@ bool CertPathValidator::verify()
 
 		// TODO: sk_X509_push copy or move?
 		rc = sk_X509_push(certs, (X509*) sslCertificate);
-		THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+		THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 				X509_STORE_free(store);
 				X509_STORE_CTX_free(storeCtx);
 				sk_X509_pop_free(certs, X509_free);
@@ -117,7 +117,7 @@ bool CertPathValidator::verify()
 		const X509 *sslCertificate = certificate.getX509();
 		// CAST: X509_STORE_add_cert não modifica sslCertificate
 		rc = X509_STORE_add_cert(store, (X509*) sslCertificate);
-		THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+		THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 				X509_STORE_free(store);
 				X509_STORE_CTX_free(storeCtx);
 				sk_X509_pop_free(certs, X509_free);
@@ -130,7 +130,7 @@ bool CertPathValidator::verify()
 		switch(flag) {
 			case CRL_CHECK:
 				rc = X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK);
-				THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+				THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 						X509_STORE_free(store);
 						X509_STORE_CTX_free(storeCtx);
 						sk_X509_pop_free(certs, X509_free);
@@ -140,14 +140,14 @@ bool CertPathValidator::verify()
 			case CRL_CHECK_ALL:
 				/*precisa por CRL_CHECK tambem, caso contrario o openssl nao verifica CRL*/
 				rc = X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK);
-				THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+				THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 						X509_STORE_free(store);
 						X509_STORE_CTX_free(storeCtx);
 						sk_X509_pop_free(certs, X509_free);
 				);
 
 				rc = X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK_ALL);
-				THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+				THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 						X509_STORE_free(store);
 						X509_STORE_CTX_free(storeCtx);
 						sk_X509_pop_free(certs, X509_free);
@@ -161,7 +161,7 @@ bool CertPathValidator::verify()
 		const X509_CRL *sslCrl = crl.getX509Crl();
 		// CAST: X509_STORE_add_crl não modifica sslCrl
 		rc = X509_STORE_add_crl(store, (X509_CRL*) sslCrl);
-		THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+		THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 				X509_STORE_free(store);
 				X509_STORE_CTX_free(storeCtx);
 				sk_X509_pop_free(certs, X509_free);
@@ -174,7 +174,7 @@ bool CertPathValidator::verify()
 	const X509 *sslUntrusted = this->untrusted.getX509();
 	// CAST: X509_STORE_CTX_init não modifica sslUntrusted
 	rc = X509_STORE_CTX_init(storeCtx, store, (X509*) sslUntrusted, certs);
-	THROW_DECODE_ERROR_AND_FREE_IF(rc == 0,
+	THROW_OPERATION_ERROR_AND_FREE_IF(rc == 0,
 			X509_STORE_free(store);
 			X509_STORE_CTX_free(storeCtx);
 			sk_X509_pop_free(certs, X509_free);

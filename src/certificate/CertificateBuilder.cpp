@@ -3,15 +3,15 @@
 #include <libcryptosec/certificate/CertificateRequest.h>
 #include <libcryptosec/certificate/extension/Extension.h>
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
-#include <libcryptosec/PrivateKey.h>
-#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/asymmetric/PrivateKey.h>
+#include <libcryptosec/asymmetric/PublicKey.h>
 #include <libcryptosec/DateTime.h>
 #include <libcryptosec/MessageDigest.h>
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/AsymmetricKeyException.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
 #include <libcryptosec/exception/EncodeException.h>
 
 #include <openssl/pem.h>
@@ -394,7 +394,7 @@ Certificate CertificateBuilder::sign(const PrivateKey& privateKey, MessageDigest
 	const EVP_MD *md = MessageDigest::getMessageDigest(messageDigestAlgorithm);
 
 	int rc = X509_sign(this->cert, (EVP_PKEY*) privateKey.getEvpPkey(), md);
-	THROW_IF(rc == 0, CertificationException, CertificationException::INTERNAL_ERROR); // TODO: check exception type
+	THROW_ENCODE_ERROR_IF(rc == 0);
 
 	// TODO: should we reset the builder after sign?
 	Certificate ret ((const X509*) this->cert);

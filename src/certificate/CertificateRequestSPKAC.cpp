@@ -1,7 +1,7 @@
 #include <libcryptosec/certificate/CertificateRequestSPKAC.h>
 
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
 
 CertificateRequestSPKAC::CertificateRequestSPKAC(const std::string& netscapeSPKIBase64) :
 		CertificateRequest(), spkac(netscapeSPKIBase64)

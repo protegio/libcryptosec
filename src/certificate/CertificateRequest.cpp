@@ -2,8 +2,9 @@
 
 #include <libcryptosec/Base64.h>
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
 
 #include <openssl/pem.h>
 
@@ -494,9 +495,8 @@ ByteArray CertificateRequest::getFingerPrint(MessageDigest::Algorithm algorithm)
 
 void CertificateRequest::sign(const PrivateKey& privateKey, MessageDigest::Algorithm messageDigestAlgorithm)
 {
-	// CAST: TODO
 	int rc = X509_REQ_sign(this->req, (EVP_PKEY*) privateKey.getEvpPkey(), MessageDigest::getMessageDigest(messageDigestAlgorithm));
-	THROW_IF(rc == 0, CertificationException, CertificationException::INTERNAL_ERROR); // TODO: check exception type
+	THROW_ENCODE_ERROR_IF(rc == 0);
 }
 
 bool CertificateRequest::verify() const

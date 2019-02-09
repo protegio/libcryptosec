@@ -33,12 +33,22 @@ do {\
 	}\
 } while(false)
 
-#define THROW_ENCODE_ERROR_IF(exp) THROW_IF(exp, CertificationException, CertificationException::ENCODE_ERROR)
-#define THROW_ENCODE_ERROR_AND_FREE_IF(exp, free_code) THROW_AND_FREE_IF(exp, CertificationException, CertificationException::ENCODE_ERROR, free_code)
-#define THROW_DECODE_ERROR_IF(exp) THROW_IF(exp, CertificationException, CertificationException::DECODE_ERROR)
-#define THROW_DECODE_ERROR_AND_FREE_IF(exp, free_code) THROW_AND_FREE_IF(exp, CertificationException, CertificationException::DECODE_ERROR, free_code)
-#define THROW_OPERATION_ERROR_IF(exp) THROW_IF(exp, OperationException, OperationException::UNKNOWN)
-#define THROW_OPERATION_ERROR_AND_FREE_IF(exp, free_code) THROW_AND_FREE_IF(exp, OperationException, OperationException::UNKNOWN, free_code)
+#define THROW_NO_REASON_AND_FREE_IF(exp, exception, free_code)\
+do {\
+	if ((exp)) {\
+		free_code\
+		THROW_NO_REASON(exception);\
+	}\
+} while(false)
+
+#define THROW_ENCODE_ERROR_IF(exp) THROW_NO_REASON_IF(exp, EncodeException)
+#define THROW_ENCODE_ERROR_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, EncodeException, free_code)
+
+#define THROW_DECODE_ERROR_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
+#define THROW_DECODE_ERROR_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
+
+#define THROW_OPERATION_ERROR_IF(exp) THROW_NO_REASON_IF(exp, OperationException)
+#define THROW_OPERATION_ERROR_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, OperationException, free_code)
 
 #define DECODE_PEM(dst, str, decode_foo)\
 	do {\
@@ -97,6 +107,27 @@ do {\
 	do { \
 	_ENCODE(src, encode_foo);\
 	return ret; \
+	} while(false)
+
+#define ENCODE_ENCRYPTED_PEM_AND_RETURN(src, encode_foo, cipher, callback, passphrase)\
+	do {\
+	unsigned char *data;\
+	BIO *buffer = BIO_new(BIO_s_mem());\
+	THROW_ENCODE_ERROR_IF(buffer == NULL);\
+	\
+	int wrote = encode_foo(buffer, src, cipher, NULL, 0, callback, passphrase);\
+	THROW_ENCODE_ERROR_AND_FREE_IF(wrote <= 0,\
+			BIO_free(buffer);\
+	);\
+	\
+	int ndata = BIO_get_mem_data(buffer, &data);\
+	THROW_ENCODE_ERROR_AND_FREE_IF(ndata <= 0,\
+		BIO_free(buffer);\
+	);\
+	\
+	ByteArray ret(data, ndata);\
+	BIO_free(buffer);\
+	return ret.toString();\
 	} while(false)
 
 #define DECLARE_ENUM(name, size, ...) \

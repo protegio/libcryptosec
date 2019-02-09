@@ -5,7 +5,7 @@
 #include <libcryptosec/certificate/RDNSequence.h>
 #include <libcryptosec/certificate/RevokedCertificate.h>
 #include <libcryptosec/DateTime.h>
-#include <libcryptosec/PublicKey.h>
+#include <libcryptosec/asymmetric/PublicKey.h>
 #include <libcryptosec/BigInteger.h>
 #include <libcryptosec/ByteArray.h>
 

@@ -1,10 +1,11 @@
 #include <libcryptosec/certificate/CertificateRevocationListBuilder.h>
 
 #include <libcryptosec/certificate/extension/ExtensionFactory.h>
-#include <libcryptosec/PrivateKey.h>
+#include <libcryptosec/asymmetric/PrivateKey.h>
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 #include <openssl/pem.h>
 

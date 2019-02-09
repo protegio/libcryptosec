@@ -1,6 +1,6 @@
 #include <libcryptosec/pkcs7/Pkcs7Builder.h>
 
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/EncodeException.h>
 #include <libcryptosec/Macros.h>
 
 #include <openssl/err.h>

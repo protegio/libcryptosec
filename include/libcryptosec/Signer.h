@@ -1,19 +1,15 @@
 #ifndef SIGNER_H_
 #define SIGNER_H_
 
-/* OpenSSL includes */
+#include <libcryptosec/asymmetric/PrivateKey.h>
+#include <libcryptosec/asymmetric/PublicKey.h>
+#include <libcryptosec/MessageDigest.h>
+#include <libcryptosec/ByteArray.h>
+#include <libcryptosec/exception/SignerException.h>
+
 #include <openssl/dsa.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
-
-/* local includes */
-#include "ByteArray.h"
-#include "MessageDigest.h"
-#include "PrivateKey.h"
-#include "PublicKey.h"
-
-/* exception includes */
-#include <libcryptosec/exception/SignerException.h>
 
 /**
  * @brief Implementa funcionalidades de assinatura assimétrica, bem como a verificação dessa.

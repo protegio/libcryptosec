@@ -4,7 +4,8 @@
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/certificate/ObjectIdentifier.h>
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 #include <openssl/x509.h>
 

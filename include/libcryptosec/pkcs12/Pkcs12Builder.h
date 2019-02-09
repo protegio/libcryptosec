@@ -3,7 +3,7 @@
 
 #include <libcryptosec/pkcs12/Pkcs12.h>
 #include <libcryptosec/certificate/Certificate.h>
-#include <libcryptosec/PrivateKey.h>
+#include <libcryptosec/asymmetric/PrivateKey.h>
 
 #include <vector>
 #include <string>

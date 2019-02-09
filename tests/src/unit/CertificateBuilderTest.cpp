@@ -2,8 +2,8 @@
 #include <libcryptosec/certificate/CertificateRequest.h>
 #include <libcryptosec/certificate/Certificate.h>
 #include <libcryptosec/certificate/RDNSequence.h>
+#include <libcryptosec/asymmetric/RSAKeyPair.h>
 
-#include <libcryptosec/RSAKeyPair.h>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>

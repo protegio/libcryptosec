@@ -13,7 +13,8 @@
 #include <libcryptosec/certificate/extension/SubjectInformationAccessExtension.h>
 #include <libcryptosec/certificate/extension/SubjectKeyIdentifierExtension.h>
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/CertificationException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/exception/EncodeException.h>
 
 ExtensionFactory::~ExtensionFactory() {
 }

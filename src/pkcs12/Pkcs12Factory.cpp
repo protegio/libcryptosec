@@ -1,28 +1,16 @@
 #include <libcryptosec/pkcs12/Pkcs12Factory.h>
 
-#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/ByteArray.h>
 
-Pkcs12* Pkcs12Factory::fromDerEncoded(ByteArray &derEncoded)
+#include <openssl/pem.h>
+#include <openssl/pkcs7.h>
+#include <openssl/asn1.h>
+
+Pkcs12 Pkcs12Factory::fromDerEncoded(const ByteArray& derEncoded)
 {
-	BIO *buffer;
-	PKCS12 *pkcs12;
-	buffer = BIO_new(BIO_s_mem());
-	if (buffer == NULL)
-	{
-		throw EncodeException(EncodeException::BUFFER_CREATING, "Pkcs12::loadFromDerEncoded");
-	}
-	if ((unsigned int)(BIO_write(buffer, derEncoded.getDataPointer(), derEncoded.getSize())) != derEncoded.getSize())
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::BUFFER_WRITING, "Pkcs12::loadFromDerEncoded");
-	}
-	pkcs12 = d2i_PKCS12_bio(buffer, NULL); /* TODO: will the second parameter work fine ? */
-	if (pkcs12 == NULL)
-	{
-		BIO_free(buffer);
-		throw EncodeException(EncodeException::DER_DECODE, "Pkcs12::loadFromDerEncoded");
-	}
-	BIO_free(buffer);
-	
-	return new Pkcs12(pkcs12);
+	PKCS12 *pkcs12 = NULL;
+	DECODE_DER(pkcs12, derEncoded, d2i_PKCS12_bio);
+	Pkcs12 ret(pkcs12);
+	return ret;
 }

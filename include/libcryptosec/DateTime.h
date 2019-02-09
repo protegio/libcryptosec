@@ -11,9 +11,6 @@
 #include <cmath>
 
 #include "BigInteger.h"
-#include <libcryptosec/exception/CertificationException.h>
-
-
 
 /**
  * @ingroup Util

@@ -2,13 +2,8 @@
 #define PKCS12FACTORY_H_
 
 #include <libcryptosec/pkcs12/Pkcs12.h>
-#include <libcryptosec/ByteArray.h>
 
-#include <openssl/pem.h>
-#include <openssl/pkcs7.h>
-#include <openssl/asn1.h>
-
-#include <string>
+class ByteArray;
 
 class Pkcs12Factory
 {
@@ -21,7 +16,7 @@ public:
 	 * @throw Pkcs7Exception se ocorrer algum probelma na geração do pacote PKCS7.
 	 * @throw EncodeException se ocorrer algum problema na decodificação do pacote DER.
 	 **/
-	static Pkcs12* fromDerEncoded(ByteArray &derEncoded);
+	static Pkcs12 fromDerEncoded(const ByteArray& derEncoded);
 };
 
 #endif /*PKCS12FACTORY_H_*/
