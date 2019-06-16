@@ -83,7 +83,7 @@ X509_REVOKED* RevokedCertificate::getSslObject() const
 	THROW_ENCODE_ERROR_IF(ret == NULL);
 
 	try {
-		sslSerialNumber = this->certificateSerialNumber.getASN1Value();
+		sslSerialNumber = this->certificateSerialNumber.toAsn1Integer();
 	} catch (...) {
 		X509_REVOKED_free(ret);
 		throw;

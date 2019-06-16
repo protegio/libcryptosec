@@ -21,254 +21,297 @@ class BigInteger
 public:
 
 	/**
-	 * Construtor padrão.
-	 * Cria um objeto BigInteger com o valor inteiro 0.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger.
+	 * @brief Construtor padrão.
+	 *
+	 * Inicializa o objeto com o valor 0.
 	 */
 	BigInteger();
 	
 	/**
-	 * BigInteger a partir de um estrutura BIGNUM do OpenSSL.
-	 * @param bn ponteiro para estrutra constante BIGNUM.
-	 * @throw BigIntegerException no caso de erro interno do OpenSSL ao criar o BigInteger.
-	 * */
-	BigInteger(BIGNUM const* bn);
+	 * @brief Construtor de inicialização por estrutura BIGNUM do OpenSSL.
+	 *
+	 * @param value Ponteiro para estrutra BIGNUM.
+	 */
+	BigInteger(const BIGNUM* value);
 	
 	/**
-	 * BigInteger a partir de um tipo primitivo (unsigned long).
-	 * @param val valor inteiro.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger. 
-	 * */
-	BigInteger(long val);
-	BigInteger(int val);
-	
-	/**
-	 * BigInteger a partir de uma estrutura ASN1_INTEGER do OpenSSL.
-	 * @param val ponteiro para estrutura ASN1_INTEGER.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger.
-	 * */
-	BigInteger(const ASN1_INTEGER* val);
-	
-	/**
-	 * Construtor de inicialização com ByteArray.
-	 * @param val referência para objeto constante ByteArray.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger ou devido a um erro interno do OpenSSL.
-	 * */
-	BigInteger(const ByteArray& b);
-	
-	/**
-	 * BigInteger a partir do string de um número inteiro na base decimal.
-	 * @param dec string contendo um número inteiro em base 10.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger.
-	 * */
-	BigInteger(const std::string& dec);
-	BigInteger(const char* dec);
+	 * @brief Construtor de inicialização por valor long.
+	 *
+	 * @param value Valor a ser atribuído ao objeto.
+	 */
+	BigInteger(int64_t value);
+	BigInteger(uint64_t value);
+	BigInteger(int32_t value);
+	BigInteger(uint32_t value);
 
 	/**
-	 * Construtor de cópia.
-	 * @param b referência para um objeto BigInteger.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger.
-	 * */
-	BigInteger(const BigInteger& b);
+	 * @brief Construtor de inicialização por valor estrutura ASN1_INTEGER do OpenSSL.
+	 *
+	 * @param value Ponteiro para estrutura ASN1_INTEGER.
+	 */
+	BigInteger(const ASN1_INTEGER* value);
 	
 	/**
-	 * Construtor de move.
-	 * @param b referência para um objeto BigInteger.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o BigInteger.
-	 * */
-	BigInteger(BigInteger&& b);
+	 * @brief Construtor de inicialização por ByteArray.
+	 *
+	 * Esse construtor permite construir um BigInteger a partir de um inteiro
+	 * representado por um array de bytes no formato big-endian.
+	 *
+	 * @param value O valor do inteiro representado em um array de bytes no formato big-endian.
+	 */
+	BigInteger(const ByteArray& value);
 
 	/**
-	 * Destrutor padrão
-	 * */
+	 * @brief Construtor de inicialização por string de um número inteiro.
+	 *
+	 * @param value String contendo um número inteiro.
+	 * @param base A base numérica usada para representar o número inteiro.
+	 */
+	BigInteger(const std::string& value, uint32_t base = 10);
+	BigInteger(const char* value, uint32_t base = 10);
+
+	/**
+	 * @brief Construtor de cópia.
+	 *
+	 * @param value Objeto a ser copiado.
+	 */
+	BigInteger(const BigInteger& value);
+	
+	/**
+	 * Construtor de inicialização por movimentação de atributos.
+	 *
+	 * @param value referência para um objeto BigInteger.
+	 */
+	BigInteger(BigInteger&& value);
+
+	/**
+	 * Destrutor padrão.
+	 */
 	virtual ~BigInteger();
 
 	/**
-	 * Operador de atribuição.
-	 * @param c referência para objeto constante BigInteger.
-	 * @return referência para objeto BigInteger.
-	 * @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	 * */
-	BigInteger& operator=(long c);
-	BigInteger& operator=(const BigInteger& c);
-	BigInteger& operator=(BigInteger&& c);
+	 * @brief Operador de atribuição por cópia.
+	 *
+	 * @param value Valor que será atribuído.
+	 *
+	 * @return O próprio objeto.
+	 */
+	BigInteger& operator=(const BigInteger& value);
 
 	/**
-	 * Define o valor inteiro de um BigInteger. Se nenhum valor é passado, define o valor zero.
-	 * @param val valor inteiro.
-	 * @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	 * */
-	void setValue(long val = 0);
+	 * @brief Operador de atribuição por movimentação de atributos.
+	 *
+	 * @param value Valor a ser atribuído.
+	 *
+	 * @return O próprio objeto.
+	 */
+	BigInteger& operator=(BigInteger&& value);
 
 	/**
-	 * Retorna o valor inteiro correspondente do BigInteger.
-	 * @return valor inteiro do BigInteger.
-	 * @throw BigIntegerException caso o valor do BigInteger não possa ser representado em um unsigned long (overflow).
-	 * */
-	double getValue() const;
+	 * @brief Atribui o valor ao objeto.
+	 *
+	 * @param value Valor a ser atribuído.
+	 */
+	void setInt64(int64_t value);
+	void setUint64(uint64_t value);
 
 	/**
-	 * Retorna se o BigInteger é negativo.
-	 * @return true se o BigInteger é negativo, false caso contrário.
-	 * */
+	 * @return O valor do inteiro no formato int32_t.
+	 */
+	int64_t toInt64() const;
+	int32_t toInt32() const;
+
+	/**
+	 * @return Retorna true se o inteiro é negativo, false caso contrário.
+	 */
 	bool isNegative() const;
 
 	/**
-	 * Retorna estrutura ASN1_INTEGER com o valor do BigInteger.
-	 * @return estrutura ASN1_INTEGER.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o ASN1_INTEGER.
-	 * */
-	ASN1_INTEGER* getASN1Value() const;
+	 * @return A estrutura ASN1_INTEGER que representa o valor inteiro. A estrutura deve
+	 * 	ser desalocada por quem chamou a função com a função ASN1_INTEGER_free();
+	 */
+	ASN1_INTEGER* toAsn1Integer() const;
 
 	/**
-	 * Retorna ponteiro para um objeto ByteArray com o valor do BigInteger. 
-	 * O objeto ByteArray tem codificação mpi (inclui sinal) e deve ser deletado.
-	 * @return ponteiro para objeto ByteArray.
-	 * @throw BigIntegerException no caso de falta de memória ao criar o ByteArray.
-	 * */
-	ByteArray getBinValue() const;
+	 * @return O valor do inteiro representado em um array de bytes no formato big-endian.
+	 */
+	ByteArray toByteArray() const;
 
 	/**
-	 * Retorna ponteiro para estrutura constante BIGNUM membro de BigInteger.
-	 * @return ponteiro para estrutura constante BIGNUM.
-	 * */
-	const BIGNUM* getBIGNUM() const;
-
-	/**
-	 * Retorna string com valor do BigInteger em base 16.
-	 * @return string com valor inteiro.
-	 * */
+	 * @return A representação hexadecimal do inteiro.
+	 */
 	std::string toHex() const;
 	
 	/**
-	 * Retorna string com valor do BigInteger em base 10.
-	 * @return string com valor inteiro.
-	 * */	
+	 * @return A representação decimal do inteiro.
+	 */
 	std::string toDec() const;
 
 	/**
-	 * Define o valor inteiro em base 16 de um BigInteger. Não utilizar string "0x" para identificar base 16.
-	 * @param hex valor inteiro.
-	 * @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	 * */
-	void setHexValue(const std::string& hex); //nao utilizar "0x"
-	void setHexValue(const char* hex);
+	 * @brief Atribui o valor representado em hexadecimal.
+	 *
+	 * Não utilizar o prefixo "0x".
+	 *
+	 * @param hex O valor inteiro em hexadecimal.
+	 */
+	void setHexValue(const std::string& hex);
 
 	/**
-	* Define o valor inteiro em base 10 de um BigInteger. Não utilizar string "0x" para identificar base 16.
-	* @param dec valor inteiro.
-	* @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	* */
+	 * @brief Atribui o valor representado em decimal.
+	 *
+	 * @param hex O valor inteiro em decimal.
+	 */
 	void setDecValue(const std::string& dec);
-	void setDecValue(const char* dec);
 
 	/**
-	 * Define um valor inteiro randômico (positivo ou negativo).
-	 * @param numBits número de bits do BigInteger. Se nenhum parâmetro é passado, assume-se numBits = 64.
-	 * @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	 * */
-	void setRandValue(int numBits = 64);
-
-	/**
-	 * Define o sinal do BigInteger.
-	 * @param bool true se negativo, false se positivo. Se nenhum parâmetro é passado, assume-se negativo.
-	 * */
-	void setNegative(bool neg = true);
+	 * @brief Atribui ou remove o sinal de negativo.
+	 * @param bool true se negativo, false se positivo.
+	 */
+	void setNegative(bool neg = true) noexcept;
 	
 	/**
-	 * Retorna o tamanho do valor inteiro do BigInteger em bits.
-	 * @return tamanho do BigInteger
-	 * */
-	int size() const;
+	 * @return O tamanho em bits do inteiro.
+	 */
+	uint32_t bitSize() const;
 	
 	/**
 	 * Soma os valores inteiros entre dois BigIntegers.
 	 * @param a referência para objeto constante BigInteger.
 	 * @return referência para objeto BigInteger com o resultado da soma.
 	 * @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	 * */
+	 */
 	BigInteger& add(const BigInteger& a);
-	BigInteger& add(long a);
 	BigInteger operator+(const BigInteger& c) const;
-	BigInteger operator+(long c) const;
 	BigInteger& operator+=(const BigInteger& c);
-	BigInteger& operator+=(long c);
 
 	/**
 	 * Subtração entre os valores inteiros de dois BigIntegers.
 	 * @param a referência para objeto constante BigInteger.
 	 * @return referência para objeto BigInteger com o resultado da subtração.
 	 * @throw BigIntegerException no caso de um erro interno do OpenSSL.
-	 * */
+	 */
 	BigInteger& sub(const BigInteger& a);
-	BigInteger& sub(long a);
 	BigInteger operator-(const BigInteger& c) const;
-	BigInteger operator-(long c) const;
 
 	/**
 	 * Multiplação entre os valores inteiros de doi BigIntegers.
 	 */
 	BigInteger& mul(const BigInteger& a);
-	BigInteger& mul(long a);
 	BigInteger operator*(const BigInteger& a) const;
-	BigInteger operator*(long c) const;
 
 	/**
 	 * Divisão entre os valores inteiros de doi BigIntegers.
 	 */
 	BigInteger& div(const BigInteger& a);
-	BigInteger& div(long a);
 	BigInteger operator/(const BigInteger& a) const;
-	BigInteger operator/(long c) const;
 
 	/**
-	 * Módulo entre os valores inteiros de doi BigIntegers.
+	 * @brief Operação modular.
+	 *
+	 * @param divisor O divisor da operação modular.
+	 *
+	 * @return O resultado da operação modular.
 	 */
-	BigInteger& mod(const BigInteger& a);
-	BigInteger& mod(long a);
-	BigInteger operator%(const BigInteger& a) const;
-	BigInteger operator%(long c) const;
-	
-	int compare(const BigInteger& a) const;
+	BigInteger mod(const BigInteger& divisor) const;
+	BigInteger operator%(const BigInteger& divisor) const;
 
 	/**
-	 * Operadores de comparação.
+	 * @brief Operação de comparação.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna 0 se for igual ao valor passado, 1 se for maior e -1 se for menor.
+	 */
+	int compare(const BigInteger& bigInteger) const noexcept;
+
+	/**
+	 * @brief Operador de igualdade.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna true se for igual, false caso contrário.
 	 */
 	bool operator==(const BigInteger& c) const;
-	bool operator==(long c) const;
-
-	bool operator!=(const BigInteger& c) const;
-	bool operator!=(long c) const;
-	
-	bool operator>(const BigInteger& c) const;
-	bool operator>(long c) const;
-
-	bool operator>=(const BigInteger& c) const;
-	bool operator>=(long c) const;
-	
-	bool operator<(const BigInteger& c) const;
-	bool operator<(long c) const;
-
-	bool operator<=(const BigInteger& c) const;
-	bool operator<=(long c) const;
 
 	/**
-	 * Operadores lógicos.
+	 * @brief Operador de desigualdade.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna false se for igual, true caso contrário.
+	 */
+	bool operator!=(const BigInteger& bigInteger) const;
+	
+	/**
+	 * @brief Operador de maior.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna true se for maior que \p bigInteger, false caso contrário.
+	 */
+	bool operator>(const BigInteger& bigInteger) const;
+
+	/**
+	 * @brief Operador de maior ou igual.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna true se for maior ou igual que \p bigInteger, false caso contrário.
+	 */
+	bool operator>=(const BigInteger& bigInteger) const;
+
+	/**
+	 * @brief Operador de menor.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna true se for menor que \p bigInteger, false caso contrário.
+	 */
+	bool operator<(const BigInteger& bigInteger) const;
+
+	/**
+	 * @brief Operador de menor ou igual.
+	 *
+	 * @param bigInteger Valor para ser comparado.
+	 *
+	 * @return Retorna true se for menor ou igual que \p bigInteger, false caso contrário.
+	 */
+	bool operator<=(const BigInteger& bigInteger) const;
+
+	/**
+	 * @brief Operador de negação.
+	 *
+	 * @return Retorna false se o valor for 0, true caso contrário.
 	 */
 	bool operator!() const;
 
+	/**
+	 * @brief Operador de "ou" lógico.
+	 */
 	bool operator||(const BigInteger& c) const;
-	bool operator||(long c) const;
 
+	/**
+	 * @brief Operador "e" lógico.
+	 *
+	 * @param bigInteger Valor para realizar a operação lógica.
+	 *
+	 * @return Retorna true se \p bigInteger for diferente
+	 */
 	bool operator&&(const BigInteger& c) const;
-	bool operator&&(long c) const;
+
+	/**
+	 * @return O ponteiro para estrutura interna BIGNUM.
+	 */
+	const BIGNUM* getSslObject() const;
+
+	/**
+	 * @return Uma cópia da estrutura interna BIGNUM.
+	 */
+	BIGNUM* toSslObject() const;
 
 protected:
 	BIGNUM* bigInt;
 };
-
-BigInteger operator+(long c, const BigInteger& d);
-BigInteger operator-(long c, const BigInteger& d);
 
 
 #endif /*BIGINTEGER_H_*/

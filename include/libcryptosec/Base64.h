@@ -10,7 +10,7 @@ class ByteArray;
  */
 
 /**
- * @brief class to perform base64 encode/decode. Implements only static functions.
+ * @brief Classe de codificação em base 64.
  */
 
 class Base64
@@ -18,24 +18,26 @@ class Base64
 public:
 
 	/**
-	 * encode data (readable/unreadable) to base64 format
-	 * @data data to be encoded
-	 * @return encoded data 
+	 * @brief Codifica o dado passado para base 64.
+	 *
+	 * @data data O dado a ser codificado.
+	 *
+	 * @return O dado codificado em base64.
 	 */
 	static std::string encode(const ByteArray& data);
 
 	/**
-	 * decode base64 format data to data (readable/unreadable)
-	 * @data data to be decoded
-	 * @return decoded data
+	 * @brief Decodifica o dado em base 64 para binário.
+	 *
+	 * @data data O dado a ser decodificado.
+	 *
+	 * @return O dado decodificado.
 	 */
 	static ByteArray decode(const std::string& data);
+
 private:
 
-	/**
-	 * internal use. It Represents possible values to base64 format. 
-	 */
-	static const std::string base64Chars;
+	static const std::string base64Chars; //< Lista de caracteres da codificação em base 64.
 };
 
 #endif /*BASE64_H_*/

@@ -1,101 +1,115 @@
 #include <libcryptosec/BigInteger.h>
 
 #include <libcryptosec/ByteArray.h>
-#include <libcryptosec/exception/BigIntegerException.h>
+#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/exception/DecodeException.h>
+#include <libcryptosec/Macros.h>
 
 #include <openssl/asn1t.h>
 #include <openssl/ossl_typ.h>
 
 #include <time.h>
 #include <stdlib.h>
+#include <cmath>
+
+#define THROW_BIG_INTEGER_ERROR_IF(exp) THROW_IF(exp, BigIntegerException, BigIntegerException::MEMORY_ALLOC)
 
 BigInteger::BigInteger() :
 		bigInt(BN_new())
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-
-	BigInteger::setValue(0);
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+	this->setInt64(0);
 }
 
-BigInteger::BigInteger(BIGNUM const* bn) :
+BigInteger::BigInteger(const BIGNUM* bn) :
 		bigInt(BN_dup(bn))
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
-	}
-	
+	THROW_NULL_POINTER_IF(bn == NULL);
+	THROW_DECODE_IF(this->bigInt == NULL);
 }
 
-BigInteger::BigInteger(long val) :
+BigInteger::BigInteger(int64_t value) :
 		bigInt(BN_new())
-
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-
-	BigInteger::setValue(val);
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+	this->setInt64(value);
 }
 
-BigInteger::BigInteger(int val) :
-		BigInteger((long) val)
+BigInteger::BigInteger(uint64_t value) :
+		bigInt(BN_new())
 {
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+	this->setUint64(value);
+}
+
+BigInteger::BigInteger(int32_t value) :
+		bigInt(BN_new())
+{
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+	int64_t value64 = static_cast<int64_t>(value);
+	value64 = value64 << 32;
+	value64 = value64 >> 32;
+	this->setInt64(value64);
+}
+
+BigInteger::BigInteger(uint32_t value) :
+		bigInt(BN_new())
+{
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+	int64_t value64 = static_cast<int64_t>(value);
+	value64 = value64 << 32;
+	value64 = value64 >> 32;
+	this->setUint64(value64);
 }
 
 BigInteger::BigInteger(const ASN1_INTEGER* val) :
 		bigInt(BN_new())
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-	
-	BIGNUM *rc = ASN1_INTEGER_to_BN(val, this->bigInt);
-	if(!rc) {
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
-	}
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+	THROW_NULL_POINTER_IF(val == NULL);
+
+	BIGNUM *bn = ASN1_INTEGER_to_BN(val, this->bigInt);
+	THROW_DECODE_IF(bn == NULL);
 }
 
 BigInteger::BigInteger(const ByteArray& b) :
 		bigInt(BN_new())
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-	
-	BIGNUM *rc = BN_mpi2bn(b.getConstDataPointer(), b.getSize(), this->bigInt);
-	if(!rc) {
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+
+	const unsigned char *dataPointer = b.getConstDataPointer();
+	unsigned int dataSize = b.getSize();
+
+	// TODO: porque usavamos o formato mpi e não bin?
+	// BIGNUM *bn = BN_mpi2bn(dataPointer, dataSize, this->bigInt);
+
+	BIGNUM *bn = BN_bin2bn(dataPointer, dataSize, this->bigInt);
+	THROW_DECODE_IF(bn == NULL);
+}
+
+BigInteger::BigInteger(const std::string& value, uint32_t base) :
+		bigInt(BN_new())
+{
+	THROW_BAD_ALLOC_IF(this->bigInt == NULL);
+
+	if (base == 10) {
+		this->setDecValue(value);
+	} else if (base == 16) {
+		this->setHexValue(value);
+	} else {
+		THROW_DECODE_ERROR_IF(true);
 	}
 }
 
-BigInteger::BigInteger(const std::string& dec):
-		bigInt(BN_new())
+BigInteger::BigInteger(const char* value, uint32_t base) :
+		BigInteger(std::string(value), base)
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-	
-	BigInteger::setDecValue(dec);
-}
-
-BigInteger::BigInteger(const char* dec) :
-		bigInt(BN_new())
-{
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
-
-	BigInteger::setDecValue(dec);
 }
 
 BigInteger::BigInteger(const BigInteger& b) :
 		bigInt(BN_dup(b.bigInt))
 {
-	if(this->bigInt == NULL) {
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::BigInteger");
-	}
+	THROW_DECODE_IF(this->bigInt == NULL);
 }
 
 BigInteger::BigInteger(BigInteger&& b) :
@@ -106,14 +120,9 @@ BigInteger::BigInteger(BigInteger&& b) :
 
 BigInteger::~BigInteger()
 {
-	if (this->bigInt)
+	if (this->bigInt != NULL) {
 		BN_clear_free(this->bigInt);
-}
-
-BigInteger& BigInteger::operator=(long c)
-{
-	this->setValue(c);
-	return *this;
+	}
 }
 
 BigInteger& BigInteger::operator=(const BigInteger& c)
@@ -122,10 +131,8 @@ BigInteger& BigInteger::operator=(const BigInteger& c)
 		return *this;
 	}
 
-	BIGNUM *rc = BN_copy(this->bigInt, c.getBIGNUM());
-	if(rc == NULL) {
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::operator=");
-	}
+	BIGNUM *bn = BN_copy(this->bigInt, c.bigInt);
+	THROW_DECODE_IF(bn == NULL);
 
 	return *this;
 }
@@ -142,410 +149,240 @@ BigInteger& BigInteger::operator=(BigInteger&& c)
 	return *this;
 }
 
-void BigInteger::setValue(const long val)
+void BigInteger::setInt64(int64_t value)
 {
-	unsigned long copy;
-	
-	if(val < 0)
-	{
-		copy = static_cast<unsigned long>(-val);
-	}
-	else
-	{
-		copy = static_cast<unsigned long>(val);
-	}
-	
-	if(!(BN_set_word(this->bigInt, copy)))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::BigInteger");
-	}
-	
-	if(val < 0)
-	{
-		this->setNegative(true);
-	}
+	uint64_t value64 = abs(value);
+
+	int rc = BN_set_word(this->bigInt, value64);
+	THROW_DECODE_IF(rc == 0);
+
+	this->setNegative(value < 0);
 }
 
-void BigInteger::setNegative(const bool neg)
+void BigInteger::setUint64(uint64_t value)
 {
-	if(neg)
-	{
-		BN_set_negative(this->bigInt, 1);
-	}
-	else
-	{
-		BN_set_negative(this->bigInt, 0);
-	}
+	int64_t copy = value;
+
+	int rc = BN_set_word(this->bigInt, copy);
+	THROW_DECODE_IF(rc == 0);
 }
 
-double BigInteger::getValue() const
+void BigInteger::setNegative(bool neg) noexcept
 {
-	unsigned long tmp;
-	double ret;
-	
-	tmp = BN_get_word(this->bigInt);
-	if(tmp == ULONG_MAX)
-	{
-		throw BigIntegerException(BigIntegerException::UNSIGNED_LONG_OVERFLOW, "BigInteger::getValue");
-	}
-	
-	ret = static_cast<double>(tmp);
-	
-	if(this->isNegative())
-	{
-		ret = -ret;
-	}
-	
+	int negativeFlag = (neg ? 1 : 0);
+	BN_set_negative(this->bigInt, negativeFlag);
+}
+
+int64_t BigInteger::toInt64() const
+{
+	unsigned long ret = BN_get_word(this->bigInt);
+	THROW_OVERFLOW_IF(ret == ULONG_MAX);
+
+	// CAST: implicit
 	return ret;
 }
 
-ASN1_INTEGER* BigInteger::getASN1Value() const 
+int32_t BigInteger::toInt32() const
 {
-	ASN1_INTEGER* ret = NULL;
-	
-	if(!(ret = ASN1_INTEGER_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::getASN1Value");
-	}
-	
-	if(!(BN_to_ASN1_INTEGER(this->bigInt, ret)))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::getASN1Value");
-	}
-	
-	return ret;
+	int64_t value = this->toInt64();
+	THROW_OVERFLOW_IF(value > INT32_MAX || value < INT32_MIN);
+	return value;
 }
 
-ByteArray BigInteger::getBinValue() const
+ASN1_INTEGER* BigInteger::toAsn1Integer() const
 {
-	int len = BN_bn2mpi(this->bigInt, NULL);
+	ASN1_INTEGER* ret = ASN1_INTEGER_new();
+	THROW_BAD_ALLOC_IF(ret == NULL);
 
-	/* consegue-se dignosticar algo retorno de BN_bn2mpi? pelo que olhei no codigo ele nunca retorna algo <= 0*/
-	ByteArray ret(len);
-	BN_bn2mpi(this->bigInt, ret.getDataPointer());
+	ret = BN_to_ASN1_INTEGER(this->bigInt, ret);
+	THROW_ENCODE_IF(ret == NULL);
 
 	return ret;
 }
 
-const BIGNUM * BigInteger::getBIGNUM() const
+ByteArray BigInteger::toByteArray() const
 {
-	return this->bigInt;
+	// TODO: porque usavamos mpi e não bin?
+	int size = BN_num_bytes(this->bigInt);
+	THROW_ENCODE_IF(size <= 0);
+
+	ByteArray ret(size);
+	// TODO: porque usavamos mpi e não bin?
+	size = BN_bn2bin(this->bigInt, ret.getDataPointer());
+	THROW_ENCODE_IF(size <= 0);
+
+	return ret;
 }
 
 bool BigInteger::isNegative() const
 {
-	bool ret = false;
-	
-	if(BN_is_negative(this->bigInt))
-	{
-		ret = true;
-	}
-	
-	return ret;
+	int negativeFlag = BN_is_negative(this->bigInt);
+	return (negativeFlag == 0 ? false : true);
 }
 
 std::string BigInteger::toHex() const
 {
-	std::string ret;
-	char* str; 
-	
-	str = BN_bn2hex(this->bigInt);
-	ret = str; /*o conteudo do str eh copiado*/
-	
+	char *str = BN_bn2hex(this->bigInt);
+	THROW_ENCODE_IF(str == NULL);
+
+	std::string ret(str);
 	OPENSSL_free(str);
 	return ret;
 }
 
 std::string BigInteger::toDec() const
 {
-	std::string ret;
-	char* str; 
-	
-	str = BN_bn2dec(this->bigInt);
-	ret = str; /*o conteudo do str eh copiado*/
-	
+	char *str = BN_bn2dec(this->bigInt);
+	THROW_ENCODE_IF(str == NULL);
+
+	std::string ret(str);
 	OPENSSL_free(str);
 	return ret;
 }
 
-void BigInteger::setRandValue(int numBits)
+uint32_t BigInteger::bitSize() const
 {
-	int top;
-	int bottom;
-	
-	//semeia GNA
-	srand(time(NULL));
-	
-	switch(rand() % 3)
-	{
-		case 0:
-			top = -1;
-			break;
-		
-		case 1:
-			top = 0;
-			break;
-			
-		case 2:
-			top = 1;
-			break;
-	}
-	
-	switch (rand() % 2) {
-		case 0:
-			bottom = 0;
-			break;
-			
-		case 1:
-			bottom = 1;
-			break;
-	}
-	
-	if(!(BN_rand(this->bigInt, numBits, top, bottom)))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::setRandValue");
-	}
-	
-}
+	int size = BN_num_bits(this->bigInt);
+	THROW_DECODE_IF(size < 0);
 
-int BigInteger::size() const
-{
-	return BN_num_bits(this->bigInt);
+	// CAST: implicit
+	return size;
 }
 
 void BigInteger::setHexValue(const std::string& hex)
 {
-	this->setHexValue(hex.c_str());
-}
-
-void BigInteger::setHexValue(const char* hex)
-{
-	if(!(BN_hex2bn(&this->bigInt, hex))) {
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::setHexValue");
-	}
+	int rc = BN_hex2bn(&this->bigInt, hex.c_str());
+	THROW_DECODE_IF(rc == 0);
 }
 
 void BigInteger::setDecValue(const std::string& dec)
 {
-	this->setDecValue(dec.c_str());
-}
-
-void BigInteger::setDecValue(const char* dec) {
-	if(!(BN_dec2bn(&this->bigInt, dec))) {
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::setDecValue");
-	}
+	int rc = BN_dec2bn(&this->bigInt, dec.c_str());
+	THROW_DECODE_IF(rc == 0);
 }
 
 BigInteger& BigInteger::add(const BigInteger& a)
 {
-	if(!(BN_add(this->bigInt, this->bigInt, a.getBIGNUM())))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::add");
-	}
+	int rc = BN_add(this->bigInt, this->bigInt, a.bigInt);
+	THROW_OPERATION_IF(rc == 0);
 	return *this;
 }
 
-BigInteger& BigInteger::add(long a)
+BigInteger& BigInteger::sub(const BigInteger& a)
 {
-	BigInteger b(a);
-	return this->add(b);
-}
-
-BigInteger& BigInteger::sub(BigInteger const& a)
-{
-	if(!(BN_sub(this->bigInt, this->bigInt, a.getBIGNUM())))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::add");
-	}
+	int rc = BN_sub(this->bigInt, this->bigInt, a.bigInt);
+	THROW_OPERATION_IF(rc == 0);
 	return *this;
 }
 
-BigInteger& BigInteger::sub(long const a)
+BigInteger& BigInteger::mul(const BigInteger& a)
 {
-	BigInteger tmp(a);
-	return this->sub(tmp);
-}
+	BN_CTX *ctx = BN_CTX_new();
+	THROW_BAD_ALLOC_IF(ctx == NULL);
 
-BigInteger& BigInteger::mul(BigInteger const& a)
-{
-	BN_CTX* ctx = NULL;
-	BIGNUM* r = NULL;
+	BIGNUM *r = BN_new();
+	THROW_BAD_ALLOC_AND_FREE_IF(r == NULL,
+			BN_CTX_free(ctx);
+	);
 	
-	if(!(r = BN_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::mul");
-	}
-	
-	if(!(ctx = BN_CTX_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::mul");
-	}
-	
-	if(!BN_mul(r, this->bigInt, a.getBIGNUM(), ctx))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::mul");
-	}
-	
-	if(BN_copy(this->bigInt, r) == NULL)
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::mul");
-	}
-	
-	BN_free(r);
+	int rc = BN_mul(r, this->bigInt, a.bigInt, ctx);
 	BN_CTX_free(ctx);
+	THROW_BAD_ALLOC_AND_FREE_IF(rc == 0,
+			BN_free(r);
+	);
+
+	this->bigInt = BN_copy(this->bigInt, r);
+	BN_free(r);
+	THROW_DECODE_IF(this->bigInt == NULL);
+	
 	return (*this);
 }
 
-BigInteger& BigInteger::mul(long const a)
-{
-	BigInteger tmp(a);
-	return this->mul(tmp);
-}
-
-BigInteger BigInteger::operator*(BigInteger const& a) const
+BigInteger BigInteger::operator*(const BigInteger& a) const
 {
 	BigInteger tmp(*this);
 	return tmp.mul(a);
 }
 
-BigInteger BigInteger::operator*(long c) const
-{
-	BigInteger tmp1(*this);
-	BigInteger tmp2(c);
-	return tmp1.mul(tmp2);
-}
-
-BigInteger& BigInteger::div(BigInteger const& a)
+BigInteger& BigInteger::div(const BigInteger& a)
 {
 	BN_CTX* ctx = NULL;
 	BIGNUM* dv = NULL;
 	BIGNUM* rem = NULL;
 	
-	if(a == 0)
-	{
-		throw BigIntegerException(BigIntegerException::DIVISION_BY_ZERO, "BigInteger::div");
-	}
+	THROW_DIVISION_BY_ZERO_IF(a == 0);
 	
-	if(!(dv = BN_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::div");
-	}
-	
-	if(!(rem = BN_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::div");
-	}
-	
-	if(!(ctx = BN_CTX_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::div");
-	}
-	
-	if(!BN_div(dv, rem, this->bigInt, a.getBIGNUM(), ctx))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::div");
-	}
-	
-	if(BN_copy(this->bigInt, dv) == NULL)
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::div");
-	}
-	
-	BN_free(dv);
-	BN_free(rem);
+	dv = BN_new();
+	THROW_BAD_ALLOC_IF(dv == NULL);
+
+	rem = BN_new();
+	THROW_BAD_ALLOC_AND_FREE_IF(rem == NULL,
+			BN_clear_free(dv);
+	);
+
+	ctx = BN_CTX_new();
+	THROW_BAD_ALLOC_AND_FREE_IF(rem == NULL,
+			BN_clear_free(dv);
+			BN_clear_free(rem);
+	);
+
+	int rc = BN_div(dv, rem, this->bigInt, a.bigInt, ctx);
 	BN_CTX_free(ctx);
+	BN_clear_free(rem);
+	THROW_OPERATION_AND_FREE_IF(rc == 0,
+			BN_clear_free(dv);
+	);
+
+	this->bigInt = BN_copy(this->bigInt, dv);
+	BN_clear_free(dv);
+	THROW_OPERATION_IF(rc == 0);
+
 	return (*this);
 }
 
-BigInteger& BigInteger::div(long const a)
+BigInteger BigInteger::operator/(const BigInteger& a) const
 {
-	BigInteger tmp(a);
-	return this->div(tmp);
+	BigInteger ret(*this);
+	ret.div(a);
+	return ret;
 }
 
-BigInteger BigInteger::operator/(BigInteger const& a) const
+BigInteger BigInteger::mod(const BigInteger& divisor) const
 {
-	BigInteger tmp(*this);
-	return tmp.div(a);
-}
+	THROW_DIVISION_BY_ZERO_IF(divisor == 0);
 
-BigInteger BigInteger::operator/(long c) const
-{
-	BigInteger a(*this);
-	BigInteger b(c);
-	
-	return a.div(b);
-}
+	BIGNUM *remainder = BN_new();
+	THROW_BAD_ALLOC_IF(remainder == NULL);
 
-BigInteger& BigInteger::mod(BigInteger const& a)
-{
-	BN_CTX* ctx = NULL;
-	BIGNUM* rem = NULL;
-	
-	if(a == 0)
-	{
-		throw BigIntegerException(BigIntegerException::DIVISION_BY_ZERO, "BigInteger::mod");
-	}
-	
-	if(!(rem = BN_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::mod");
-	}
-	
-	if(!(ctx = BN_CTX_new()))
-	{
-		throw BigIntegerException(BigIntegerException::MEMORY_ALLOC, "BigInteger::mod");
-	}
-	
-	if(!BN_mod(rem, this->bigInt, a.getBIGNUM(), ctx))
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::mod");
-	}
-	
-	if(BN_copy(this->bigInt, rem) == NULL)
-	{
-		throw BigIntegerException(BigIntegerException::INTERNAL_ERROR, "BigInteger::mod");
-	}
-	
-	BN_free(rem);
+	BN_CTX *ctx = BN_CTX_new();
+	THROW_BAD_ALLOC_AND_FREE_IF(ctx == NULL,
+			BN_clear_free(remainder);
+	);
+
+	int rc = BN_mod(remainder, this->bigInt, divisor.bigInt, ctx);
 	BN_CTX_free(ctx);
-	return (*this);
+	THROW_OPERATION_AND_FREE_IF(rc == 0,
+			BN_clear_free(remainder);
+	);
+
+	BigInteger ret(remainder);
+	return ret;
 }
 
-BigInteger& BigInteger::mod(long const a)
+BigInteger BigInteger::operator%(const BigInteger& divisor) const
 {
-	BigInteger tmp(a);
-	return this->mod(tmp);
+	return this->mod(divisor);
 }
 
-BigInteger BigInteger::operator%(BigInteger const& a) const
+int BigInteger::compare(const BigInteger& a) const noexcept
 {
-	BigInteger tmp(*this);
-	return tmp.mod(a);
-}
-
-BigInteger BigInteger::operator%(long c) const
-{
-	BigInteger tmp(*this);
-	return tmp.mod(c);
-}
-
-int BigInteger::compare(BigInteger const& a) const
-{
-	return BN_cmp(this->getBIGNUM(), a.getBIGNUM());
+	int ret = BN_cmp(this->bigInt, a.bigInt);
+	return ret;
 }
 
 BigInteger BigInteger::operator+(const BigInteger& c) const
 {
-	BigInteger ret;
-	ret.add(*this);
-	return ret.add(c);
-}
-
-BigInteger BigInteger::operator+(long c) const
-{
-	BigInteger ret;
-	ret.add(*this);
+	BigInteger ret(*this);
 	return ret.add(c);
 }
 
@@ -554,23 +391,9 @@ BigInteger& BigInteger::operator+=(const BigInteger& c)
 	return this->add(c);
 }
 
-BigInteger& BigInteger::operator+=(long c)
-{
-	BigInteger tmp(c);
-	return this->add(tmp);
-}
-
 BigInteger BigInteger::operator-(const BigInteger& c) const
 {
-	BigInteger ret;
-	ret.add(*this);
-	return ret.sub(c);
-}
-
-BigInteger BigInteger::operator-(long c) const
-{
-	BigInteger ret;
-	ret.add(*this);
+	BigInteger ret(*this);
 	return ret.sub(c);
 }
 
@@ -579,21 +402,9 @@ bool BigInteger::operator==(const BigInteger& c) const
 	return this->compare(c) == 0;
 }
 
-bool BigInteger::operator==(long c) const
-{
-	BigInteger tmp(c);
-	return this->compare(tmp) == 0;
-}
-
 bool BigInteger::operator!=(const BigInteger& c) const
 {
 	return this->compare(c) != 0;
-}
-
-bool BigInteger::operator!=(long c) const
-{
-	BigInteger tmp(c);
-	return this->compare(tmp) != 0;
 }
 
 bool BigInteger::operator>(const BigInteger& c) const
@@ -601,21 +412,9 @@ bool BigInteger::operator>(const BigInteger& c) const
 	return this->compare(c) == 1;
 }
 
-bool BigInteger::operator>(long c) const
-{
-	BigInteger tmp(c);
-	return this->compare(tmp) == 1;
-}
-
 bool BigInteger::operator>=(const BigInteger& c) const
 {
 	return (this->compare(c) >= 0);
-}
-
-bool BigInteger::operator>=(long c) const
-{
-	BigInteger tmp(c);
-	return (*this >= tmp);
 }
 
 bool BigInteger::operator<(const BigInteger& c) const
@@ -623,21 +422,9 @@ bool BigInteger::operator<(const BigInteger& c) const
 	return this->compare(c) == -1;
 }
 
-bool BigInteger::operator<(long c) const
-{
-	BigInteger tmp(c);
-	return this->compare(tmp) == -1;
-}
-
 bool BigInteger::operator<=(const BigInteger& c) const
 {
 	return (this->compare(c) <= 0);
-}
-
-bool BigInteger::operator<=(long c) const
-{
-	BigInteger tmp(c);
-	return (*this <= tmp);
 }
 
 bool BigInteger::operator!() const
@@ -653,14 +440,6 @@ bool BigInteger::operator||(const BigInteger& c) const
 	return a || b;
 }
 
-bool BigInteger::operator||(long c) const
-{
-	bool a = !((*this) == 0);
-	bool b = c != 0;
-	
-	return a || b;
-}
-
 bool BigInteger::operator&&(const BigInteger& c) const
 {
 	bool a = !((*this) == 0);
@@ -669,21 +448,15 @@ bool BigInteger::operator&&(const BigInteger& c) const
 	return a && b;
 }
 
-bool BigInteger::operator&&(long c) const
+
+const BIGNUM* BigInteger::getSslObject() const
 {
-	bool a = !((*this) == 0);
-	bool b = c != 0;
-	
-	return a && b;
+	return this->bigInt;
 }
 
-BigInteger operator+(long c, const BigInteger& d)
+BIGNUM* BigInteger::toSslObject() const
 {
-	return d + c;
-}
-
-BigInteger operator-(long c, const BigInteger& d)
-{
-	BigInteger tmp(c);
-	return tmp - d;
+	BIGNUM *ret = BN_dup(this->bigInt);
+	THROW_ENCODE_ERROR_IF(ret == NULL);
+	return ret;
 }

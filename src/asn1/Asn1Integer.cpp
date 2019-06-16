@@ -30,5 +30,5 @@ BigInteger* Asn1Integer::getValue() const throw()
 //faz copia
 void Asn1Integer::setValue(const BigInteger b) throw()
 {
-	ASN1_TYPE_set(this->asn1Type, V_ASN1_INTEGER, b.getASN1Value());
+	ASN1_TYPE_set(this->asn1Type, V_ASN1_INTEGER, b.toAsn1Integer());
 }

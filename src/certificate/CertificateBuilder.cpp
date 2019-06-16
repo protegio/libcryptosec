@@ -94,7 +94,7 @@ void CertificateBuilder::setSerialNumber(long serial)
 
 void CertificateBuilder::setSerialNumber(const BigInteger& serial)
 {
-	ASN1_INTEGER* asn1Integer = serial.getASN1Value();
+	ASN1_INTEGER* asn1Integer = serial.toAsn1Integer();
 	int rc = X509_set_serialNumber(this->cert, asn1Integer);
 	ASN1_INTEGER_free(asn1Integer);
 	THROW_ENCODE_ERROR_IF(rc == 0);

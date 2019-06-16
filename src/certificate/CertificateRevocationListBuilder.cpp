@@ -59,7 +59,7 @@ void CertificateRevocationListBuilder::setSerialNumber(long serial)
 
 void CertificateRevocationListBuilder::setSerialNumber(const BigInteger& serial)
 {
-	ASN1_INTEGER *asn1Int = serial.getASN1Value();
+	ASN1_INTEGER *asn1Int = serial.toAsn1Integer();
 	int rc = X509_CRL_add1_ext_i2d(this->crl, NID_crl_number, asn1Int, 0, 0);
 	ASN1_INTEGER_free(asn1Int);
 	THROW_ENCODE_ERROR_IF(rc == 0);

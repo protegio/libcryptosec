@@ -50,6 +50,27 @@ do {\
 #define THROW_OPERATION_ERROR_IF(exp) THROW_NO_REASON_IF(exp, OperationException)
 #define THROW_OPERATION_ERROR_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, OperationException, free_code)
 
+#define THROW_BAD_ALLOC_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
+#define THROW_BAD_ALLOC_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
+
+#define THROW_DIVISION_BY_ZERO_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
+#define THROW_DIVISION_BY_ZERO_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
+
+#define THROW_OPERATION_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
+#define THROW_OPERATION_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
+
+#define THROW_OVERFLOW_IF(exp) THROW_NO_REASON_IF(exp, std::overflow_error)
+#define THROW_OVERFLOW_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, std::overflow_error, free_code)
+
+#define THROW_NULL_POINTER_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
+#define THROW_NULL_POINTER_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
+
+#define THROW_ENCODE_IF(exp) THROW_NO_REASON_IF(exp, EncodeException)
+#define THROW_ENCODE_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, EncodeException, free_code)
+
+#define THROW_DECODE_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
+#define THROW_DECODE_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
+
 #define DECODE_PEM(dst, str, decode_foo)\
 	do {\
 	BIO *buffer = BIO_new(BIO_s_mem());\

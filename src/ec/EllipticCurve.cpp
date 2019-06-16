@@ -70,31 +70,31 @@ EllipticCurve& EllipticCurve::operator=(EllipticCurve&& c) {
 }
 
 const BIGNUM* EllipticCurve::BN_a() const {
-	return this->a.getBIGNUM();
+	return this->a.getSslObject();
 }
 
 const BIGNUM* EllipticCurve::BN_b() const {
-	return this->b.getBIGNUM();
+	return this->b.getSslObject();
 }
 
 const BIGNUM* EllipticCurve::BN_p() const {
-	return this->p.getBIGNUM();
+	return this->p.getSslObject();
 }
 
 const BIGNUM* EllipticCurve::BN_x() const {
-	return this->x.getBIGNUM();
+	return this->x.getSslObject();
 }
 
 const BIGNUM* EllipticCurve::BN_y() const {
-	return this->y.getBIGNUM();
+	return this->y.getSslObject();
 }
 
 const BIGNUM* EllipticCurve::BN_order() const {
-	return this->order.getBIGNUM();
+	return this->order.getSslObject();
 }
 
 const BIGNUM* EllipticCurve::BN_cofactor() const {
-	return this->cofactor.getBIGNUM();
+	return this->cofactor.getSslObject();
 }
 
 const BigInteger EllipticCurve::getA() const {

@@ -55,7 +55,7 @@ std::string CRLNumberExtension::extValue2Xml(const std::string& tab) const
 
 X509_EXTENSION* CRLNumberExtension::getX509Extension() const
 {
-	ASN1_INTEGER *sslObject = this->serial.getASN1Value();
+	ASN1_INTEGER *sslObject = this->serial.toAsn1Integer();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_crl_number, this->critical ? 1 : 0, (void*) sslObject);
 	ASN1_INTEGER_free(sslObject);
 	THROW_ENCODE_ERROR_IF(ret == NULL);

@@ -115,7 +115,7 @@ X509_EXTENSION* AuthorityKeyIdentifierExtension::getX509Extension() const
 		}
 
 		if (this->serialNumber >= 0) {
-			sslObject->serial = this->serialNumber.getASN1Value();
+			sslObject->serial = this->serialNumber.toAsn1Integer();
 		}
 	} catch (...) {
 		AUTHORITY_KEYID_free(sslObject);

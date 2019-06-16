@@ -31,14 +31,14 @@ public:
 	 */
 	struct DateVal
 	{
-		  int sec;					/* Seconds.	[0-60] (1 leap second) */
-		  int min;					/* Minutes.	[0-59] */
-		  int hour;					/* Hours.	[0-23] */
-		  int dayOfMonth;			/* Day.		[1-31] */
-		  int mon;					/* Month.	[0-11] */
-		  int year;					/* Year 		   */
-		  int dayOfWeek;			/* Day of week.	[0-6] */
-		  int dayOfYear;			/* Days of year.[0-365]	*/	
+		  uint32_t sec;			/* Seconds.	[0-60] (1 leap second) */
+		  uint32_t min;			/* Minutes.	[0-59] */
+		  uint32_t hour;		/* Hours.	[0-23] */
+		  uint32_t dayOfMonth;	/* Day.		[1-31] */
+		  uint32_t mon;			/* Month.	[0-11] */
+		  uint32_t year;		/* Year.	[0-UINT32_MAX] */
+		  uint32_t dayOfWeek;	/* Day of week.	[0-6] */
+		  uint32_t dayOfYear;	/* Days of year.[0-365]	*/
 	};
 	
 	/**
@@ -164,34 +164,23 @@ public:
 		days.div(SECS_DAY);
 		
 		tmp = hours % 60;
-		ret.sec = static_cast<int>(tmp.getValue());
+		ret.sec = tmp.toInt32();
 					
 		tmp = (hours % 3600).div(60);
-		ret.min = static_cast<int>(tmp.getValue());
+		ret.min = tmp.toInt32();
 		
 		hours.div(3600);
-		ret.hour = static_cast<int>(hours.getValue());
+		ret.hour = hours.toInt32();
 		
 		ret.year = 1970;
-		//remover
-		//int anos = 0;
-		//BigInteger sum(0L);
-		//cout << "days inicial " <<days.toDec() << endl;
-		//
+
 		while(days >= DateTime::getYearSize(ret.year))
 		{
 			days.sub(DateTime::getYearSize(ret.year));
 			ret.year++;
-			
-			//remover
-			//anos++;
-			//sum.add(DateTime::getYearSize(ret.year));
 		}
-		//cout << "sum "<< sum.toDec() << endl;
-		//cout << "days restantes " << days.toDec() << endl;
-		//cout << "anos" << anos << endl;
 		
-		ret.dayOfYear = static_cast<int>(days.getValue());
+		ret.dayOfYear = days.toInt32();
 		dayOfYear = ret.dayOfYear;
 		
 		ret.mon = 0;
@@ -208,111 +197,6 @@ public:
 		
 		return ret;
 	}
-/*	{
-		int daysOfMonths[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-		DateTime::DateVal ret;				
-		int month = 1;
-		int minLeft = 0;
-		BigInteger yearsSinceEpoch(0L);
-		BigInteger leapDays(0L);
-		BigInteger daysSinceEpoch(0L);		
-		BigInteger tmp;
-		int mod;
-		
-		ret.mon = 0;
-		
-		//anos desde 1970
-		//yearsSinceEpoch = epoch / (365 * 24 * 60 * 60);
-
-		//ret.year = static_cast<int>((1970 + yearsSinceEpoch).getValue());
-		
-		//leapdays decorrentes a anos bissextos
-		yearsSinceEpoch = epoch / (365 * 24 * 60 * 60);
-		leapDays = yearsSinceEpoch / 4;				
-		
-		
-		 * A divisao (ano-1970)/4 mostra quantos anos bissextos existem. Esse numero é fracionário
-		 * que e deve ser interpretado da seguinte forma: fracao >= 5 -> arredonda pra cima, caso contrário
-		 * arredonda pra baixo.
-		 *  
-		 * Porém a parte fracionária é truncada na divisão entre inteiros. Assim usa-se módulo da seguinte forma:
-		 * 
-		 * (ano-1970)mod 4 = 0/1 => corresponde a .0 e .25 => Nao faz nada.
-		 * (ano-1970)mod 4 = 2 => ano é bissexto. Verificar se o mês > fevereiro
-		 * (ano-1970)mod 4 = 3 => corresponde a .75 => Incrementa
-		 * 
-		mod = static_cast<int>((yearsSinceEpoch % 4).getValue());
-		//cout << yearsSinceEpoch.toDec() << endl;	
-		switch(mod)
-		{
-			case 3:
-				leapDays.add(1);
-				break;
-				
-			case 2:
-				daysOfMonths[1]++;
-				break;
-				
-			default :
-				break;
-		}
-
-		//yearsSinceEpoch descontando-se os leapdays
-		yearsSinceEpoch = (epoch - (leapDays * 24 * 60 *60)) / (365 * 24 * 60 * 60);
-		ret.year = static_cast<int>((1970 + yearsSinceEpoch).getValue());
-		
-		//dias desde 1970
-		daysSinceEpoch = epoch / (24*60*60);
-		
-		//cout << daysSinceEpoch.toDec() << endl;
-		//cout << leapDays.toDec() << endl;
-		
-		//subtract leap days
-		daysSinceEpoch = daysSinceEpoch - leapDays;
-		
-		//dayofyear
-		ret.dayOfYear = static_cast<int>((daysSinceEpoch % 365).getValue());
-		
-		//verifica se eh ano bissexto
-		if(DateTime::isLeapYear(ret.year))
-		{
-			daysOfMonths[1]++;
-		}
-		
-		//dayOfMonth = ret.tm_yday;
-		ret.dayOfMonth = ret.dayOfYear + 1; //dayOfYear [0-365], dayOfMonth [1-31]
-		
-		for(int i = 0 ; i < 12 ; i++)
-		{
-			ret.dayOfMonth-= daysOfMonths[i];
-			
-			if(ret.dayOfMonth > 0)
-			{
-				month++;
-				ret.mon++;
-			}
-			else
-			{
-				ret.dayOfMonth+= daysOfMonths[i];
-				break;
-			}
-		}
-		
-		tmp = epoch - ((daysSinceEpoch + leapDays) * 24 * 60 * 60);
-		ret.sec = static_cast<int>(tmp.getValue());	
-		
-		ret.hour = ret.sec / (60*60);
-			
-		minLeft = ret.sec - (ret.hour * 60 * 60);
-		
-		ret.min = minLeft / 60;
-		
-		ret.sec = minLeft - (ret.min * 60);
-			
-		ret.dayOfWeek = DateTime::getDayOfWeek(ret.year, ret.mon, ret.dayOfMonth);
-		
-		return ret;
-	}*/
 	
 	/**
 	 * Adiciona segundos.

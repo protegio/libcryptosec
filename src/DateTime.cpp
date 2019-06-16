@@ -1,5 +1,10 @@
 #include <libcryptosec/DateTime.h>
 
+#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/EncodeException.h>
+
+#include <limits>
+
 //pegar hora local
 DateTime::DateTime() :
 		seconds(0)
@@ -133,40 +138,8 @@ void DateTime::setDateTime(BigInteger const& b)
 
 time_t DateTime::getDateTime() const
 {
-/*	struct tm stm;
-	std::istringstream stream; 
-	std::string aString;
-	
-	aString = std::string(reinterpret_cast<char*>(this->dateTime->data), this->dateTime->length);
-	
-	//year
-	stream.str(aString.substr(0,2));
-	stream >> stm.tm_year;
-	
-	//month
-	stream.str(aString.substr(aString.size() - 11,2));
-	stream >> stm.tm_mon;
-	stm.tm_mon = stm.tm_mon + 2000 - 1900;
-	
-	//day
-	stream.str(aString.substr(aString.size() - 9,2));
-	stream >> stm.tm_mday;
-	
-	//hour
-	stream.str(aString.substr(aString.size() - 7,2));
-	stream >> stm.tm_hour;
-	
-	//min
-	stream.str(aString.substr(aString.size() - 5,2));
-	stream >> stm.tm_min;
-	
-	//sec
-	stream.str(aString.substr(aString.size() - 3,2));
-	stream >> stm.tm_dec;
-	
-	return mktime(&stm);*/
-	
-	return static_cast<time_t>(this->seconds.getValue());
+	THROW_ENCODE_IF(this->seconds > std::numeric_limits<time_t>::max());
+	return static_cast<time_t>(this->seconds.toInt32());
 }
 
 std::string DateTime::toXml(const std::string& tab) const
@@ -184,10 +157,10 @@ std::string DateTime::toXml(const std::string& tab) const
 
 ASN1_TIME* DateTime::getAsn1Time() const
 {
-	BigInteger limit("2524608000"); // segundos para 01/01/2050 00:00:00 Zulu
+	BigInteger asn1TimeLimit(std::string("2524608000")); // segundos para 01/01/2050 00:00:00 Zulu
 	ASN1_TIME* ret = NULL;
 	
-	if(this->seconds < limit)
+	if(this->seconds < asn1TimeLimit)
 	{
 		ret = this->getUTCTime();
 	}

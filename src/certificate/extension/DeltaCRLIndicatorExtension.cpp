@@ -54,7 +54,7 @@ std::string DeltaCRLIndicatorExtension::extValue2Xml(const std::string& tab) con
 
 X509_EXTENSION* DeltaCRLIndicatorExtension::getX509Extension() const
 {
-	ASN1_INTEGER *sslObject = this->baseCrlNumber.getASN1Value();
+	ASN1_INTEGER *sslObject = this->baseCrlNumber.toAsn1Integer();
 	X509_EXTENSION *ret = X509V3_EXT_i2d(NID_delta_crl, this->critical ? 1 : 0, (void*) sslObject);
 	ASN1_INTEGER_free(sslObject);
 	THROW_ENCODE_ERROR_IF(ret == NULL);

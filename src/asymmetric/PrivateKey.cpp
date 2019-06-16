@@ -36,19 +36,15 @@ PrivateKey::PrivateKey(const std::string& pemEncoded) : AsymmetricKey()
 PrivateKey::PrivateKey(const std::string& pemEncoded, const ByteArray& passphrase) :
 		AsymmetricKey()
 {
-	EVP_PKEY *key = NULL;
-	BIO *buffer = NULL;
-	unsigned int numberOfWrittenBytes = 0;
-
-	buffer = BIO_new(BIO_s_mem());
+	BIO *buffer = BIO_new(BIO_s_mem());
 	THROW_DECODE_ERROR_IF(buffer == NULL);
 
-	numberOfWrittenBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
+	unsigned int numberOfWrittenBytes = BIO_write(buffer, pemEncoded.c_str(), pemEncoded.size());
 	THROW_DECODE_ERROR_AND_FREE_IF(numberOfWrittenBytes != pemEncoded.size(),
 			BIO_free_all(buffer);
 	);
 
-	key = PEM_read_bio_PrivateKey(buffer, NULL, PrivateKey::passphraseCallBack, (void *) &passphrase);
+	EVP_PKEY *key = PEM_read_bio_PrivateKey(buffer, NULL, PrivateKey::passphraseCallBack, (void *) &passphrase);
 	THROW_DECODE_ERROR_AND_FREE_IF(key == NULL,
 			BIO_free_all(buffer);
 	);
@@ -63,86 +59,21 @@ PrivateKey::~PrivateKey()
 
 std::string PrivateKey::getPemEncoded() const
 {
-	unsigned char *data = NULL;
-
-	BIO *buffer = BIO_new(BIO_s_mem());
-	THROW_ENCODE_ERROR_IF(buffer == NULL);
-
-	int wrote = PEM_write_bio_PrivateKey(buffer, this->evpPkey, NULL, NULL, 0, NULL, NULL);
-	THROW_ENCODE_ERROR_AND_FREE_IF(wrote <= 0,
-			BIO_free_all(buffer);
-	);
-
-	int ndata = BIO_get_mem_data(buffer, &data);
-	THROW_ENCODE_ERROR_AND_FREE_IF(ndata <= 0,
-			BIO_free_all(buffer);
-	);
-
-	// TODO: improve this
-	ByteArray retTemp(data, ndata);
-	std::string ret = retTemp.toString();
-
-	BIO_free_all(buffer);
-
-	return ret;
+	ENCODE_ENCRYPTED_PEM_AND_RETURN(this->evpPkey, PEM_write_bio_PrivateKey, NULL, NULL, NULL);
 }
 
+// TODO: symmetric key should be a password
 std::string PrivateKey::getPemEncoded(const SymmetricKey& symmetricKey, SymmetricCipher::OperationMode mode) const
 {
-	const EVP_CIPHER *cipher = NULL;
-	unsigned char *data = NULL;
-
-	BIO *buffer = BIO_new(BIO_s_mem());
-	THROW_ENCODE_ERROR_IF(buffer == NULL);
-
-	try {
-		cipher = SymmetricCipher::getCipher(symmetricKey.getAlgorithm(), mode);
-	} catch (...) {
-		BIO_free_all(buffer);
-		throw;
-	}
-
+	const EVP_CIPHER *cipher = SymmetricCipher::getCipher(symmetricKey.getAlgorithm(), mode);
 	const ByteArray& passphraseData = symmetricKey.getEncoded();
-	int wrote = PEM_write_bio_PrivateKey(buffer, this->evpPkey, cipher, NULL, 0, PrivateKey::passphraseCallBack, (void *) &passphraseData);
-	THROW_ENCODE_ERROR_AND_FREE_IF(wrote <= 0,
-			BIO_free_all(buffer);
-	);
-
-	int ndata = BIO_get_mem_data(buffer, &data);
-	THROW_ENCODE_ERROR_AND_FREE_IF(ndata <= 0,
-			BIO_free_all(buffer);
-	);
-
-	// TODO: improve this
-	ByteArray retTemp(data, ndata);
-	std::string ret = retTemp.toString();
-
-	BIO_free_all(buffer);
-
-	return ret;
+	ENCODE_ENCRYPTED_PEM_AND_RETURN(this->evpPkey, PEM_write_bio_PrivateKey, cipher,
+			PrivateKey::passphraseCallBack, (void *) &passphraseData);
 }
 
 ByteArray PrivateKey::getDerEncoded() const
 {
-	unsigned char *data = 0;
-
-	BIO *buffer = BIO_new(BIO_s_mem());
-	THROW_ENCODE_ERROR_IF(buffer == NULL);
-
-	int wrote = i2d_PrivateKey_bio(buffer, this->evpPkey);
-	THROW_ENCODE_ERROR_AND_FREE_IF(wrote <= 0,
-			BIO_free_all(buffer);
-	);
-
-	int ndata = BIO_get_mem_data(buffer, &data);
-	THROW_ENCODE_ERROR_AND_FREE_IF(ndata <= 0,
-			BIO_free_all(buffer);
-	);
-
-	ByteArray ret(data, ndata);
-	BIO_free_all(buffer);
-
-	return ret;
+	ENCODE_DER_AND_RETURN(this->evpPkey, i2d_PrivateKey_bio);
 }
 
 int PrivateKey::passphraseCallBack(char *buf, int size, int rwflag, void *u)
