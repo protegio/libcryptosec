@@ -62,6 +62,10 @@ do {\
 #define THROW_OVERFLOW_IF(exp) THROW_NO_REASON_IF(exp, std::overflow_error)
 #define THROW_OVERFLOW_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, std::overflow_error, free_code)
 
+#define THROW_OUT_OF_RANGE_IF(exp) THROW_NO_REASON_IF(exp, std::out_of_range)
+#define THROW_OUT_OF_RANGE_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, std::out_of_range, free_code)
+
+
 #define THROW_NULL_POINTER_IF(exp) THROW_NO_REASON_IF(exp, DecodeException)
 #define THROW_NULL_POINTER_AND_FREE_IF(exp, free_code) THROW_NO_REASON_AND_FREE_IF(exp, DecodeException, free_code)
 

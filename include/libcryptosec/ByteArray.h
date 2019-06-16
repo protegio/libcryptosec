@@ -30,7 +30,7 @@ public:
 	 * 
 	 * @param size tamanho do novo ByteArray.
 	 */
-	ByteArray(unsigned int size);
+	ByteArray(uint32_t size);
 
 	/**
 	 * @brief Constrói um ByteArray a partir do buffer desejado, copiando os dados.
@@ -38,32 +38,14 @@ public:
 	 * @param data		Array de bytes a ser copiado.
 	 * @param size	Tamanho do array de bytes.
 	 */
-    ByteArray(const unsigned char* data, unsigned int size);
-
-	/**
-	 * @brief Constrói um ByteArray a partir de um std::ostringstream, copiando os dados.
-	 * 
-	 * @param buffer string stream com os dados a serem copiados.
-	 */
-    ByteArray(std::ostringstream *buffer);
+    ByteArray(const uint8_t* data, uint32_t size);
 
 	/**
 	 * @brief Constrói um ByteArray a partir de uma std::string.
 	 * 
-	 * A string precisa terminar em \0, que também é copiado para o ByteArray.
-	 *
 	 * @param str	A std::string que será copiada para o ByteArray.
 	 */
     ByteArray(const std::string& str);
-
-	/**
-	 * @brief Constrói um ByteArray a partir de uma std::string.
-	 *
-	 * A string precisa terminar em \0, que também é copiado para o ByteArray.
-	 *
-	 * @param str	A string que será copiada para o ByteArray.
-	 */
-	ByteArray(const char *str);
 
 	/**
 	 * @brief Constrói um ByteArray a partir de outro ByteArray.
@@ -115,7 +97,7 @@ public:
      * @return O valor do byte na posição passada.
      * @throw std::out_of_bound Se a posição ultrapassar o tamanho do ByteArray.
      */
-    unsigned char at(unsigned int pos) const;
+    uint8_t& at(uint32_t pos) const;
     
     /**
      * @brief Lê ou escreve o byte da posição desejada.
@@ -125,7 +107,7 @@ public:
      * @return A referência para o byte da posição.
      * @throw std::out_of_bound Se a posição ultrapassar o tamanho do ByteArray.
      */
-    unsigned char& operator[](unsigned int pos);
+    uint8_t& operator [](uint32_t pos);
 
     /**
      * @brief Compara dois ByteArray e retorna true se forem iguais, false caso contrário.
@@ -135,7 +117,7 @@ public:
      *
      * @return True se forem iguais, false caso contrário.
      */
-    friend bool operator==(const ByteArray& left, const ByteArray& right);
+    friend bool operator ==(const ByteArray& left, const ByteArray& right);
     
     /**
      * @brief Compara dois ByteArray e retorna true se forem diferentes, false caso contrário.
@@ -145,7 +127,7 @@ public:
      *
      * @return True se forem diferentes, false caso contrário.
      */
-    friend bool operator!=(const ByteArray& left, const ByteArray& right);
+    friend bool operator !=(const ByteArray& left, const ByteArray& right);
 
     /**
      * @brief Executa a operação lógica xor entre dois ByteArray.
@@ -160,12 +142,12 @@ public:
      *
      * @return O ByteArray resultante da operação xor.
      */
-    friend ByteArray& operatorxor(const ByteArray& left, const ByteArray& right);
+    friend ByteArray& operator xor(const ByteArray& left, const ByteArray& right);
 
     /**
      * @brief Copia os dados do array de bytes \p from.
      * 
-     * @param data		Array de bytes a ser copiado.
+     * @param data	Array de bytes a ser copiado.
      * @param size	Tamanho do array de bytes a ser copiado.
      */
     void copyFrom(unsigned char* from, unsigned int size);
@@ -181,15 +163,6 @@ public:
      * @throw std::out_of_range se qualquer limite da origem ou destino for quebrado.
      */
     void copyTo(ByteArray& to, unsigned int toOffset, unsigned int fromOffset, unsigned int fromNumberOfBytes) const;
-
-    /**
-     * @brief Retorna um std::istringstream representando o ByteArray.
-     *
-     * Os dados do ByteArray são copiados para o std::istringstream.
-     *
-     * @return O std::istringstream.
-     */
-	std::istringstream* toInputStringStream() const;
 
     /**
      * @brief Modifica o ponteiro de memória do ByteArray para um já alocado, sem copiá-lo.

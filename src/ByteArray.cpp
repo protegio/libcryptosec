@@ -1,5 +1,6 @@
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/exception/ByteArrayException.h>
+#include <libcryptosec/Macros.h>
 
 #include <openssl/rand.h>
 
@@ -7,33 +8,31 @@
 #include <stdio.h>
 
 ByteArray::ByteArray() :
-		size(0),
-		originalSize(0),
-		m_data(nullptr)
+		ByteArray(0)
 {
 }
 
-ByteArray::ByteArray(unsigned int size) :
+ByteArray::ByteArray(uint32_t size) :
 		size(size),
-		originalSize(size),
-		m_data(new unsigned char[size + 1])
+		originalSize(size)
 {
+	THROW_OVERFLOW_IF(size == UINT32_MAX);
+	this->m_data = new unsigned char[size + 1];
+	// TODO: precisamos desse memset?
+	// Ele impede que dados sensíveis vazem no caso de um memory leak
+	// Mas torna bem lenta a alocação do byte array
     memset(this->m_data, 0, this->size + 1);
     this->m_data[size] = '\0';
 }
 
-ByteArray::ByteArray(const unsigned char* data, unsigned int size) :
+ByteArray::ByteArray(const uint8_t* data, uint32_t size) :
 		size(size),
-		originalSize(size),
-		m_data(new unsigned char[size + 1])
+		originalSize(size)
 {
+	THROW_OVERFLOW_IF(size == UINT32_MAX);
+	this->m_data = new unsigned char[size + 1];
     memcpy(this->m_data, data, size);
     this->m_data[size] = '\0';
-}
-
-ByteArray::ByteArray(std::ostringstream *buffer) :
-		ByteArray(buffer->str())
-{
 }
 
 ByteArray::ByteArray(const std::string& data) :
@@ -42,15 +41,6 @@ ByteArray::ByteArray(const std::string& data) :
 		m_data(new unsigned char[size + 1])
 {
     memcpy(this->m_data, data.c_str(), this->size);
-    this->m_data[this->size] = '\0';
-}
-
-ByteArray::ByteArray(const char *data) :
-		size(strlen(data) + 1),
-		originalSize(size),
-		m_data(new unsigned char[size + 1])
-{
-    memcpy(this->m_data, data, size);
     this->m_data[this->size] = '\0';
 }
 
@@ -103,6 +93,10 @@ ByteArray& ByteArray::operator=(ByteArray&& value)
 		return *this;
 	}
 
+    if(this->m_data) {
+    	delete[] this->m_data;
+    }
+
     this->size = value.size;
     this->originalSize = value.originalSize;
     this->m_data = value.m_data;
@@ -111,6 +105,17 @@ ByteArray& ByteArray::operator=(ByteArray&& value)
 	value.m_data = nullptr;
 
     return *this;
+}
+
+uint8_t& ByteArray::at(uint32_t pos) const
+{
+	THROW_OUT_OF_RANGE_IF(pos >= this->size);
+	return this->m_data[pos];
+}
+
+uint8_t& ByteArray::operator [](unsigned int pos)
+{
+	return this->at(pos);
 }
 
 bool operator==(const ByteArray& left, const ByteArray& right)
@@ -137,24 +142,6 @@ bool operator !=(const ByteArray& left, const ByteArray& right)
     cmp_result = memcmp(left.m_data, right.m_data, left.size);
     
     return (cmp_result ? true : false);
-}
-
-unsigned char& ByteArray::operator [](unsigned int pos)
-{
-	if(pos < 0 || pos >= this->size) {
-		throw std::out_of_range("");
-	}
-
-    return this->m_data[pos];
-}
-
-unsigned char ByteArray::at(unsigned int pos) const
-{
-	if(pos < 0 || pos >= this->size) {
-		throw std::out_of_range("");
-	}
-
-	return this->m_data[pos];
 }
 
 void ByteArray::copyFrom(unsigned char* data, unsigned int size)
@@ -270,13 +257,6 @@ std::string ByteArray::toHex(char separator) const
 	delete[] hex_data;
 
     return data.str();
-}
-
-std::istringstream* ByteArray::toInputStringStream() const
-{
-	std::string data((const char *) this->m_data, this->size + 1);
-	std::istringstream *stream = new std::istringstream(data);
-	return stream;
 }
 
 ByteArray& operator xor(const ByteArray& left, const ByteArray& right)
