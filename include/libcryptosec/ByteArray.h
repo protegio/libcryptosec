@@ -145,45 +145,29 @@ public:
     friend ByteArray& operator xor(const ByteArray& left, const ByteArray& right);
 
     /**
-     * @brief Copia os dados do array de bytes \p from.
-     * 
-     * @param data	Array de bytes a ser copiado.
-     * @param size	Tamanho do array de bytes a ser copiado.
-     */
-    void copyFrom(unsigned char* from, unsigned int size);
-
-    /**
-     * @brief Copia os dados do ByteArray para \p to.
-     * 
-     * @param to 				O ByteArray de destino.
-     * @param toOffset			O offset de onde começar a copiar no destino.
-     * @param fromOffset		O offset de onde começar a copiar da origem.
-     * @param fromNumberOfBytes	O número de bytes a ser copiado da origem.
+     * @brief Copia os dados do ByteArray \p from.
      *
-     * @throw std::out_of_range se qualquer limite da origem ou destino for quebrado.
-     */
-    void copyTo(ByteArray& to, unsigned int toOffset, unsigned int fromOffset, unsigned int fromNumberOfBytes) const;
-
-    /**
-     * @brief Modifica o ponteiro de memória do ByteArray para um já alocado, sem copiá-lo.
-     * 
-     * O ponteiro será deletado quando o ByteArray for destruído.
+     * O tamanho do ByteArray de destino (\p this) será expandido se necessário.
      *
-     * @param data	O array de bytes para ser gerenciado pelo ByteArray.
-     * @param size	O tamanho do array de bytes.
+     * @param from			ByteArray a ser copiado.
+     * @param fromOffset	Offset da origem.
+     * @param toOffset		Offset de destino.
+     * @param numberOfBytes	Número de bytes a serem copiados.
+     *
+     * @throw std::overflow_error se o tamanho total da origem ou destino ultrapassar UINT32_MAX.
+     * @throw std::out_of_range se a combinaão de offset e número de bytes ultrapassar o tamanho da origem.
      */
-    void setDataPointer(unsigned char* data, unsigned int size);
-    void setDataPointer(const unsigned char* data, unsigned int size);
+    void copy(const ByteArray& from, uint32_t fromOffset, uint32_t toOffset, uint32_t numberOfBytes);
 
     /**
      * @return Um ponteiro const para o array de bytes gerenciado pelo ByteArray.
      */
-    const unsigned char* getConstDataPointer() const;
+    const uint8_t* getConstDataPointer() const;
 
     /**
      * @return Um ponteiro para o array de bytes gerenciado pelo ByteArray.
      */
-    unsigned char* getDataPointer();
+    uint8_t* getDataPointer();
 
     /**
      * @return O tamanho do ByteArray.
@@ -200,10 +184,6 @@ public:
     /**
      * @brief Retorna o ByteArray como uma std::string.
      *
-     * Os dados são copiados para a std::string.
-     *
-     * Essa função garante que a string é terminada em \0.
-     *
      * @return A std::string.
      */
     virtual std::string toString() const;
@@ -219,13 +199,18 @@ public:
      */
     virtual std::string toHex(char separator) const;
     
+    /**
+     * @return A representação ASN1_OCTET_STRING do ByteArray.
+     * TODO: getAsn1.. o toAsn1..?
+     */
     ASN1_OCTET_STRING* getAsn1OctetString() const;
 
     /**
      * @brief Sobrescreve os dados do ByteArray.
      *
      * @param useRandomBytes Indica que o ByteArray deve ser sobrescrito com dados
-     * aleatórios, caso contrário ele será sobrescrito com zeros.
+     * aleatórios, caso contrário ele será sobrescrito com zeros.O RNG utilizado
+     * é o RAND_bytes do OpenSSL.
      */
     virtual void burn(bool useRandomBytes = false);
 

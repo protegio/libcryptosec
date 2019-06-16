@@ -1,9 +1,10 @@
 #include <libcryptosec/BigInteger.h>
 
 #include <libcryptosec/ByteArray.h>
+#include <libcryptosec/Macros.h>
 #include <libcryptosec/exception/EncodeException.h>
 #include <libcryptosec/exception/DecodeException.h>
-#include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/NullPointerException.h>
 
 #include <openssl/asn1t.h>
 #include <openssl/ossl_typ.h>

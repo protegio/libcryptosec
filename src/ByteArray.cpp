@@ -1,6 +1,7 @@
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/exception/ByteArrayException.h>
 #include <libcryptosec/Macros.h>
+#include <libcryptosec/exception/NullPointerException.h>
 
 #include <openssl/rand.h>
 
@@ -144,52 +145,22 @@ bool operator !=(const ByteArray& left, const ByteArray& right)
     return (cmp_result ? true : false);
 }
 
-void ByteArray::copyFrom(unsigned char* data, unsigned int size)
+void ByteArray::copy(const ByteArray& from, uint32_t fromOffset, uint32_t toOffset, uint32_t numberOfBytes)
 {
-	this->setSize(size);
-	memcpy(this->m_data, data, size);
-}
+	THROW_OVERFLOW_IF(UINT32_MAX-fromOffset < numberOfBytes);
+	THROW_OVERFLOW_IF(UINT32_MAX-toOffset < this->size);
+	THROW_OUT_OF_RANGE_IF(from.size < (fromOffset + numberOfBytes));
 
-void ByteArray::copyTo(ByteArray& to, unsigned int toOffset, unsigned int fromOffset, unsigned int fromSize) const
-{
-	if (this->size < (fromOffset + fromSize) || to.size < toOffset || to.size < fromSize)
-		throw std::out_of_range("");
+	if(toOffset + numberOfBytes > this->size)
+		this->setSize(toOffset + numberOfBytes);
 
-    for (unsigned int top = fromOffset + fromSize; toOffset < top; toOffset++, fromOffset++) {
-        to.m_data[toOffset] = this->m_data[fromOffset];
+	for (uint32_t top = toOffset + numberOfBytes; toOffset < top; toOffset++, fromOffset++) {
+        this->m_data[toOffset] = from.m_data[fromOffset];
     }
 }
 
-void ByteArray::setDataPointer(unsigned char* d, unsigned int size)
+const uint8_t* ByteArray::getConstDataPointer() const
 {
-	if (this->m_data == d){
-		this->setSize(size);
-	} else {
-		if (this->m_data) {
-			delete[] this->m_data;
-		}
-		this->size = size;
-		this->originalSize = size;
-		this->m_data = d;
-	}
-}
-
-void ByteArray::setDataPointer(const unsigned char* d, unsigned int size) {
-	if (this->m_data == d) {
-		this->setSize(size);
-	} else {
-		if (this->m_data && size > this->originalSize) {
-			delete[] this->m_data;
-			this->m_data = new unsigned char[size + 1];
-		}
-		memcpy(this->m_data, d, size);
-		this->size = size;
-		this->originalSize = (size > this->originalSize ? size : this->originalSize);
-		this->m_data[this->originalSize] = '\0';
-	}
-}
-
-const unsigned char* ByteArray::getConstDataPointer() const {
 	return this->m_data;
 }
 
@@ -210,6 +181,9 @@ void ByteArray::setSize(unsigned int size)
 	} else {
 		unsigned char* new_m_data = new unsigned char[size + 1];
 		memcpy(new_m_data, this->m_data, this->originalSize);
+		if(this->m_data) {
+			delete[] this->m_data;
+		}
 		this->m_data = new_m_data;
 		this->size = size;
 		this->originalSize = size;

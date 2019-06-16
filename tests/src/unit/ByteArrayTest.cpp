@@ -17,13 +17,13 @@ protected:
 	}
 };
 
-TEST_F(ByteArrayTest, ByteArrayTest) {
+TEST_F(ByteArrayTest, ByteArrayConstructorTest) {
 	ByteArray ba;
 	ASSERT_EQ(ba.getSize(), 0);
 	ASSERT_NE(ba.getConstDataPointer(), nullptr);
 }
 
-TEST_F(ByteArrayTest, ByteArrayUint32Test) {
+TEST_F(ByteArrayTest, ByteArrayUint32ContructorTest) {
 	ByteArray ba(0);
 	ASSERT_EQ(ba.getSize(), 0);
 	ASSERT_NE(ba.getConstDataPointer(), nullptr);
@@ -33,7 +33,7 @@ TEST_F(ByteArrayTest, ByteArrayUint32Test) {
 	ASSERT_NE(ba.getConstDataPointer(), nullptr);
 }
 
-TEST_F(ByteArrayTest, ByteArrayUint8PointerUint32Test) {
+TEST_F(ByteArrayTest, ByteArrayUint8PointerUint32ConstructorTest) {
 	const uint8_t *data = (const uint8_t*) "hello world!";
 	uint32_t size = 12;
 
@@ -50,7 +50,7 @@ TEST_F(ByteArrayTest, ByteArrayUint8PointerUint32Test) {
 	ASSERT_EQ(cmpResult, 0);
 }
 
-TEST_F(ByteArrayTest, ByteArrayStringTest) {
+TEST_F(ByteArrayTest, ByteArrayStringConstructorTest) {
 	std::string data = "Hello world!";
 	uint32_t size = data.size();
 
@@ -66,13 +66,13 @@ TEST_F(ByteArrayTest, ByteArrayStringTest) {
 	ASSERT_EQ(cmpResult, 0);
 }
 
-TEST_F(ByteArrayTest, ByteArrayCopyTest) {
+TEST_F(ByteArrayTest, ByteArrayCopyConstructorTest) {
 	ByteArray ba1("Hello world!");
 	ByteArray ba2(ba1);
 	ASSERT_EQ(ba1, ba2);
 }
 
-TEST_F(ByteArrayTest, ByteArrayMoveTest) {
+TEST_F(ByteArrayTest, ByteArrayMoveConstructorTest) {
 	ByteArray ba1("Hello world!");
 	ByteArray ba2(std::move(ba1));
 	ASSERT_NE(ba1, ba2);
@@ -214,4 +214,129 @@ TEST_F(ByteArrayTest, ByteArrayXorOperatorTest) {
 
 	xorResult = ba5 xor ba1;
 	ASSERT_EQ(xorResult, ba6);
+}
+
+TEST_F(ByteArrayTest, ByteArrayCopyTest) {
+	ByteArray ba0("0123456789");
+	ByteArray ba1("9876543210");
+	ByteArray ba3;
+
+	ba3.copy(ba0, 0, 0, 10);
+	ASSERT_EQ(ba3, ByteArray("0123456789"));
+
+	ba3.copy(ba0, 0, 0, 10);
+	ASSERT_EQ(ba3, ByteArray("0123456789"));
+
+	ba3.copy(ba1, 0, 0, 10);
+	ASSERT_EQ(ba3, ByteArray("9876543210"));
+
+	ba3.copy(ba0, 0, 10, 10);
+	ASSERT_EQ(ba3, ByteArray("98765432100123456789"));
+
+	ba3.copy(ba0, 0, 0, 10);
+	ASSERT_EQ(ba3, ByteArray("01234567890123456789"));
+
+	ba3.copy(ba0, 5, 3, 2);
+	ASSERT_EQ(ba3, ByteArray("01256567890123456789"));
+
+	ASSERT_THROW(ba3.copy(ba0, UINT32_MAX, 0, 1), std::overflow_error);
+	ASSERT_THROW(ba3.copy(ba0, 0, UINT32_MAX, 1), std::overflow_error);
+	ASSERT_THROW(ba3.copy(ba0, 0, 0, ba0.getSize() + 1), std::out_of_range);
+	ASSERT_THROW(ba3.copy(ba0, 1, 0, ba0.getSize()), std::out_of_range);
+}
+
+TEST_F(ByteArrayTest, ByteArrayGetConstDataPointerTest) {
+	ByteArray ba0("0123456789");
+	const uint8_t* data = ba0.getConstDataPointer();
+	int compResult = memcmp(data, "0123456789", ba0.getSize());
+	ASSERT_EQ(compResult, 0);
+}
+
+TEST_F(ByteArrayTest, ByteArrayGetDataPointerTest) {
+	ByteArray ba0("0123456789");
+	uint8_t* data = ba0.getDataPointer();
+	int compResult = memcmp(data, "0123456789", ba0.getSize());
+	ASSERT_EQ(compResult, 0);
+
+	data[0] = '9';
+	const uint8_t* constData = ba0.getConstDataPointer();
+	compResult = memcmp(constData, "9123456789", ba0.getSize());
+	ASSERT_EQ(compResult, 0);
+
+	ASSERT_EQ(ba0, ByteArray("9123456789"));
+}
+
+TEST_F(ByteArrayTest, ByteArrayGetSizeTest) {
+	ByteArray ba0("0123456789");
+	ASSERT_EQ(ba0.getSize(), 10);
+}
+
+TEST_F(ByteArrayTest, ByteArraySetSizeTest) {
+	ByteArray ba0("0123456789");
+	ByteArray ba1("0123456789");
+
+	ba0.setSize(5);
+	ASSERT_EQ(ba0.getSize(), 5);
+	ASSERT_NE(ba0, ba1);
+	ASSERT_THROW(ba0.at(5), std::out_of_range);
+
+	ba0.setSize(10);
+	ASSERT_EQ(ba0.getSize(), 10);
+	ASSERT_EQ(ba0, ba1);
+	ASSERT_NO_THROW(ba0.at(5));
+
+	ba0.setSize(15);
+	ASSERT_EQ(ba0.getSize(), 15);
+	ASSERT_NE(ba0, ba1);
+	ASSERT_NO_THROW(ba0.at(10));
+}
+
+TEST_F(ByteArrayTest, ByteArrayToStringTest) {
+	ByteArray ba0("0123456789");
+	std::string ba0String = ba0.toString();
+	ASSERT_EQ(ba0String, "0123456789");
+}
+
+TEST_F(ByteArrayTest, ByteArrayToHexTest) {
+	const uint8_t data[4] = {0xDE, 0xAD, 0xBE, 0xEF};
+	ByteArray ba0(data, 4);
+
+	std::string ba0HEx = ba0.toHex();
+	ASSERT_EQ(ba0HEx, "DEADBEEF");
+
+	ba0HEx = ba0.toHex(':');
+	ASSERT_EQ(ba0HEx, "DE:AD:BE:EF");
+}
+
+TEST_F(ByteArrayTest, ByteArrayGetAsn1OctetStringTest) {
+	const uint8_t data[4] = {0xDE, 0xAD, 0xBE, 0xEF};
+	ByteArray ba0(data, 4);
+
+	ASN1_OCTET_STRING *octetString = ba0.getAsn1OctetString();
+
+	int size = ASN1_STRING_length(octetString);
+	ASSERT_EQ(size, 4);
+
+	const uint8_t *octetStringData = ASN1_STRING_get0_data(octetString);
+	int compResult = memcmp(octetStringData, data, 4);
+	ASSERT_EQ(compResult, 0);
+}
+
+TEST_F(ByteArrayTest, ByteArrayBurnTest) {
+	const uint8_t cmpData[4] = {0x00, 0x00, 0x00, 0x00};
+	const char *cmpStr = "0123";
+	ByteArray ba0("0123");
+	ByteArray ba1("0123");
+
+	ba0.burn(false);
+	int compResult = memcmp(ba0.getConstDataPointer(), cmpData, 4);
+	ASSERT_EQ(compResult, 0);
+
+	// Teoricamente esse teste pode falhar, mas a probabilidade é
+	// muito baixa (i.e.: ~ 1/2^32).
+	ba1.burn(true);
+	compResult = memcmp(ba1.getConstDataPointer(), cmpData, 4);
+	ASSERT_NE(compResult, 0);
+	compResult = memcmp(ba1.getConstDataPointer(), cmpStr, 4);
+	ASSERT_NE(compResult, 0);
 }
