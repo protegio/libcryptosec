@@ -96,7 +96,7 @@ X509_REVOKED* RevokedCertificate::getSslObject() const
 	);
 
 	try {
-		sslRevocationDate = this->revocationDate.getAsn1Time();
+		sslRevocationDate = this->revocationDate.toAsn1Time();
 	} catch (...) {
 		X509_REVOKED_free(ret);
 		throw;

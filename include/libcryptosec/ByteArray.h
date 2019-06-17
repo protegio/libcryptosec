@@ -211,6 +211,8 @@ public:
      * @param useRandomBytes Indica que o ByteArray deve ser sobrescrito com dados
      * aleatórios, caso contrário ele será sobrescrito com zeros.O RNG utilizado
      * é o RAND_bytes do OpenSSL.
+     *
+     * TODO: devemos usar um valor padrão false?
      */
     virtual void burn(bool useRandomBytes = false);
 

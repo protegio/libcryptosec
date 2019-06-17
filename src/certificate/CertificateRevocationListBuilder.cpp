@@ -89,10 +89,11 @@ void CertificateRevocationListBuilder::setIssuer(const X509* issuer)
 void CertificateRevocationListBuilder::setLastUpdate(const DateTime& dateTime)
 {
 	/*
+	 * TODO: deveríamos fazer isso?
 	 * Devido a um bug do firefox ao abrir CRL com datas em formato GeneralizedTime, mudou-se para UTC
-	 * */
+	 */
 	//asn1Time = dateTime.getAsn1Time();
-	ASN1_TIME *asn1Time = dateTime.getUTCTime();
+	ASN1_TIME *asn1Time = dateTime.toAsn1UTCTime();
 	int rc = X509_CRL_set_lastUpdate(this->crl, asn1Time);
 	ASN1_TIME_free(asn1Time);
 	THROW_ENCODE_ERROR_IF(rc == 0);
@@ -104,7 +105,7 @@ void CertificateRevocationListBuilder::setNextUpdate(const DateTime& dateTime)
 	 * Devido a um bug do firefox ao abrir CRL com datas em formato GeneralizedTime,
 	 * mudou-se para UTC
 	 * */
-	ASN1_TIME *dateAsn1 = dateTime.getAsn1Time();
+	ASN1_TIME *dateAsn1 = dateTime.toAsn1Time();
 	int rc = X509_CRL_set_nextUpdate(this->crl, dateAsn1);
 	ASN1_TIME_free(dateAsn1);
 	THROW_ENCODE_ERROR_IF(rc == 0);

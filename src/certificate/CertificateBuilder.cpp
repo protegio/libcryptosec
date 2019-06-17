@@ -115,7 +115,7 @@ void CertificateBuilder::setVersion(long version)
 
 void CertificateBuilder::setNotBefore(const DateTime &dateTime)
 {
-	ASN1_TIME *asn1Time = dateTime.getAsn1Time();
+	ASN1_TIME *asn1Time = dateTime.toAsn1Time();
 	int rc = X509_set1_notBefore(this->cert, asn1Time);
 	ASN1_TIME_free(asn1Time);
 	THROW_ENCODE_ERROR_IF(rc == 0);
@@ -123,7 +123,7 @@ void CertificateBuilder::setNotBefore(const DateTime &dateTime)
 
 void CertificateBuilder::setNotAfter(const DateTime &dateTime)
 {
-	ASN1_TIME *asn1Time = dateTime.getAsn1Time();
+	ASN1_TIME *asn1Time = dateTime.toAsn1Time();
 	int rc = X509_set1_notAfter(this->cert, asn1Time);
 	ASN1_TIME_free(asn1Time);
 	THROW_ENCODE_ERROR_IF(rc == 0);

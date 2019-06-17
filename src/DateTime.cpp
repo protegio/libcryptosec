@@ -1,185 +1,85 @@
 #include <libcryptosec/DateTime.h>
 
 #include <libcryptosec/Macros.h>
-#include <libcryptosec/exception/EncodeException.h>
+#include <libcryptosec/exception/NullPointerException.h>
 
 #include <limits>
 
-//pegar hora local
 DateTime::DateTime() :
 		seconds(0)
 {
 }
 
-DateTime::DateTime(time_t dateTime)
+DateTime::DateTime(const BigInteger& epochTime)
 {
-	this->setDateTime(dateTime);
+	this->seconds = epochTime;
 }
 
-DateTime::DateTime(BigInteger const& dateTime)
+DateTime::DateTime(const ASN1_TIME *asn1Time) throw()
 {
-	this->setDateTime(dateTime);
-}
-
-DateTime::DateTime(const ASN1_TIME *asn1Time)
-{
-/*	tm dateTimeTm;
-	std::string dateTimeWr;
-	int size, i;
-	unsigned char *dateTimeBin;
-	char temp[5];
-	if (!asn1Time)
-	{
-		this->dateTime = 0;
-	}
-	else
-	{
-		dateTimeBin = ASN1_STRING_data(asn1Time);
-		size = ASN1_STRING_length(asn1Time);
-		if (!(dateTimeBin) || ((size != 13) && (size != 15)))
-		{
-	//		throw CertificationException(CertificationException::SET_NO_VALUE, "DateTime::DateTime");
-			this->dateTime = 0;
-		}
-		else
-		{
-			for (i=0;i<size;i++)
-			{
-				dateTimeWr[i] = dateTimeBin[i];
-			}
-		    if (size == 13)
-		    {
-		    	temp[0] = dateTimeWr[10];
-		    	temp[1] = dateTimeWr[11];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_sec = atoi(temp);
-				temp[0] = dateTimeWr[8];
-		    	temp[1] = dateTimeWr[9];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_min = atoi(temp);
-				temp[0] = dateTimeWr[6];
-		    	temp[1] = dateTimeWr[7];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_hour = atoi(temp);
-				temp[0] = dateTimeWr[4];
-		    	temp[1] = dateTimeWr[5];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_mday = atoi(temp);
-				temp[0] = dateTimeWr[2];
-		    	temp[1] = dateTimeWr[3];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_mon = atoi(temp) - 1;
-				dateTimeTm.tm_isdst = -1;
-				temp[0] = dateTimeWr[0];
-		    	temp[1] = dateTimeWr[1];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_year = atoi(temp);
-				if (dateTimeTm.tm_year < 50)
-				{
-					dateTimeTm.tm_year += 100;
-				}
-		    }
-		    else
-		    {
-		    	temp[0] = dateTimeWr[12];
-		    	temp[1] = dateTimeWr[13];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_sec = atoi(temp);
-				temp[0] = dateTimeWr[10];
-		    	temp[1] = dateTimeWr[11];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_min = atoi(temp);
-				temp[0] = dateTimeWr[8];
-		    	temp[1] = dateTimeWr[9];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_hour = atoi(temp);
-				temp[0] = dateTimeWr[6];
-		    	temp[1] = dateTimeWr[7];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_mday = atoi(temp);
-				temp[0] = dateTimeWr[4];
-		    	temp[1] = dateTimeWr[5];
-		    	temp[2] = '\0';
-				dateTimeTm.tm_mon = atoi(temp) - 1;
-				dateTimeTm.tm_isdst = -1;
-				temp[0] = dateTimeWr[0];
-		    	temp[1] = dateTimeWr[1];
-		    	temp[2] = dateTimeWr[2];
-		    	temp[3] = dateTimeWr[3];
-		    	temp[4] = '\0';
-				dateTimeTm.tm_year = atoi(temp) - 1900;
-			}
-			this->dateTime = timegm(&dateTimeTm);
-		}
-	}*/
-	
+	THROW_NULL_POINTER_IF(asn1Time == nullptr);
 	std::string str(reinterpret_cast<char*>(asn1Time->data), asn1Time->length);
-	this->setDateTime(this->date2epoch(str));
+	this->seconds = DateTime::date2epoch(str);
 }
 
-DateTime::DateTime(std::string s)
+DateTime::DateTime(const std::string& asn1Time) throw()
 {
-	this->setDateTime(DateTime::date2epoch(s));
+	this->seconds = DateTime::date2epoch(asn1Time);
 }
 
 DateTime::~DateTime()
 {
 }
 
-void DateTime::setDateTime(time_t dateTime)
-{
-	this->seconds = dateTime;
-}
-
-void DateTime::setDateTime(BigInteger const& b)
-{
-	this->seconds = b;
-}
-
-time_t DateTime::getDateTime() const
-{
-	THROW_ENCODE_IF(this->seconds > std::numeric_limits<time_t>::max());
-	return static_cast<time_t>(this->seconds.toInt32());
-}
-
 std::string DateTime::toXml(const std::string& tab) const
 {	
-	ASN1_TIME* gt;
-	std::string str;
-	
-	gt = this->getAsn1Time();
-	str = std::string(reinterpret_cast<char*>(gt->data), gt->length);
-	
+	ASN1_TIME *gt = this->toAsn1Time();
+	std::string str(reinterpret_cast<char*>(gt->data), gt->length);
 	str = tab + str; 
-	
 	return str;	
 }
 
-ASN1_TIME* DateTime::getAsn1Time() const
+void DateTime::setSeconds(const BigInteger& epochTime)
 {
-	BigInteger asn1TimeLimit(std::string("2524608000")); // segundos para 01/01/2050 00:00:00 Zulu
+	this->seconds = epochTime;
+}
+
+BigInteger DateTime::getSeconds() const
+{
+	return this->seconds;
+}
+
+time_t DateTime::toTimeT() const throw()
+{
+	time_t maxTime = std::numeric_limits<time_t>::max();
+	THROW_OVERFLOW_IF(this->seconds > maxTime);
+	return this->seconds.toInt64();
+}
+
+ASN1_TIME* DateTime::toAsn1Time() const
+{
+	// TODO: porque precisamos dessa lógica?
+	// segundos para 01/01/2050 00:00:00 Zulu
+	BigInteger asn1TimeLimit("2524608000");
 	ASN1_TIME* ret = NULL;
-	
-	if(this->seconds < asn1TimeLimit)
-	{
-		ret = this->getUTCTime();
-	}
-	else
-	{
-		ret = this->getGeneralizedTime();
+
+	if(this->seconds < asn1TimeLimit) {
+		ret = this->toAsn1UTCTime();
+	} else {
+		ret = this->toAsn1GeneralizedTime();
 	}
 	
 	return ret;
 }
 
-ASN1_TIME* DateTime::getGeneralizedTime() const
+ASN1_TIME* DateTime::toAsn1GeneralizedTime() const
 {
 	ASN1_TIME *ret;
 	DateVal date;
 	std::stringstream stream;
 	std::string gt;
 	
-	date = DateTime::getDate(this->seconds);
+	date = DateTime::getDateVal(this->seconds);
 	
 	stream.setf(std::ios_base::right);
 	stream.fill('0');
@@ -204,13 +104,13 @@ ASN1_TIME* DateTime::getGeneralizedTime() const
 	
 	ret = ASN1_GENERALIZEDTIME_new();
 	
-	//pode retornar 1 no caso de falha de alocacao de memoria
+	// TODO: Pode retornar 1 no caso de falha de alocacao de memoria
 	ASN1_STRING_set(ret, gt.c_str(), gt.size());
 
 	return ret;
 }
 
-ASN1_TIME* DateTime::getUTCTime() const
+ASN1_TIME* DateTime::toAsn1UTCTime() const
 {
 	ASN1_TIME *ret;
 	DateVal date;
@@ -218,18 +118,17 @@ ASN1_TIME* DateTime::getUTCTime() const
 	std::string tmp;
 	std::string utc;
 	
-	date = DateTime::getDate(this->seconds);
+	date = DateTime::getDateVal(this->seconds);
 	
 	stream.setf(std::ios_base::right);
 	stream.fill('0');
 	
-	stream.width(2); //define um tamanho minimo de 2 chars
+	stream.width(2); // Define um tamanho minimo de 2 chars
 	stream << date.year;
 	stream >> tmp;
 	
-	//pega apenas os dois numeros mais a direita
-	if(tmp.size() > 2)
-	{
+	// Pega apenas os dois numeros mais a direita
+	if(tmp.size() > 2) {
 		tmp = tmp.substr(tmp.size() - 2);
 	}
 	stream.clear();
@@ -252,18 +151,18 @@ ASN1_TIME* DateTime::getUTCTime() const
 	utc = stream.str();
 	ret = ASN1_UTCTIME_new();
 	
-	//pode retornar 1 no caso de falha de alocacao de memoria
+	// TODO: Pode retornar 1 no caso de falha de alocacao de memoria
 	ASN1_STRING_set(ret, utc.c_str(), utc.size());
 
 	return ret;
 }
 
-std::string DateTime::getISODate() const
+std::string DateTime::toISODateTime() const
 {
 	DateVal date;
 	std::stringstream stream;
 	
-	date = DateTime::getDate(this->seconds);
+	date = DateTime::getDateVal(this->seconds);
 	
 	stream.setf(std::ios_base::right);
 	stream.fill('0');
@@ -304,182 +203,57 @@ std::string DateTime::getISODate() const
 	return stream.str();
 }
 
-DateTime& DateTime::operator =(const DateTime& aDate)
+void DateTime::addSeconds(const BigInteger& seconds)
 {
-	this->setDateTime(aDate.getSeconds());
-	return(*this);	
+	this->seconds.add(seconds);
 }
 
-BigInteger const& DateTime::getSeconds() const throw()
+void DateTime::addMinutes(const BigInteger& minutes)
 {
-	return this->seconds;
+	this->seconds.add(minutes*60);
 }
 
-void DateTime::addSeconds(long b)
+void DateTime::addHours(const BigInteger& hours)
 {
-	this->seconds.add(b);
+	this->seconds.add(hours*60*60);
 }
 
-void DateTime::addMinutes(long b)
+void DateTime::addDays(const BigInteger& days)
 {
-	BigInteger tmp(b);
-	tmp.mul(60);
-	this->seconds.add(tmp);
+	this->seconds.add(days*24*60*60);
 }
 
-void DateTime::addHours(long b)
+void DateTime::addYears(const BigInteger& years)
 {
-	BigInteger tmp(b);
-	tmp.mul(60);
-	tmp.mul(60);
-	this->seconds.add(tmp);
+	this->seconds.add(years*365*24*60*60);
 }
 
-void DateTime::addDays(long b)
+bool DateTime::operator ==(const DateTime& other) const
 {
-	BigInteger tmp(b);
-	tmp.mul(60);
-	tmp.mul(60);
-	tmp.mul(24);
-	this->seconds.add(tmp);
+	return this->seconds == other.seconds;
 }
 
-void DateTime::addYears(long b)
+bool DateTime::operator !=(const DateTime& other) const
 {
-	BigInteger tmp(b);
-	tmp.mul(60);
-	tmp.mul(60);
-	tmp.mul(24);
-	tmp.mul(365);
-	this->seconds.add(tmp);
+	return this->seconds != other.seconds;
 }
 
-//versao antiga, sem suporte a biginteger
-/*time_t DateTime::date2epoch(int year, int month, int day, int hour, int min, int sec, int offset_timezone) const
+bool DateTime::operator <(const DateTime& other) const
 {
-	time_t ret = 0;
-	int daysOfMonths[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-	
-	int leapDays = (year - 1 - 1970)/4;
-	int dyears = (year - 1970) * 365;
-	int dmonth = 0;
-	
-	for(int i = 0; i < month ; i++)
-	{
-		dmonth +=  daysOfMonths[i];
-	}
-	
-	if(isLeapYear(year) && month > 1)
-	{
-		dmonth++;
-	}
-	
-	ret = (leapDays + dyears + dmonth)*24*60*60 + hour*60*60 + min*60 + sec - offset_timezone*60*60; 
-	
-	ret += (day - 1)*24*60*60;
-		
-	return ret;
-}*/
+	return this->seconds < other.seconds;
+}
 
-//versao antiga, sem suporte a biginteger
-/*DateTime::dateVal DateTime::getDate() const
+bool DateTime::operator >(const DateTime& other) const
 {
-	int daysOfMonths[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-	DateTime::dateVal ret;
-	int yearsSinceEpoch = 0;
-	int year = 0;
-	int leapDays = 0;
-	int month = 1;
-	int daysSinceEpoch = 0;
-	int minLeft = 0;
-	
-	//ret.tm_isdst = 0;
-	ret.mon = 0;
-	
-	//anos desde 1970
-	yearsSinceEpoch = this->seconds / (365 * 24 * 60 * 60);
-	//year = 1970 + yearsSinceEpoch;
-	//ret.tm_year = 70 + yearsSinceEpoch; //year - 1900
-	ret.year = 1970 + yearsSinceEpoch;
-	
-	//leapdays devido a anos bissextos
-	leapDays = yearsSinceEpoch / 4;
-	
-	//dias desde 1970
-	daysSinceEpoch = this->seconds / (24*60*60);
-	
-	//subtract leap days
-	daysSinceEpoch-= leapDays;
-	
-	//dayofyear
-	ret.dayOfYear = daysSinceEpoch % 365;
-	
-	//verifica se eh ano bissexto
-	if(isLeapYear(ret.year))
-	{
-		daysOfMonths[1]++;
-	}
-	
-	//dayOfMonth = ret.tm_yday;
-	ret.dayOfMonth = ret.dayOfYear;
-	
-	for(int i = 0 ; i < 12 ; i++)
-	{
-		ret.dayOfMonth-= daysOfMonths[i];
-		
-		if(ret.dayOfMonth > 0)
+	return this->seconds > other.seconds;
+}
+
+bool DateTime::operator >=(const DateTime& other) const
+{
+	return this->seconds >= other.seconds;
+}
+
+bool DateTime::operator <=(const DateTime& other) const
 		{
-			month++;
-			ret.mon++;
-		}
-		else
-		{
-			ret.dayOfMonth+= daysOfMonths[i] + 1; //1 - 31
-			break;
-		}
-	}
-	
-	ret.sec = this->seconds - ((daysSinceEpoch + leapDays) * 24 * 60 * 60);	
-	
-	ret.hour = ret.sec / (60*60);
-		
-	minLeft = ret.sec - (ret.hour * 60 * 60);
-	
-	ret.min = minLeft / 60;
-	
-	ret.sec = minLeft - (ret.min * 60);
-		
-	ret.dayOfWeek = this->getDayOfWeek(ret.year, ret.mon, ret.dayOfMonth);
-	
-	return ret;
-}*/
-
-bool DateTime::operator==(const DateTime& other) const throw()
-{
-	return (this->getSeconds() == other.getSeconds());
-}
-
-bool DateTime::operator==(time_t other) const
-{
-	return (this->getSeconds() == other);
-}
-
-bool DateTime::operator<(const DateTime& other) const throw()
-{
-	return (this->getSeconds() < other.getSeconds());
-}
-
-bool DateTime::operator<(time_t other) const
-{
-	return (this->getSeconds() < other);
-}
-
-bool DateTime::operator>(const DateTime& other) const throw()
-{
-	return (this->getSeconds() > other.getSeconds());
-}
-
-bool DateTime::operator>(time_t other) const
-{
-	return (this->getSeconds() > other);
+	return this->seconds <= other.seconds;
 }

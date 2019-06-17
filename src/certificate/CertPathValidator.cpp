@@ -185,7 +185,7 @@ bool CertPathValidator::verify()
 	* void X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, unsigned long flags, time_t t)
 	* nao eh utilizado, segundo verificou-se no arquivo crypto/x509/x509_vfy.c
 	*/
-	time_t sslWhen = this->when.getDateTime();
+	time_t sslWhen = this->when.toTimeT();
 	X509_STORE_CTX_set_time(storeCtx, 0 , sslWhen);
 	// X509_STORE_CTX_set_time não retorna erro
 
